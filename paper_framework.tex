@@ -1,0 +1,643 @@
+\chapter{系统框架与问题设定}
+\section{系统框架}
+设交易日为$t=1 ,\dots ,T$，可投资的资产数为$N$，市场状态空间记为$S$，其中包含股票的收益和波动、宏观经济以及行业资讯等信息。在第$t$日开盘前，系统读取到当前交易日的状态空间为$s_t$以及用户心理参考点为$r_t$。本文设计的多智能体投资组合推荐系统运行流程大致如下：
+
+用户偏好Agent通过接收用户输入的提示词$I_t$，从自然语言中捕捉到关于投资偏好的语义线索，并识别为结构化的偏好约束向量$c_t$，传送给优化器。
+\begin{equation}
+c_t=Agent_{\theta}(c_{t-1},I_t)
+\end{equation}
+在偏好约束$c_t$下，第 $t$ 期的可行动空间定义为，并且为非空紧集。
+\begin{equation}
+A(c_t)
+=
+\left\{
+a_t=(\omega_{0,t},\omega_{1,t},\dots,\omega_{N,t})^\top
+\;\middle|\;
+\sum_{i=0}^N \omega_{i,t}=1,\;\omega_{i,t} \ge 0,\;
+a_t \text{ 满足 } c_t
+\right\}
+\end{equation}
+
+其中，$a_t$ 表示第 $t$ 个交易日输出的连续投资组合权重向量，$\omega_{0,t}$ 表示现金权重，$\omega_{i,t}$ 表示资产 $i$ 在该交易日的配置权重。
+
+第$t$日开盘后，优化器输出选择各分配的概率分布，即策略$\pi_{\theta_t}(a_t \mid s_t, c_t)$。
+其中 $\theta_t$ 为第$t$个交易日的策略参数。并从中抽样得到当日推荐的动作$a^*_t$，传给投资顾问Agent。
+\begin{equation}
+a_t^* \sim \pi_{\theta_t}(\cdot \mid s_t,c_t)
+\end{equation}
+为了增加可解释性，投资顾问Agent向用户输出并分析，包括解释分配理由、与用户偏好约束的一致性说明等。
+
+在用户根据推荐自行操作后，投资顾问Agent收集用户行为反馈，比如对该推荐的评分或者是否采纳（采纳、不采纳、部分采纳）的选项。和语义反馈$I_{t+1}$，并将反馈交回用户偏好Agent，以让它处理，更新下一期偏好约束：
+\begin{equation}
+c_{t+1}=Agent_\theta(c_t,I_{t+1})
+\end{equation}
+同时，在第$t$日收盘后，系统观测到真实的客观结果$x_t$，这里$x_t$表示该交易日收盘后剔除交易成本的投资组合净盈亏金额，并据此更新参考点：
+\begin{equation}
+r_{t+1}
+=
+\begin{cases}
+r_t+\eta_+\left(x_t-r_t\right), & x_t\ge r_t,\\[4pt]
+r_t-\eta_-\left(r_t-x_t\right), & x_t<r_t.
+\end{cases}
+\end{equation}
+其中，收益侧变化步长和亏损侧变化步长为$\eta_+,\eta_->0$，且$\eta_+>\eta_-$。该参考点的变化机制体现了参考点的非对称适应：当客观结果高于参考点时，参考点向上调整更快；当客观结果低于参考点时，参考点向下调整更慢。这样也就刻画出了常见投资者的路径依赖和处置效应等心理。
+
+综上所述，该框架完成了由用户交互闭环的多智能体协作。
+
+
+本文主要的数学符号及含义见下表。
+\begin{table}[H]
+\centering
+\caption{主要符号及其含义}
+\begin{tabular}{p{0.18\textwidth} p{0.72\textwidth}}
+\hline
+符号 & 含义 \\
+\hline
+$t$ & 交易日，$t=1,2,\dots,T$ \\
+$N$ & 可投资资产数量 \\
+$S$ & 市场状态空间，包含开盘前获得的股票数据、宏观经济及行业资讯等信息 \\
+$s_t$ & 第 $t$ 天开盘前的市场状态 \\
+$I_t$ & 用户在第 $t$ 期输入的自然语言 \\
+$c_t$ & 第 $t$ 期的结构化偏好约束向量 \\
+$r_t$ & 第 $t$ 期的心理参考点 \\
+$A(c_t)$ & 满足偏好约束 $c_t$ 的可行动作空间 \\
+$\pi_{\theta_t}(a_t\mid s_t,c_t)$ & 第 $t$ 期的策略 \\
+$a_t$ & 第 $t$ 天输出的投资组合分配动作 \\
+$\theta_t$ & 第 $t$ 期策略参数 \\
+$\Theta$ & 策略参数空间 \\
+$h$ & 滑动窗口长度 \\
+$m_t$ & 第 $t$ 期用于估计的收益轨迹条数 \\
+$x_t$ & 第 $t$ 天收盘后观测到的投资组合净盈亏金额 \\
+$X_t^{(j)}$ & 第 $t$ 期第 $j$ 条收益轨迹在窗口末端对应的投资组合净盈亏金额样本 \\
+$Y_t^{(j)}$ & 相对收益样本，$Y_t^{(j)}=X_t^{(j)}-r_t$ \\
+$\psi_t^{(j)}$ & 第$j$条收益轨迹对应的CPT权重 \\
+$v_g(\cdot),v_l(\cdot)$ & 收益侧与损失侧的效用函数 \\
+$w_g(\cdot),w_l(\cdot)$ & 收益侧与损失侧的权重函数 \\
+$J_t(\theta,r_t)$ & 第 $t$ 期的优化目标函数 \\
+$\gamma_t$ & 第 $t$ 期策略参数更新步长 \\
+$\mathcal{S}_t$ & 第 $t$ 期目标函数 $J_t$ 的一阶驻点集合 \\
+\hline
+\end{tabular}
+\end{table}
+\section{问题设定}
+令第$t$日优化器输出策略时考虑的目标函数为$J_t(\theta,r_t)$。
+\begin{equation}
+J_t(\theta,r_t)=CPT_t(\theta,r_t),
+\end{equation}
+其中$J_t(\theta,r_t)$表示在第$t$日的参考点下，由策略$\pi_{\theta}$在一段时间内重复和环境交互、选择动作、获取收益，得到的累积收益分布所对应的CPT效用。意义在于衡量一个策略在长期交互下的用户心理收益情况。
+
+因为用户心理参考点$r_t$受持仓收益情况影响，每个交易日都会更新，所以要优化的目标函数$J_t(\theta,r_t)$也会随之改变，也就为优化问题带来了不平稳性。于是，每期目标函数对应的一阶驻点集合定义为：
+\begin{equation}
+\mathcal{S}_t=\left\{\theta \in \Theta:\nabla J_t(\theta,r_t)=0\right\}
+\end{equation}
+其中，$\Theta$为策略参数的参数空间，为非空紧集，即参数${\theta_t}$有界。
+
+由此得出，本文要解决的问题是：在非平稳的市场环境中，考虑动态变化的参考点，构造一个在线更新的强化学习优化器，随着时间发展，使得策略参数$\theta_t$，能够持续靠近CPT效用的一阶驻点集合$\mathcal{S}_t$。
+
+本文采用以下假设来构造优化器：
+
+A1：$s_t$、$c_t$和$r_t$都是第$t$天开盘前可观测到的信息，因此观测到的投资组合客观结果为$x_{t-1}$及之前的历史值，$x_t$只能在第$t$天收盘后观测到。用于保证智能体在输出策略时不存在前视偏差。
+
+A2：市场状态允许随时间变化，但对最近$h$个交易日而言，变化是可控的。在滑动窗口$H=\{t-h,\dots,t-1\}$内，由策略$\theta_{t-1}$构造的收益轨迹分布估计的CPT梯度可用于近似为当前交易日$t$的环境下的目标函数，并且近似误差$\delta_t(h)$有界。
+该假设用于保证滑动窗口可以近似当前环境，可用于训练策略；若处于剧烈波动的市场，则需要缩短窗口长度或者引入重置机制。
+
+A3：参考点$r_t$随时间变化，但相邻两期变化的变化幅度有界，即存在非负数$\rho_t$ 使得
+\begin{equation}
+|r_{t+1}-r_t|\le \rho_t
+\end{equation}
+该假设的作用是避免目标函数在相邻两期发生剧烈突变，使得策略参数无法靠近目标函数的一阶驻点集合；若该条件轻微违反，则需要缩短窗口或降低参考点的更新步长。
+
+A4: CPT的效用函数$v_g(\cdot)$与$v_l(\cdot)$连续、单调递增且有界；权重函数$w_g(\cdot)$与$w_l(\cdot)$在$[0,1]$上连续、单调且可微，并满足其导数$w_g'(\cdot)$ 与$w_l'(\cdot)$为Lipschitz连续。用于保证CPT效用和CPT策略梯度的可估计性和稳定性。
+
+A5: 对任意可行的$s_t, c_t$及动作$a_t \in A(c_t)$，策略$\pi_{\theta_t}(a_t \mid s_t, c_t)$关于参数$\theta_t$可微，且存在常数$C > 0$，使得
+\begin{equation}
+\|\nabla_{\theta} \log \pi_{\theta_t}(a_t \mid s_t, c_t)\| \leq C
+\end{equation}
+用于保证策略梯度有界，从而支撑参数更新的稳定性。
+
+A6：每个交易日用于估计CPT策略梯度的样本数满足
+\begin{equation}
+m_t = m_1 t^\nu,\qquad m_1>0,\ \nu>0
+\end{equation}，说明随着时间迭代，优化器每轮会使用越来越多的样本来降低估计误差。
+同时，策略参数的更新步长满足
+\begin{equation}
+\gamma_t>0,\qquad \sum_{t=1}^{\infty}\gamma_t=\infty,\qquad \sum_{t=1}^{\infty}\gamma_t^2<\infty
+\end{equation}
+说明更新步长会逐渐递减，用于保证随机逼近迭代的稳定和收敛。
+
+A7：对任意$t$，目标函数$J_t(\theta,r_t)$在$\Theta$上连续可微，且存在常数$C_1>0$，使得
+\begin{equation}
+\|\nabla J_t(\theta_1,r_t)-\nabla J_t(\theta_2,r_t)\|
+\le C_1\|\theta_1-\theta_2\|
+\end{equation}
+该假设用于保证在参数空间内，目标函数的梯度变化不会因为策略参数的更新而过于剧烈。对本文的CPT目标而言，如果相对收益为零，则价值函数在零点附近可能存在非光滑性，可在零点附近做平滑近似处理。若该条件轻微违反，则退化到局部平稳，并对价值函数的零点附近做局部平滑。
+
+A8：对任意$t$，
+存在$\mathcal S_t$的某个邻域，以及常数$C_2>0$，都有
+\begin{equation}
+\operatorname{dist}(\theta,\mathcal S_t)
+\le
+C_2\|\nabla J_t(\theta,r_t)\|
+\end{equation}
+该假设不限制目标函数一定为凸函数，因此可以适用于CPT，它用于保证梯度范数能够有效刻画策略参数到驻点集合的距离。若该条件轻微违反，则后续结论可退化为策略参数可时刻靠近一阶驻点集合的邻域。
+
+
+\section{CPT-PG优化器}
+基于以上假设，本文可以将\cite{Agnelli2017}的CPT-PG的优化方式推广至动态参考点，从估计层和优化层建立优化器。估计层的目标：在第$t$日开盘前，只利用最近$h$个交易日的数据、当前参考点$r_t$以及上一期策略参数$\theta_{t-1}$，构造第$t$期目标函数$J_t(\theta,r_t)$的梯度估计。优化层的目标：利用该梯度估计更新策略参数，并证明策略参数$\theta_t$在目标函数随时间变化时，仍能持续靠近对应的一阶驻点集合$\mathcal{S}_t$。
+\subsection{估计层}
+在第$t$日开盘前，优化器只使用滑动窗口
+\begin{equation}
+H_t=\{t-h,\dots,t-1\}
+\end{equation}
+中的历史数据进行估计。基于当前参考点$r_t$、当前持仓状态以及上一期策略$\pi_{\theta_{t-1}}$，在窗口$H_t$上反复抽取动作进行交互，持续$h$步，收集共$m_t$条收益轨迹，并记第$j$条轨迹在窗口末端对应的投资组合净盈亏金额样本为
+\begin{equation}
+X_t^{(j)}, \qquad j=1,\dots,m_t
+\end{equation}
+
+基于当前参考点$r_t$，划分收益和损失，定义相对收益样本。
+\begin{equation}
+Y_t^{(j)}=X_t^{(j)}-r_t, \qquad j=1,\dots,m_t
+\end{equation}
+可以看出，用户心理参考点虽然每期都会随着收益情况而动态变化，使优化目标由静态的$J(\theta)$变为随时间变化的$J_t(\theta,r_t)$。但在同一期内为固定的常数，它只是改变了衡量收益和损失的边界，并没有改变计算CPT效用的本身结构。因此估计层论证的是，除了用收益样本估计CPT策略梯度的样本估计误差以外，又引入了滑动窗口近似当前环境的误差后，CPT策略梯度估计依旧一致。
+
+将 $\{Y_t^{(j)}\}_{j=1}^{m_t}$ 从小到大排序，记为
+\begin{equation}
+Y_t^{(1)}\leq \cdots \leq Y_t^{(\ell_t)} < 0 \leq Y_t^{(\ell_t+1)} \leq \cdots \leq Y_t^{(m_t)}
+\end{equation}
+其中$\ell_t$表示第$t$期窗口内相对收益为负的样本个数。
+CPT的收益侧和损失侧的价值函数为
+\begin{equation}
+v_g(y)
+=y^{\alpha_g},
+\qquad
+y\ge 0
+\end{equation}
+\begin{equation}
+v_l(y)
+=\lambda (-y)^{\alpha_l},  
+\qquad
+y<0
+\end{equation}
+其中，$\lambda>1$ 为损失厌恶系数，刻画了人相比于收益更不愿意亏损的心理，而$\alpha_g，\alpha_l\in(0,1]$ 分别为收益侧与损失侧的敏感度，即越亏损或者越收益，用户的感知强度越低。
+
+分别对收益侧与损失侧采用权重函数
+\begin{equation}
+w_g(p)
+=
+\frac{p^{\beta_g}}
+{\left(p^{\beta_g}+(1-p)^{\beta_g}\right)^{1/\beta_g}},
+\qquad
+p\in[0,1]
+\end{equation}
+\begin{equation}
+w_l(p)
+=
+\frac{p^{\beta_l}}
+{\left(p^{\beta_l}+(1-p)^{\beta_l}\right)^{1/\beta_l}},
+\qquad
+p\in[0,1]
+\end{equation}
+其中，$\beta_g，\beta_l>0$ 分别为收益侧与损失侧的权重系数。刻画了人常常会放大小概率事件和缩小大概率事件的心理。
+
+因此，当期的CPT效用的经验估计为：
+\begin{equation}
+\begin{aligned}
+\widehat{J}_t(\theta_{t-1},r_t)
+=
+\sum_{j=\ell_t+1}^{m_t}
+v_g\!\left(Y_t^{(j)}\right)
+\left[
+w_g\!\left(\frac{m_t-j+1}{m_t}\right)
+-
+w_g\!\left(\frac{m_t-j}{m_t}\right)
+\right] \\
+-
+\sum_{j=1}^{\ell_t}
+v_l\!\left(-Y_t^{(j)}\right)
+\left[
+w_l\!\left(\frac{j}{m_t}\right)
+-
+w_l\!\left(\frac{j-1}{m_t}\right)
+\right]
+\end{aligned}
+\end{equation}
+
+
+在根据相对收益排序后，第$j$条轨迹对应的CPT权重为
+\begin{equation}
+\psi_t^{(j)}
+=
+\begin{cases}
+v_g\!\left(Y_t^{(j)}\right)
+\left[
+w_g\!\left(\dfrac{m_t-j+1}{m_t}\right)
+-
+w_g\!\left(\dfrac{m_t-j}{m_t}\right)
+\right], & j=\ell_t+1,\dots,m_t, \\[1.2ex]
+-
+v_l\!\left(-Y_t^{(j)}\right)
+\left[
+w_l\!\left(\dfrac{j}{m_t}\right)
+-
+w_l\!\left(\dfrac{j-1}{m_t}\right)
+\right], & j=1,\dots,\ell_t.
+\end{cases}
+\end{equation}
+于是，第 $t$ 期的CPT策略梯度的经验估计定义为
+\begin{equation}
+\widehat{\nabla J_t}(\theta_{t-1},r_t)
+=
+\sum_{j=1}^{m_t}
+\psi_t^{(j)}
+\left(
+\sum_{k=1}^{h}
+\nabla_{\theta}
+\log \pi_{\theta_{t-1}}
+\bigl(
+a_{t-k}^{(j)} \mid s_{t-k}^{(j)}, c_t
+\bigr)
+\right)
+\end{equation}
+其中，第二项为第$j$条轨迹，策略$\pi_{\theta_{t-1}}$的得分函数，是该轨迹被策略选中的对数概率和的梯度，意味着在策略参数$\theta$发生变化时，该轨迹的概率在当前状态下会变多大或者变多小。
+
+设在窗口$H_t$下重复多次抽样，生成收益轨迹，对应的CPT梯度估计的均值为：
+\begin{equation}
+\nabla \bar{J}_t(\theta_{t-1},r_t)=\mathbb{E}\!\left[\widehat{\nabla J}_t(\theta_{t-1},r_t) \mid H,r_t \right]
+\end{equation}
+于是，CPT策略梯度估计相对真实值的总误差可以分解为：
+\begin{equation}
+\left\|
+\widehat{\nabla J_t}(\theta_{t-1},r_t)
+-
+\nabla J_t(\theta_{t-1},r_t)
+\right\|
+\leq
+\left\|
+\widehat{\nabla J_t}(\theta_{t-1},r_t)
+-
+\nabla \bar{J}_t(\theta_{t-1},r_t)
+\right\|
++
+\left\|
+\nabla \bar{J}_t(\theta_{t-1},r_t)
+-
+\nabla J_t(\theta_{t-1},r_t)
+\right\|
+\end{equation}
+式（3-26）右端第一项为样本估计误差，因为第$t$期使用了有限条轨迹$m_t$来估计窗口内的CPT策略梯度。由于A4保证了 $v_g(\cdot),v_l(\cdot),w_g(\cdot),w_l(\cdot)$ 的连续性与正则性；A5保证得分函数有界；在同一窗口下，当收益样本数增加时，经验分布将逐步逼近真实分布，由A6知第$t$期实际采用的样本数满足$m_t=m_1 t^\nu$，故当$t\to\infty$时有$m_t\to\infty$，于是样本估计误差满足
+\begin{equation}
+\left\|
+\widehat{\nabla J_t}(\theta_{t-1},r_t)
+-
+\nabla \bar{J}_t(\theta_{t-1},r_t)
+\right\|
+=
+o_p(1)
+\end{equation}
+式（3-26）右端第二项为窗口近似误差，优化器并不是直接在第$t$日的市场环境下评估$\nabla J_t(\theta,r_t)$，而是在最近$h$个交易日形成的局部分布上评估 $\nabla \bar{J}_t(\theta)$。由A2可知，窗口内分布与当前分布之间的偏差是有界的；因此存在常数$C_3>0$，使得
+\begin{equation}
+\left\|
+\nabla \bar{J}_t(\theta_{t-1},r_t)
+-
+\nabla J_t(\theta_{t-1},r_t)
+\right\|
+\leq
+C_3\delta_t(h)
+\end{equation}
+
+于是，综合式（3-26）至式（3-28），得到CPT策略梯度估计的误差$\varepsilon_t$。
+\begin{equation}
+\|\varepsilon_t\|=\left\|
+\widehat{\nabla J_t}(\theta_{t-1},r_t)
+-
+\nabla J_t(\theta_{t-1},r_t)
+\right\|
+\leq
+o_p(1)+C_3\delta_t(h)
+\end{equation}
+
+式（3-29）说明，对每个交易日$t$，参考点$r_t$与滑动窗口$H$，CPT策略梯度估计对窗口下真实目标函数渐近有偏，且偏差可以控制；而在在线迭代过程中，由于$m_t\to\infty$，样本估计误差渐近消失，因此估计层的主要剩余误差来自滑动窗口对当前环境的近似误差，而非动态参考点本身内引入的额外随机性。
+
+\subsection{优化层}
+
+在第$t$日开盘前，优化器计算出当期的策略梯度估计后，对策略参数$\theta$进行梯度上升更新：
+\begin{equation}
+\theta_t
+=
+\Pi_{\Theta}
+\left(
+\theta_{t-1}
++
+\gamma_t
+\widehat{\nabla J_t}(\theta_{t-1},r_t)
+\right)
+=
+\Pi_{\Theta}
+\left(
+\theta_{t-1}
++
+\gamma_t \nabla J_t(\theta_{t-1},r_t)
++
+\gamma_t \varepsilon_t
+\right)
+\end{equation}
+
+其中，$\Pi_{\Theta}$表示投影到参数空间$\Theta$上的算子。由于$\Theta$为非空紧集，投影更新可以保证参数始终留在可行域内。
+
+开盘后，利用更新后的$\theta_t$输出策略$\pi_{\theta_t}$，并从中抽样选取推荐的投资组合分配动作$a_t^*$。收盘后，系统根据观测到的投资组合客观结果$x_t$更新得到下一期参考点$r_{t+1}$。
+
+根据A3可知，相邻两期的参考点变化是有界的，因此存在一个常数$C_4$,使在相同参数下，相邻两期的目标函数对应的梯度变化也有界。
+\begin{equation}
+\left\|
+\nabla J_{t+1}(\theta,r_{t+1})-\nabla J_t(\theta,r_t)
+\right\|
+\le
+C_4
+\left|
+r_{t+1}-r_t
+\right|
+\le
+C_4 \rho_t
+\end{equation}
+
+进一步地，由A8可知，梯度范数可以反映参数到一阶驻点集合的距离。于是，对于任意$\theta^s \in \mathcal S_t$，由于$\nabla J_t(\theta^s,r_t)=0$，有
+\begin{equation}
+\operatorname{dist}(\theta^s,\mathcal S_{t+1})
+\le
+C_2
+\left\|
+\nabla J_{t+1}(\theta^s,r_{t+1})
+\right\|
+=
+C_2
+\left\|
+\nabla J_{t+1}(\theta^s,r_{t+1})-\nabla J_t(\theta^s,r_t)
+\right\|
+\le
+C_2 C_4 \rho_t
+\end{equation}
+
+因此，相邻两期的一阶驻点集合之间的移动幅度也受参考点变化幅度$\rho_t$控制。由此可得，对任意$\theta \in \Theta$，
+\begin{equation}
+\operatorname{dist}(\theta,\mathcal S_{t+1})
+\le
+\operatorname{dist}(\theta,\mathcal S_t)
++
+C_2 C_4 \rho_t
+\end{equation}
+
+这说明，当参考点变化较慢时，一阶驻点集合本身也只会缓慢变化。这使得策略参数可以时刻靠近一阶驻点集合。
+
+由于投影算子存在非扩张性，即将更新后的参数映射回参数空间$\Theta$后不会比之前距离一阶驻点集合更远，而$\mathcal S_t \subseteq \Theta$，于是有
+\begin{equation}
+\operatorname{dist}(\theta_t,\mathcal S_t)
+\le
+\operatorname{dist}
+\left(
+\theta_{t-1}
++
+\gamma_t \nabla J_t(\theta_{t-1},r_t)
++
+\gamma_t \varepsilon_t,
+\mathcal S_t
+\right)
+\end{equation}
+
+再由三角不等式可得
+\begin{equation}
+\operatorname{dist}(\theta_t,\mathcal S_t)
+\le
+\operatorname{dist}(\theta_{t-1},\mathcal S_t)
++
+\gamma_t
+\left\|
+\nabla J_t(\theta_{t-1},r_t)
+\right\|
++
+\gamma_t
+\left\|
+\varepsilon_t
+\right\|
+\end{equation}
+
+将式（3-35）代入，得到
+\begin{equation}
+\operatorname{dist}(\theta_t,\mathcal S_t)
+\le
+\operatorname{dist}(\theta_{t-1},\mathcal S_{t-1})
++
+C_2 C_4 \rho_{t-1}
++
+\gamma_t
+\left\|
+\nabla J_t(\theta_{t-1},r_t)
+\right\|
++
+\gamma_t
+\left\|
+\varepsilon_t
+\right\|
+\end{equation}
+
+于是，更新策略参数后，和一阶驻点集合的距离上界由三部分组成：上一期更新后的策略参数到驻点集合的距离、当期梯度估计误差$\varepsilon_t$，以及参考点变化引起的目标漂移$\rho_{t-1}$。
+
+由A7可以得到，$\nabla J_t(\theta,r_t)$对$\theta$是Lipschitz连续的，因此对任意$\theta \in \Theta$以及任意$\theta^s_t \in \mathcal S_t$，当参数已经靠近上一期的驻点集合时，当期真实梯度不会变化过分剧烈。
+\begin{equation}
+\left\|
+\nabla J_t(\theta,r_t)-\nabla J_t(\theta^s_t,r_t)
+\right\|
+\le
+C_1
+\left\|
+\theta-\theta^s_t
+\right\|
+\end{equation}
+
+由于$\nabla J_t(\theta^s_t,r_t)=0$，再对$\theta^s_t \in \mathcal S_t$取下确界，即得
+\begin{equation}
+\left\|
+\nabla J_t(\theta,r_t)
+\right\|
+\le
+C_1
+\operatorname{dist}(\theta,\mathcal S_t)
+\end{equation}
+
+令$\theta=\theta_{t-1}$，并将（式3-35）代入，可得
+\begin{equation}
+\left\|
+\nabla J_t(\theta_{t-1},r_t)
+\right\|
+\le
+C_1
+\operatorname{dist}(\theta_{t-1},\mathcal S_t)
+\le
+C_1
+\operatorname{dist}(\theta_{t-1},\mathcal S_{t-1})
++
+C_1 C_2 C_4 \rho_{t-1}
+\end{equation}
+
+代回一步更新不等式，便有
+\begin{equation}
+\operatorname{dist}(\theta_t,\mathcal S_t)
+\le
+\left(1+C_1 \gamma_t\right)
+\operatorname{dist}(\theta_{t-1},\mathcal S_{t-1})
++
+\gamma_t
+\left\|
+\varepsilon_t
+\right\|
++
+\left(1+C_1 \gamma_t\right) C_2 C_4 \rho_{t-1}
+\end{equation}
+
+基于上式可以说明，更新后的策略参数到当期一阶驻点集合的距离，由三类量共同决定：上期的距离、当期梯度估计误差、参考点变化。由于A6保证策略参数的更新步长$\gamma_t$随着迭代逐渐递减，所以当$t$足够大时，$1+C_1\gamma_t$可以由一个与$t$无关的常数控制。而估计层已经说明$\varepsilon_t$可以被控制，因此只要参考点变化速度不过快，策略参数就不会偏离当期目标函数的一阶驻点集合太远。
+
+\section{主要结论}
+
+基于上述的估计层与优化层证明，本文的主要结论按照前置引理、主要定理、补充推论的顺序进行叙述。前两个引理分别对应本文问题中的两个关键困难：一是动态参考点下的CPT策略梯度能否稳定估计，二是参考点变化是否会导致一阶驻点集合剧烈移动。在此基础上，主定理给出策略参数能够时刻靠近一阶驻点集合的邻域，最后推论说明在理想条件下，策略参数与一阶驻点集合的距离可以进一步趋于零。
+
+\subsection{前置引理}
+
+\subsubsection{引理一}
+在A1--A6成立时，第$t$期CPT策略梯度估计误差$\varepsilon_t$是可控的，且满足
+\begin{equation}
+\|\varepsilon_t\|
+\le
+o_p(1)+C_3\delta_t(h)
+\end{equation}
+该引理说明，用于经验估计CPT策略梯度的样本数$m_t$会随着时间迭代而增加，因此，由于有限样本而带来的估计误差会逐渐减小；而剩余误差主要来自滑动窗口对当前环境的近似误差，且该近似误差是有界的，因此CPT策略梯度的估计的偏差可控。
+
+\subsubsection{引理二}
+在A3、A7和A8成立时，动态参考点的缓慢变化会使相邻两期目标函数的一阶驻点集合也缓慢变化。存在常数$C_2 C_4>0$，使得对任意$\theta \in \Theta$都有
+\begin{equation}
+\operatorname{dist}(\theta,\mathcal S_{t+1})
+\le
+\operatorname{dist}(\theta,\mathcal S_t)
++
+C_2 C_4 \rho_t
+\end{equation}
+
+该引理说明，动态参考点确实会带来非平稳性，但在A3下，这种非平稳性是可控的。也就是说，本文要优化的目标函数不是任意跳变的，而是一个随时间缓慢变化的CPT效用，因此策略参数存在持续跟踪当期目标的可能。
+
+\subsection{主要定理}
+在A1--A8成立时，对由
+\begin{equation}
+\theta_t
+=
+\Pi_{\Theta}
+\left(
+\theta_{t-1}
++
+\gamma_t
+\widehat{\nabla J_t}(\theta_{t-1},r_t)
+\right)
+\end{equation}
+生成的策略参数序列$\{\theta_t\}$，存在常数$C_5>0$，使得
+\begin{equation}
+\limsup_{t\to\infty}
+\operatorname{dist}(\theta_t,\mathcal S_t)
+\le
+C_5
+\left(
+\limsup_{t\to\infty}\|\varepsilon_t\|
++
+\limsup_{t\to\infty}\rho_t
+\right)
+\end{equation}
+
+该定理表明，在参考点动态变化的情况下，本文构造的CPT-PG优化器使得优化的策略参数并不是收敛到某一个固定的一阶驻点集合，而是能够在长期上持续靠近每一期目标函数对应的一阶驻点集合的邻域。这个邻域的大小由两部分共同决定：一部分来自CPT策略梯度估计误差$\varepsilon_t$，另一部分来自参考点变化速度$\rho_t$。因此，只要用于经验估计的样本量足够多减小样本估计误差、滑动窗口近似误差可控，且参考点变化速度慢，那么策略参数距离一阶驻点集合将越来越靠近。
+
+\subsection{补充推论}
+在定理3.1的条件下，若为平稳市场，且随着时间迭代，参考点更新逐步平稳，即
+$\|\varepsilon_t\| \to 0$且$\rho_t \to 0$，则
+\begin{equation}
+\operatorname{dist}(\theta_t,\mathcal S_t)\to 0
+\end{equation}
+
+这个推论也给出了本文与已有静态结论之间的可退化关系。只要两类扰动都进一步消失，那么策略参数最终会与当期一阶驻点集合的距离趋于零。也就是静态CPT-RL中的结论。
+\subsection{与已有研究的联系和区别}
+
+定理3.1与已有的CPT-RL工作的联系在于：二者都以CPT效用为优化目标，都是通过策略梯度方式更新参数，并都依赖CPT效用函数、权重函数以及策略的正则性假设来保证优化过程稳定。
+
+本文的结论与已有研究也有本质区别。已有的CPT-RL研究讨论的是静态参考点下的固定目标函数，且处于可反复采样观测未来多步奖励的模拟平稳环境中，因此可以证明策略梯度估计一致性，可以讨论参数对固定一阶驻点集合的收敛问题。本文则考虑动态参考点，目标函数随时间变化，并且处于贴近真实的非平稳市场环境进行在线交互和更新，用滑动窗口让历史数据去贴近当前环境，导致策略梯度估计不可避免地出现误差；所以，本文的理论贡献不是重新证明一次静态CPT-RL的结论，而在于说明：即使参考点会随收益路径持续调整，策略参数仍然能够在梯度估计的可控误差下稳定靠近每一期的合理解。而在真实投资市场下，用户的心理参考点本就会因为近期收益而不断调整，因此动态参考点的设定要比静态更加贴合投资者的心理。
+
+此外，本文的结论不是得到全局最优策略，也不保证在对抗性或剧烈跳变的市场中仍然贴近目标函数的一阶驻点集合。若某一时期发生极端市场冲击，使得$\rho_t$或$\delta_t(h)$突然变大，此时只能通过缩短窗口、降低参考点更新速度或者暂时重置参数来恢复稳定。
+
+
+\subsection{算法伪代码}
+
+\begin{algorithm}[H]
+\caption{基于动态参考点的CPT-PG在线优化器}
+\begin{algorithmic}[1]
+\STATE \textbf{输入：} 初始策略参数$\theta_0$，初始参考点$r_1$，初始偏好约束$c_1$，窗口长度$h$，初始样本数$m_1$,样本增长指数$\nu$，参数更新步长$\gamma_t$，CPT里价值函数和权重函数的相关系数$\lambda,\alpha_g,\alpha_l,\beta_g,\beta_l$
+\FOR{$t=1,2,\dots,T$}
+    \STATE 在第$t$日开盘前观测到$s_t,c_t,r_t$
+    \STATE 构造滑动窗口$H_t=\{t-h,\dots,t-1\}$
+    \STATE 令$m_t=m_1 t^{\nu}$
+    \STATE 基于$\theta_{t-1}$、当前持仓状态与窗口$H_t$上的历史数据生成$m_t$条收益轨迹，得到$X_t^{(1)},\dots,X_t^{(m_t)}$
+    \STATE 计算相对收益样本$Y_t^{(j)}=X_t^{(j)}-r_t,\ j=1,\dots,m_t$
+    \STATE 将$\{Y_t^{(j)}\}_{j=1}^{m_t}$从小到大排序，得到亏损样本条数$\ell_t$，计算各条轨迹对应的CPT权重$\psi_t^{(j)}$
+    \begin{equation*}
+\psi_t^{(j)}
+=
+\begin{cases}
+v_g\!\left(Y_t^{(j)}\right)
+\left[
+w_g\!\left(\dfrac{m_t-j+1}{m_t}\right)
+-
+w_g\!\left(\dfrac{m_t-j}{m_t}\right)
+\right], & j=\ell_t+1,\dots,m_t, \\[1.2ex]
+-
+v_l\!\left(-Y_t^{(j)}\right)
+\left[
+w_l\!\left(\dfrac{j}{m_t}\right)
+-
+w_l\!\left(\dfrac{j-1}{m_t}\right)
+\right], & j=1,\dots,\ell_t.
+\end{cases}
+\end{equation*}
+    \STATE 计算CPT策略梯度估计
+    \begin{equation*}
+    \widehat{\nabla J_t}(\theta_{t-1},r_t)
+    =
+    \sum_{j=1}^{m_t}
+    \psi_t^{(j)}
+    \left(
+    \sum_{k=1}^{h}
+    \nabla_{\theta}
+    \log \pi_{\theta_{t-1}}
+    \bigl(
+    a_{t-k}^{(j)} \mid s_{t-k}^{(j)}, c_t
+    \bigr)
+    \right)
+    \end{equation*}
+    \STATE 更新策略参数$
+    \theta_t
+    =
+    \Pi_{\Theta}
+    \left(
+    \theta_{t-1}
+    +
+    \gamma_t
+    \widehat{\nabla J_t}(\theta_{t-1},r_t)
+    \right)
+    $
+    \STATE 在第$t$日开盘后输出连续权重向量策略$\pi_{\theta_t}$并抽样得到推荐动作$a_t^*$
+    \STATE 在第$t$日收盘后观测用户投资组合的客观结果$x_t$
+    \STATE 更新参考点$
+    r_{t+1}
+    =
+    \begin{cases}
+    r_t+\eta_+\left(x_t-r_t\right), & x_t\ge r_t,\\[4pt]
+    r_t-\eta_-\left(r_t-x_t\right), & x_t<r_t
+    \end{cases}
+    $
+    \STATE 接收用户反馈$I_{t+1}$，并更新偏好约束$c_{t+1}$
+
+\ENDFOR
+\STATE \textbf{输出：} 参数序列$\{\theta_t\}$、推荐动作序列$\{a_t^*\}$
+\end{algorithmic}
+\end{algorithm}

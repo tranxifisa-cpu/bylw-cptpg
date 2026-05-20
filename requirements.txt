@@ -1,0 +1,10 @@
+tushare
+akshare
+pandas
+numpy
+matplotlib
+seaborn
+requests
+tqdm
+openai
+pydantic

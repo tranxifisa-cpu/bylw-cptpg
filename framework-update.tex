@@ -1,0 +1,151 @@
+\subsection{动态参考点下的CPT目标}
+
+令第 $t$ 期在当前市场环境、参考点 $r_t$ 和偏好约束 $c_t$ 下，由策略 $\pi_\theta$ 与环境交互得到的窗口累计净盈亏随机变量记为 $X_t$。定义相对收益随机变量
+\begin{equation}
+Y_t = X_t-r_t.
+\end{equation}
+
+于是，第 $t$ 期的目标函数定义为
+\begin{equation}
+J_t(\theta,r_t)=CPT_t(\theta,r_t),
+\end{equation}
+其中
+\begin{equation}
+\label{eq:CPT-objective}
+\begin{aligned}
+CPT_t(\theta,r_t)
+&=
+\int_0^\infty
+w_g\!\left(
+\mathbb P_\theta\!\bigl(v_g((X_t-r_t)_+) > z \,\big|\, s_t,c_t\bigr)
+\right)\,dz \\
+&\quad -
+\int_0^\infty
+w_l\!\left(
+\mathbb P_\theta\!\bigl(v_l((r_t-X_t)_+) > z \,\big|\, s_t,c_t\bigr)
+\right)\,dz .
+\end{aligned}
+\end{equation}
+
+这里 $v_g(\cdot),v_l(\cdot)$ 分别为收益侧和损失侧的价值函数，$w_g(\cdot),w_l(\cdot)$ 分别为收益侧和损失侧的概率加权函数。对应地，第 $t$ 期的一阶驻点集合定义为
+\begin{equation}
+\mathcal S_t
+=
+\left\{
+\theta\in\Theta:\nabla J_t(\theta,r_t)=0
+\right\}.
+\end{equation}
+
+因此，本文研究的核心问题是：在动态参考点与非平稳真实市场环境下，构造一个基于 CPT-PG 思想的在线优化器，使得策略参数序列 $\{\theta_t\}$ 能够持续跟踪每期目标函数 $J_t(\theta,r_t)$ 的一阶驻点集合 $\mathcal S_t$。
+
+\subsection{CPT策略梯度估计器}
+
+在第 $t$ 日开盘前，优化器只使用滑动窗口
+\begin{equation}
+H_t=\{t-h,\dots,t-1\}
+\end{equation}
+中的历史数据进行估计。
+
+参考 CPT-PG 的 Algorithm 1，在第 $t$ 期分别独立生成两组样本：
+
+\begin{itemize}
+\item 用于估计 CPT 权重的 $n_t$ 条独立收益样本：
+\begin{equation}
+\widetilde X_t^{(i)},\qquad i=1,\dots,n_t,
+\end{equation}
+并定义
+\begin{equation}
+\widetilde Y_t^{(i)}=\widetilde X_t^{(i)}-r_t,\qquad i=1,\dots,n_t.
+\end{equation}
+
+\item 用于估计策略得分的 $m_t$ 条独立轨迹样本：
+\begin{equation}
+X_t^{(j)},\qquad j=1,\dots,m_t,
+\end{equation}
+并定义
+\begin{equation}
+Y_t^{(j)}=X_t^{(j)}-r_t,\qquad j=1,\dots,m_t.
+\end{equation}
+第 $j$ 条轨迹对应的策略得分项记为
+\begin{equation}
+\sum_{k=1}^{h}
+\nabla_\theta
+\log \pi_{\theta_{t-1}}
+\bigl(
+a_{t-k}^{(j)}\mid s_{t-k}^{(j)},c_t
+\bigr).
+\end{equation}
+\end{itemize}
+
+基于用于估计 CPT 权重的样本 $\{\widetilde Y_t^{(i)}\}_{i=1}^{n_t}$，定义经验尾概率
+\begin{equation}
+\widehat p_t^g(y)
+=
+\frac{1}{n_t}
+\sum_{i=1}^{n_t}
+\mathbf 1\{\widetilde Y_t^{(i)}\ge y\},
+\qquad y\ge 0,
+\end{equation}
+以及
+\begin{equation}
+\widehat p_t^l(y)
+=
+\frac{1}{n_t}
+\sum_{i=1}^{n_t}
+\mathbf 1\{\widetilde Y_t^{(i)}\le y\},
+\qquad y<0.
+\end{equation}
+
+于是，对第 $j$ 条策略得分轨迹，其对应的 CPT 权重定义为
+\begin{equation}
+\psi_t^{(j)}
+=
+\begin{cases}
+v_g\!\left(Y_t^{(j)}\right)\,
+w_g'\!\left(\widehat p_t^g(Y_t^{(j)})\right),
+& Y_t^{(j)}\ge 0,\\[1.2ex]
+-\,v_l\!\left(-Y_t^{(j)}\right)\,
+w_l'\!\left(\widehat p_t^l(Y_t^{(j)})\right),
+& Y_t^{(j)}<0.
+\end{cases}
+\end{equation}
+
+从而，第 $t$ 期的 CPT 策略梯度估计定义为
+\begin{equation}
+\label{eq:CPT-gradient-estimator}
+\widehat{\nabla J_t}(\theta_{t-1},r_t)
+=
+\frac{1}{m_t}
+\sum_{j=1}^{m_t}
+\psi_t^{(j)}
+\left(
+\sum_{k=1}^{h}
+\nabla_\theta
+\log \pi_{\theta_{t-1}}
+\bigl(
+a_{t-k}^{(j)}\mid s_{t-k}^{(j)},c_t
+\bigr)
+\right).
+\end{equation}
+
+注意，式 \eqref{eq:CPT-gradient-estimator} 直接给出了第 $t$ 期的 CPT 策略梯度估计，本文不再单独引入经验 CPT 值 $\widehat J_t(\theta_{t-1},r_t)$ 的公式。
+
+定义窗口条件下的目标梯度均值为
+\begin{equation}
+\nabla \bar J_t(\theta_{t-1},r_t)
+=
+\mathbb E
+\!\left[
+\widehat{\nabla J_t}(\theta_{t-1},r_t)
+\mid H_t,r_t
+\right].
+\end{equation}
+
+相应地，第 $t$ 期的梯度估计误差记为
+\begin{equation}
+\varepsilon_t
+=
+\widehat{\nabla J_t}(\theta_{t-1},r_t)
+-
+\nabla J_t(\theta_{t-1},r_t).
+\end{equation}
