@@ -43,6 +43,7 @@ class StrategyStep:
     objective_estimate: float
     offline_cpt_common_ref: float
     gradient_norm: float
+    projected_gradient_mapping_norm: float
     gradient_bootstrap_error_norm: float
     gradient_bootstrap_std_norm: float
     gradient_bootstrap_se_norm: float
@@ -95,6 +96,7 @@ class BaseStrategy:
         self.reference_point = 0.0
         self.seen_dates: list[str] = []
         self.last_gradient_norm = 0.0
+        self.last_projected_gradient_mapping_norm = math.nan
         self.last_gradient_bootstrap_error_norm = math.nan
         self.last_gradient_bootstrap_std_norm = math.nan
         self.last_gradient_bootstrap_se_norm = math.nan
@@ -188,6 +190,7 @@ class BaseStrategy:
             objective_estimate=self.last_objective_estimate,
             offline_cpt_common_ref=self.last_offline_cpt_common_ref,
             gradient_norm=self.last_gradient_norm,
+            projected_gradient_mapping_norm=self.last_projected_gradient_mapping_norm,
             gradient_bootstrap_error_norm=self.last_gradient_bootstrap_error_norm,
             gradient_bootstrap_std_norm=self.last_gradient_bootstrap_std_norm,
             gradient_bootstrap_se_norm=self.last_gradient_bootstrap_se_norm,
@@ -212,6 +215,7 @@ class BaseStrategy:
 
     def _update_model(self, trade_date: str, preference: PreferenceVector, hard_constraints: HardConstraints) -> None:
         self.last_gradient_norm = 0.0
+        self.last_projected_gradient_mapping_norm = math.nan
         self.last_gradient_bootstrap_error_norm = math.nan
         self.last_gradient_bootstrap_std_norm = math.nan
         self.last_gradient_bootstrap_se_norm = math.nan
@@ -413,8 +417,10 @@ class CPTPGStrategy(BaseStrategy):
         update = gamma_t * gradient
         theta_before = self.theta.copy()
         theta_after = np.clip(theta_before + update, -self.config.max_logit_abs, self.config.max_logit_abs)
+        projected_gradient_mapping_norm = float(np.linalg.norm(theta_after - theta_before) / max(gamma_t, 1e-12))
         self.theta = theta_after
         self.last_gradient_norm = gradient_norm
+        self.last_projected_gradient_mapping_norm = projected_gradient_mapping_norm
         self.last_gradient_bootstrap_error_norm = gradient_bootstrap_error_norm
         self.last_gradient_bootstrap_std_norm = gradient_bootstrap_std_norm
         self.last_gradient_bootstrap_se_norm = gradient_bootstrap_se_norm

@@ -326,6 +326,7 @@ class ExperimentRunner:
                 "offline_cpt_common_ref": step.offline_cpt_common_ref,
                 "offline_cpt_reference": self.config.offline_cpt_reference,
                 "gradient_norm": step.gradient_norm,
+                "projected_gradient_mapping_norm": step.projected_gradient_mapping_norm,
                 "gradient_bootstrap_error_norm": step.gradient_bootstrap_error_norm,
                 "gradient_bootstrap_std_norm": step.gradient_bootstrap_std_norm,
                 "gradient_bootstrap_se_norm": step.gradient_bootstrap_se_norm,

@@ -45,6 +45,9 @@ def summarize_runs(trace: pd.DataFrame) -> pd.DataFrame:
         "gradient_norm_mean",
         "average_squared_gradient_norm",
         "cumulative_squared_gradient_norm",
+        "projected_gradient_mapping_norm_mean",
+        "average_squared_pgm_norm",
+        "cumulative_squared_pgm_norm",
         "gradient_bootstrap_error_norm_mean",
         "gradient_bootstrap_error_tail20_mean",
         "gradient_bootstrap_std_norm_mean",
@@ -78,6 +81,12 @@ def summarize_runs(trace: pd.DataFrame) -> pd.DataFrame:
         )
         gradient_norm = pd.to_numeric(frame["gradient_norm"], errors="coerce").dropna()
         squared_gradient_norm = gradient_norm**2
+        pgm_norm = (
+            pd.to_numeric(frame["projected_gradient_mapping_norm"], errors="coerce")
+            if "projected_gradient_mapping_norm" in frame.columns
+            else pd.Series(dtype=float)
+        ).dropna()
+        squared_pgm_norm = pgm_norm**2
         tail_count = max(1, int(math.ceil(len(frame) * TAIL_FRACTION)))
         gradient_bootstrap_error = (
             pd.to_numeric(frame["gradient_bootstrap_error_norm"], errors="coerce")
@@ -165,6 +174,9 @@ def summarize_runs(trace: pd.DataFrame) -> pd.DataFrame:
                 "gradient_norm_mean": float(frame["gradient_norm"].mean()),
                 "average_squared_gradient_norm": float(squared_gradient_norm.mean()) if not squared_gradient_norm.empty else float("nan"),
                 "cumulative_squared_gradient_norm": float(squared_gradient_norm.sum()) if not squared_gradient_norm.empty else float("nan"),
+                "projected_gradient_mapping_norm_mean": float(pgm_norm.mean()) if not pgm_norm.empty else float("nan"),
+                "average_squared_pgm_norm": float(squared_pgm_norm.mean()) if not squared_pgm_norm.empty else float("nan"),
+                "cumulative_squared_pgm_norm": float(squared_pgm_norm.sum()) if not squared_pgm_norm.empty else float("nan"),
                 "gradient_bootstrap_error_norm_mean": float(gradient_bootstrap_error.mean()) if not gradient_bootstrap_error.empty else float("nan"),
                 "gradient_bootstrap_error_tail20_mean": (
                     float(gradient_bootstrap_error_tail.mean()) if not gradient_bootstrap_error_tail.empty else float("nan")
@@ -203,6 +215,9 @@ def aggregate_methods(summary: pd.DataFrame) -> pd.DataFrame:
         "gradient_norm_mean",
         "average_squared_gradient_norm",
         "cumulative_squared_gradient_norm",
+        "projected_gradient_mapping_norm_mean",
+        "average_squared_pgm_norm",
+        "cumulative_squared_pgm_norm",
         "gradient_bootstrap_error_norm_mean",
         "gradient_bootstrap_error_tail20_mean",
         "gradient_bootstrap_std_norm_mean",
