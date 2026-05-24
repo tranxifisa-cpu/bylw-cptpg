@@ -327,6 +327,7 @@ class CPTPGStrategy(BaseStrategy):
         prev_weight_matrix: np.ndarray,
         prev_codes: list[str],
         rng: np.random.Generator,
+        collect_scores: bool,
     ) -> tuple[np.ndarray, np.ndarray]:
         if self.policy_noise_scale <= 0:
             raise RuntimeError("policy_noise_scale must be positive")
@@ -344,18 +345,20 @@ class CPTPGStrategy(BaseStrategy):
         )
         projection_codes = [*policy_state.codes, CASH_CODE]
         aligned_prev = align_weight_matrix(prev_weight_matrix, prev_codes, projection_codes)
-        raw_weight_matrix = np.zeros((raw_risky_weight_matrix.shape[0], len(projection_codes)), dtype=float)
-        raw_weight_matrix[:, : len(policy_state.codes)] = raw_risky_weight_matrix
-        projected_rows = []
-        for row_index, raw_weights in enumerate(raw_weight_matrix):
+        projected_weight_matrix = np.empty((raw_risky_weight_matrix.shape[0], len(projection_codes)), dtype=float)
+        raw_weights = np.zeros(len(projection_codes), dtype=float)
+        for row_index in range(raw_risky_weight_matrix.shape[0]):
+            raw_weights.fill(0.0)
+            raw_weights[: len(policy_state.codes)] = raw_risky_weight_matrix[row_index]
             projected = project_continuous_weights_array(
                 codes=projection_codes,
                 raw_weights=raw_weights,
                 hard_constraints=hard_constraints,
                 prev_weights=aligned_prev[row_index],
             )
-            projected_rows.append(projected)
-        projected_weight_matrix = np.vstack(projected_rows)
+            projected_weight_matrix[row_index] = projected
+        if not collect_scores:
+            return projected_weight_matrix, np.empty((0, len(POLICY_FEATURE_COLUMNS)), dtype=float)
         latent_score_matrix = (latent_matrix - mean_vector.reshape(1, -1)) / (self.policy_noise_scale**2)
         score_gradient_matrix = latent_score_matrix @ policy_state.feature_matrix
         return projected_weight_matrix, score_gradient_matrix
@@ -537,6 +540,7 @@ class CPTPGStrategy(BaseStrategy):
                 prev_weight_matrix,
                 prev_codes,
                 rng,
+                collect_scores=collect_scores,
             )
             if score_matrix is not None:
                 score_matrix += score_gradient_matrix
