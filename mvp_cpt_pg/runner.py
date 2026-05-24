@@ -16,7 +16,7 @@ from .market_data import MarketDataset, MarketDatasetBuilder
 from .metrics import aggregate_methods, summarize_runs
 from .plots import generate_plots
 from .progress import progress
-from .schemas import PreferenceAgentResponse
+from .schemas import HardConstraints, PreferenceAgentResponse
 from .strategies import build_strategy, portfolio_step_value
 from .utils import ensure_dir
 
@@ -235,7 +235,11 @@ class ExperimentRunner:
             if preference_provider is not None and not strategy.frozen_preference:
                 current_preference = preference_provider.get(trade_date).payload
             used_preference = current_preference.preference_vector
-            used_constraints = current_preference.hard_constraints
+            used_constraints = (
+                self._unrestricted_constraints(dataset)
+                if self.config.disable_preference_constraints
+                else current_preference.hard_constraints
+            )
             decision = strategy.select(trade_date, used_preference, used_constraints)
             action_summary = decision.metadata.get("action_summary", {"name": decision.action_name})
             if preference_provider is None:
@@ -334,6 +338,7 @@ class ExperimentRunner:
                 "theta_norm": step.theta_norm,
                 "theta_max_abs": step.theta_max_abs,
                 "theta_boundary_share": step.theta_boundary_share,
+                "policy_normalizer": self.config.policy_normalizer,
                 "policy_feature_columns": json.dumps(POLICY_FEATURE_COLUMNS, ensure_ascii=False),
                 "gradient_vector": json.dumps(step.gradient_vector, ensure_ascii=False),
                 "theta_before_vector": json.dumps(step.theta_before_vector, ensure_ascii=False),
@@ -356,6 +361,11 @@ class ExperimentRunner:
                 "turnover_cap": used_preference.turnover_cap,
                 "diversification_target": used_preference.diversification_target,
                 "style_tilt": used_preference.style_tilt,
+                "preference_constraints_disabled": int(self.config.disable_preference_constraints),
+                "effective_risk_budget": used_constraints.risk_budget,
+                "effective_max_single_weight": used_constraints.max_single_weight,
+                "effective_turnover_cap": used_constraints.turnover_cap,
+                "effective_diversification_target": used_constraints.diversification_target,
                 "news_total_count": observed_news_state.get("news_total_count", 0),
                 "news_total_positive": observed_news_state.get("news_total_positive", 0),
                 "news_total_negative": observed_news_state.get("news_total_negative", 0),
@@ -384,6 +394,14 @@ class ExperimentRunner:
                 current_preference = next_preference.payload
         return pd.DataFrame(rows)
 
+    def _unrestricted_constraints(self, dataset: MarketDataset) -> HardConstraints:
+        return HardConstraints(
+            risk_budget=1.0,
+            max_single_weight=1.0,
+            turnover_cap=2.0,
+            diversification_target=max(1, int(dataset.universe["ts_code"].nunique())),
+        )
+
     def _write_csv_atomic(self, frame: pd.DataFrame, path: Path) -> None:
         ensure_dir(path.parent)
         temp_path = path.with_suffix(f"{path.suffix}.tmp")
@@ -410,6 +428,9 @@ class ExperimentRunner:
             "risk_budget",
             "max_single_weight",
             "turnover_cap",
+            "effective_risk_budget",
+            "effective_max_single_weight",
+            "effective_turnover_cap",
             "cash_after_trade",
             "theta_boundary_share",
             "theta_boundary_share_mean",

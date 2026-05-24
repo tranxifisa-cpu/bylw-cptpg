@@ -30,6 +30,17 @@ def main() -> None:
     )
     parser.add_argument("--initial-capital", type=float, default=None, help="Cash budget when the user has no current holdings")
     parser.add_argument("--preference-path", type=Path, default=None, help="CSV preference path generated for one synthetic user")
+    parser.add_argument(
+        "--disable-preference-constraints",
+        action="store_true",
+        help="Disable user hard-constraint projection while preserving style_tilt in policy feature scoring",
+    )
+    parser.add_argument(
+        "--universe-by-date-path",
+        type=Path,
+        default=None,
+        help="CSV cache with trade_date,ts_code columns for survivorship-free daily tradable universe filtering",
+    )
     parser.add_argument("--evaluation-horizon", type=int, default=None, help="Sliding historical window length h for CPT-PG gradient estimation")
     parser.add_argument("--prewarm-start", default=None, help="Override prewarm start date, YYYYMMDD")
     parser.add_argument("--prewarm-end", default=None, help="Override prewarm end date, YYYYMMDD")
@@ -84,6 +95,12 @@ def main() -> None:
     parser.add_argument("--gamma0", type=float, default=None, help="Initial policy-gradient step size")
     parser.add_argument("--gamma-exponent", type=float, default=None, help="Decay exponent for gamma_t = gamma0 / t^a")
     parser.add_argument("--policy-noise-scale", type=float, default=None, help="Gaussian policy sampling noise scale")
+    parser.add_argument(
+        "--policy-normalizer",
+        choices=("softmax", "sparsemax"),
+        default=None,
+        help="Map latent policy scores to raw portfolio weights before constraint projection",
+    )
     args = parser.parse_args()
 
     config = ExperimentConfig()
@@ -109,6 +126,10 @@ def main() -> None:
         config = replace(config, initial_holdings_path=args.initial_holdings)
     if args.preference_path is not None:
         config = replace(config, preference_path=args.preference_path)
+    if args.disable_preference_constraints:
+        config = replace(config, disable_preference_constraints=True)
+    if args.universe_by_date_path is not None:
+        config = replace(config, universe_by_date_path=args.universe_by_date_path)
     if args.evaluation_horizon is not None:
         config = replace(config, evaluation_horizon=args.evaluation_horizon)
     if args.strict_drop_missing_stocks:
@@ -137,6 +158,8 @@ def main() -> None:
         config = replace(config, gamma_exponent=args.gamma_exponent)
     if args.policy_noise_scale is not None:
         config = replace(config, policy_noise_scale=args.policy_noise_scale)
+    if args.policy_normalizer is not None:
+        config = replace(config, policy_normalizer=args.policy_normalizer)
     if args.llm_model or args.llm_base_url or args.disable_llm_thinking:
         config = _override_llm_config(
             config,

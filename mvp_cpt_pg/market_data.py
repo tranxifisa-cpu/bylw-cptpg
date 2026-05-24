@@ -84,6 +84,30 @@ class TushareDataClient:
             ),
         )
 
+    def stock_basic_by_status(self, list_status: str) -> pd.DataFrame:
+        fields = "ts_code,symbol,name,area,industry,market,list_date,delist_date,list_status"
+        return self._cached(
+            "stock_basic",
+            {"list_status": list_status, "fields": fields},
+            lambda: self.pro.stock_basic(
+                exchange="",
+                list_status=list_status,
+                fields=fields,
+            ),
+        )
+
+    def stock_basic_all_status(self) -> pd.DataFrame:
+        frames = []
+        for list_status in ("L", "D", "P"):
+            frame = self.stock_basic_by_status(list_status).copy()
+            if "list_status" not in frame.columns:
+                frame["list_status"] = list_status
+            frames.append(frame)
+        if not frames:
+            return pd.DataFrame()
+        output = pd.concat(frames, ignore_index=True)
+        return output.drop_duplicates(subset=["ts_code"], keep="first").reset_index(drop=True)
+
     def trade_calendar(self, start_date: str, end_date: str) -> list[str]:
         df = self._cached(
             "trade_cal",
@@ -217,10 +241,11 @@ class MarketDatasetBuilder:
         lookback_start = (pd.Timestamp(self.config.prewarm.start) - timedelta(days=120)).strftime("%Y%m%d")
         trade_dates = self.tushare.trade_calendar(lookback_start, self.config.evaluation.end)
         print(f"Loaded {len(trade_dates)} trade dates")
-        universe = self._build_universe()
+        universe_by_date = self._load_universe_by_date()
+        universe = self._build_universe(universe_by_date)
         universe_codes = universe["ts_code"].tolist()
         print(f"Selected universe size: {len(universe_codes)}")
-        panel = self._build_stock_panel(universe_codes, trade_dates)
+        panel = self._build_stock_panel(universe_codes, trade_dates, universe_by_date)
         if self.config.strict_drop_missing_stocks:
             trade_dates = [date for date in trade_dates if date in set(panel["trade_date"].astype(str))]
             universe_codes = sorted(panel["ts_code"].astype(str).unique().tolist())
@@ -250,12 +275,35 @@ class MarketDatasetBuilder:
             trade_dates=trade_dates,
         )
 
-    def _build_universe(self) -> pd.DataFrame:
-        stock_basic = self.tushare.stock_basic().copy()
+    def _load_universe_by_date(self) -> pd.DataFrame | None:
+        if self.config.universe_by_date_path is None:
+            return None
+        path = self.config.universe_by_date_path
+        if not path.exists():
+            raise FileNotFoundError(f"Universe-by-date cache is missing: {path}")
+        frame = pd.read_csv(path, dtype={"trade_date": str, "ts_code": str})
+        required = {"trade_date", "ts_code"}
+        missing = required.difference(frame.columns)
+        if missing:
+            raise ValueError(f"Universe-by-date cache is missing required columns: {sorted(missing)}")
+        frame = frame.dropna(subset=["trade_date", "ts_code"]).copy()
+        frame["trade_date"] = frame["trade_date"].astype(str)
+        frame["ts_code"] = frame["ts_code"].astype(str)
+        return frame.drop_duplicates(subset=["trade_date", "ts_code"]).reset_index(drop=True)
+
+    def _build_universe(self, universe_by_date: pd.DataFrame | None = None) -> pd.DataFrame:
+        stock_basic = self.tushare.stock_basic_all_status().copy() if universe_by_date is not None else self.tushare.stock_basic().copy()
         stock_basic["industry"] = stock_basic["industry"].fillna("未知行业")
         stock_basic["list_date"] = stock_basic["list_date"].astype(str)
-        stock_basic = stock_basic[stock_basic["list_date"] <= self.config.prewarm.end]
+        listing_cutoff = self.config.evaluation.end if universe_by_date is not None else self.config.prewarm.end
+        stock_basic = stock_basic[stock_basic["list_date"] <= listing_cutoff]
         stock_basic = stock_basic[~stock_basic["industry"].isin(self.config.finance_industries)].copy()
+        if universe_by_date is not None:
+            allowed_codes = set(universe_by_date["ts_code"].astype(str))
+            stock_basic = stock_basic[stock_basic["ts_code"].astype(str).isin(allowed_codes)].copy()
+            if stock_basic.empty:
+                raise RuntimeError("Universe-by-date cache produced an empty stock universe")
+            return stock_basic.sort_values("ts_code").reset_index(drop=True)
         if self.config.universe_size is None and self.config.universe_industry_cap is None:
             return stock_basic.sort_values("ts_code").reset_index(drop=True)
         recent_dates = self.tushare.trade_calendar(self.config.prewarm.start, self.config.prewarm.end)[-20:]
@@ -289,18 +337,31 @@ class MarketDatasetBuilder:
             raise RuntimeError(f"Universe selection returned only {len(universe)} stocks")
         return universe
 
-    def _build_stock_panel(self, universe_codes: list[str], trade_dates: list[str]) -> pd.DataFrame:
+    def _build_stock_panel(
+        self,
+        universe_codes: list[str],
+        trade_dates: list[str],
+        universe_by_date: pd.DataFrame | None = None,
+    ) -> pd.DataFrame:
         daily_frames: list[pd.DataFrame] = []
         basic_frames: list[pd.DataFrame] = []
         skipped_basic_dates: list[str] = []
+        universe_set = set(universe_codes)
+        universe_by_date_map: dict[str, set[str]] = {}
+        if universe_by_date is not None:
+            universe_by_date_map = {
+                trade_date: set(frame["ts_code"].astype(str))
+                for trade_date, frame in universe_by_date.groupby("trade_date")
+            }
         for trade_date in progress(trade_dates, desc="daily market", total=len(trade_dates)):
             daily = self.tushare.daily_by_trade_date(trade_date)
-            daily_frames.append(daily[daily["ts_code"].isin(universe_codes)].copy())
+            allowed_codes = universe_by_date_map.get(trade_date, universe_set)
+            daily_frames.append(daily[daily["ts_code"].astype(str).isin(allowed_codes)].copy())
             daily_basic = self.tushare.daily_basic_by_trade_date(trade_date)
             if self.config.strict_drop_missing_stocks and daily_basic.empty and self.config.prewarm.start <= trade_date <= self.config.evaluation.end:
                 skipped_basic_dates.append(trade_date)
                 continue
-            basic_frames.append(daily_basic[daily_basic["ts_code"].isin(universe_codes)].copy())
+            basic_frames.append(daily_basic[daily_basic["ts_code"].astype(str).isin(allowed_codes)].copy())
         daily = pd.concat(daily_frames, ignore_index=True)
         daily_basic = pd.concat(basic_frames, ignore_index=True)
         if skipped_basic_dates:

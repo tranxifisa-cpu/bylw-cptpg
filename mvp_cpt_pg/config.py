@@ -42,10 +42,12 @@ class ExperimentConfig:
     seeds: tuple[int, ...] = (7, 17, 29)
     universe_size: int | None = None
     universe_industry_cap: int | None = None
+    universe_by_date_path: Path | None = None
     # Sliding historical window length h for CPT-PG gradient estimation.
     evaluation_horizon: int = 15
     initial_holdings_path: Path | None = None
     preference_path: Path | None = None
+    disable_preference_constraints: bool = False
     strict_drop_missing_stocks: bool = False
     cpt_sample_base: int = 256
     gradient_sample_base: int = 32
@@ -56,6 +58,7 @@ class ExperimentConfig:
     gamma0: float = 3.0
     gamma_exponent: float = 0.51
     policy_noise_scale: float = 0.1
+    policy_normalizer: str = "softmax"
     exponential_risk_aversion: float = 0.5
     alpha_gain: float = 0.88
     alpha_loss: float = 0.88
@@ -118,9 +121,11 @@ class ExperimentConfig:
             seeds=(seed,),
             universe_size=self.universe_size,
             universe_industry_cap=self.universe_industry_cap,
+            universe_by_date_path=self.universe_by_date_path,
             evaluation_horizon=self.evaluation_horizon,
             initial_holdings_path=self.initial_holdings_path,
             preference_path=self.preference_path,
+            disable_preference_constraints=self.disable_preference_constraints,
             strict_drop_missing_stocks=self.strict_drop_missing_stocks,
             cpt_sample_base=self.cpt_sample_base,
             gradient_sample_base=self.gradient_sample_base,
@@ -131,6 +136,7 @@ class ExperimentConfig:
             gamma0=self.gamma0,
             gamma_exponent=self.gamma_exponent,
             policy_noise_scale=self.policy_noise_scale,
+            policy_normalizer=self.policy_normalizer,
             exponential_risk_aversion=self.exponential_risk_aversion,
             alpha_gain=self.alpha_gain,
             alpha_loss=self.alpha_loss,

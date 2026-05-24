@@ -292,7 +292,7 @@ class CPTPGStrategy(BaseStrategy):
         mean_vector = policy_state.feature_matrix @ self.theta
         noise = active_rng.normal(loc=0.0, scale=self.policy_noise_scale, size=len(policy_state.codes))
         latent = mean_vector + noise
-        raw_risky_weights = policy_weights_from_latent(policy_state.codes, latent)
+        raw_risky_weights = policy_weights_from_latent(policy_state.codes, latent, self.config.policy_normalizer)
         projection_codes = [*policy_state.codes, CASH_CODE]
         raw_weights = raw_risky_weights.reindex(projection_codes, fill_value=0.0)
         weights = project_continuous_weights(
@@ -332,7 +332,11 @@ class CPTPGStrategy(BaseStrategy):
             size=(prev_weight_matrix.shape[0], len(policy_state.codes)),
         )
         latent_matrix = mean_vector.reshape(1, -1) + noise
-        raw_risky_weight_matrix = policy_weight_matrix_from_latent(policy_state.codes, latent_matrix)
+        raw_risky_weight_matrix = policy_weight_matrix_from_latent(
+            policy_state.codes,
+            latent_matrix,
+            self.config.policy_normalizer,
+        )
         projection_codes = [*policy_state.codes, CASH_CODE]
         aligned_prev = align_weight_matrix(prev_weight_matrix, prev_codes, projection_codes)
         raw_weight_matrix = np.zeros((raw_risky_weight_matrix.shape[0], len(projection_codes)), dtype=float)
@@ -671,17 +675,33 @@ def softmax_vector(values: np.ndarray) -> np.ndarray:
     return exp_vals / denom
 
 
-def policy_weights_from_latent(codes: list[str], latent: np.ndarray) -> pd.Series:
+def policy_weights_from_latent(codes: list[str], latent: np.ndarray, normalizer: str = "softmax") -> pd.Series:
     if len(codes) != len(latent):
         raise RuntimeError("Policy codes and latent vector length mismatch")
-    weights = softmax_vector(np.asarray(latent, dtype=float))
+    weights = normalize_latent_vector(np.asarray(latent, dtype=float), normalizer)
     return pd.Series(weights, index=codes, dtype=float)
 
 
-def policy_weight_matrix_from_latent(codes: list[str], latent_matrix: np.ndarray) -> np.ndarray:
+def policy_weight_matrix_from_latent(codes: list[str], latent_matrix: np.ndarray, normalizer: str = "softmax") -> np.ndarray:
     if latent_matrix.ndim != 2 or latent_matrix.shape[1] != len(codes):
         raise RuntimeError("Policy codes and latent matrix shape mismatch")
-    return softmax_matrix(latent_matrix)
+    return normalize_latent_matrix(latent_matrix, normalizer)
+
+
+def normalize_latent_vector(values: np.ndarray, normalizer: str) -> np.ndarray:
+    if normalizer == "softmax":
+        return softmax_vector(values)
+    if normalizer == "sparsemax":
+        return sparsemax_vector(values)
+    raise ValueError(f"Unknown policy_normalizer: {normalizer}")
+
+
+def normalize_latent_matrix(values: np.ndarray, normalizer: str) -> np.ndarray:
+    if normalizer == "softmax":
+        return softmax_matrix(values)
+    if normalizer == "sparsemax":
+        return sparsemax_matrix(values)
+    raise ValueError(f"Unknown policy_normalizer: {normalizer}")
 
 
 def softmax_matrix(values: np.ndarray) -> np.ndarray:
@@ -690,6 +710,45 @@ def softmax_matrix(values: np.ndarray) -> np.ndarray:
     denominator = exp_values.sum(axis=1, keepdims=True)
     denominator = np.where(denominator <= 0.0, 1.0, denominator)
     return exp_values / denominator
+
+
+def sparsemax_vector(values: np.ndarray) -> np.ndarray:
+    values = np.asarray(values, dtype=float)
+    if values.ndim != 1 or len(values) == 0:
+        raise RuntimeError("Continuous policy sparsemax expects a non-empty vector")
+    shifted = values - float(np.mean(values))
+    sorted_values = np.sort(shifted)[::-1]
+    cssv = np.cumsum(sorted_values)
+    ks = np.arange(1, len(sorted_values) + 1, dtype=float)
+    support = 1.0 + ks * sorted_values > cssv
+    if not bool(support.any()):
+        return np.full(len(values), 1.0 / len(values), dtype=float)
+    k_z = int(ks[support][-1])
+    tau = float((cssv[k_z - 1] - 1.0) / k_z)
+    weights = np.maximum(shifted - tau, 0.0)
+    total = float(weights.sum())
+    if total <= 0.0:
+        return np.full(len(values), 1.0 / len(values), dtype=float)
+    return weights / total
+
+
+def sparsemax_matrix(values: np.ndarray) -> np.ndarray:
+    values = np.asarray(values, dtype=float)
+    if values.ndim != 2:
+        raise RuntimeError("Continuous policy sparsemax expects a matrix")
+    if values.shape[0] == 0:
+        return values.copy()
+    shifted = values - np.mean(values, axis=1, keepdims=True)
+    sorted_values = -np.sort(-shifted, axis=1)
+    cssv = np.cumsum(sorted_values, axis=1)
+    ks = np.arange(1, values.shape[1] + 1, dtype=float).reshape(1, -1)
+    support = 1.0 + ks * sorted_values > cssv
+    support_count = np.maximum(support.sum(axis=1), 1)
+    tau = (cssv[np.arange(values.shape[0]), support_count - 1] - 1.0) / support_count
+    weights = np.maximum(shifted - tau.reshape(-1, 1), 0.0)
+    totals = weights.sum(axis=1, keepdims=True)
+    fallback = np.full_like(weights, 1.0 / values.shape[1])
+    return np.where(totals > 0.0, weights / np.where(totals <= 0.0, 1.0, totals), fallback)
 
 
 def align_weight_matrix(weight_matrix: np.ndarray, source_codes: list[str], target_codes: list[str]) -> np.ndarray:
