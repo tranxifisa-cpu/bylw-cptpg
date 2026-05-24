@@ -275,6 +275,7 @@ class CPTPGStrategy(BaseStrategy):
             observed_state,
             pref,
             prev_weights=self.previous_weights,
+            use_style_tilt=not self.config.disable_preference_constraints,
         )
         weights, _, metadata = self._sample_continuous_action(policy_state, hard_constraints, self.previous_weights)
         return PortfolioDecision(
@@ -474,12 +475,18 @@ class CPTPGStrategy(BaseStrategy):
             rng=gradient_rng,
             collect_scores=True,
         )
+        cpt_relative_returns = cpt_returns - objective_reference
         gradient_relative_returns = gradient_returns - objective_reference
         common_reference_returns = cpt_returns - self.config.offline_cpt_reference
         if score_matrix is None:
             raise RuntimeError("Gradient sample scores were not collected")
         gradient_score_vectors = [score_matrix[row_index] for row_index in range(m_t)]
-        gradient = compute_cpt_gradient(gradient_relative_returns.tolist(), gradient_score_vectors, self.config)
+        gradient = compute_cpt_gradient(
+            gradient_relative_returns.tolist(),
+            gradient_score_vectors,
+            cpt_relative_returns.tolist(),
+            self.config,
+        )
         return (
             gradient,
             self._objective_from_returns(cpt_returns, objective_reference),
@@ -522,6 +529,7 @@ class CPTPGStrategy(BaseStrategy):
                 observed_state,
                 preference,
                 prev_weights=pd.Series(prev_weight_matrix.mean(axis=0), index=prev_codes, dtype=float),
+                use_style_tilt=not self.config.disable_preference_constraints,
             )
             weight_matrix, score_gradient_matrix = self._sample_continuous_action_batch(
                 policy_state,
@@ -835,28 +843,91 @@ def cpt_probability_weight(probability: float, beta: float) -> float:
     return float(numerator / denominator)
 
 
+def cpt_probability_weight_derivative(probability: float, beta: float, probability_floor: float = 1e-8) -> float:
+    floor = min(0.5, max(1e-8, float(probability_floor)))
+    p = min(1.0 - floor, max(floor, probability))
+    b = float(beta)
+    p_beta = p**b
+    q_beta = (1.0 - p) ** b
+    total = p_beta + q_beta
+    weight = p_beta / (total ** (1.0 / b))
+    log_derivative = (b / p) - ((p ** (b - 1.0)) - ((1.0 - p) ** (b - 1.0))) / total
+    return float(weight * log_derivative)
+
+
+def gain_utility_magnitude(relative_return: float, config: ExperimentConfig) -> float:
+    return smoothed_power_value(max(relative_return, 0.0), config.alpha_gain, config.cpt_value_smoothing)
+
+
+def loss_utility_magnitude(relative_return: float, config: ExperimentConfig) -> float:
+    return float(config.loss_aversion * smoothed_power_value(max(-relative_return, 0.0), config.alpha_loss, config.cpt_value_smoothing))
+
+
+def quantile_tail_sum(target_utility: float, sample_utilities: np.ndarray, beta: float) -> float:
+    target = float(max(target_utility, 0.0))
+    if target <= 0.0:
+        return 0.0
+    samples = np.sort(np.maximum(np.asarray(sample_utilities, dtype=float), 0.0))
+    if samples.size == 0:
+        return 0.0
+    n = float(samples.size)
+    probability_floor = 1.0 / (n + 1.0)
+    lower = 0.0
+    estimate = 0.0
+    for index, value in enumerate(samples):
+        upper = min(float(value), target)
+        if upper <= lower:
+            if float(value) >= target:
+                break
+            continue
+        tail_probability = (samples.size - index) / n
+        estimate += (upper - lower) * cpt_probability_weight_derivative(tail_probability, beta, probability_floor)
+        lower = upper
+        if lower >= target:
+            break
+    if lower < target:
+        estimate += (target - lower) * cpt_probability_weight_derivative(0.0, beta, probability_floor)
+    return float(estimate)
+
+
+def cpt_policy_gradient_weight(
+    relative_return: float,
+    cpt_gain_utilities: np.ndarray,
+    cpt_loss_utilities: np.ndarray,
+    config: ExperimentConfig,
+) -> float:
+    gain_component = quantile_tail_sum(
+        gain_utility_magnitude(relative_return, config),
+        cpt_gain_utilities,
+        config.beta_gain,
+    )
+    loss_component = quantile_tail_sum(
+        loss_utility_magnitude(relative_return, config),
+        cpt_loss_utilities,
+        config.beta_loss,
+    )
+    return float(gain_component - loss_component)
+
+
 def compute_cpt_gradient(
     relative_returns: list[float],
     score_vectors: list[np.ndarray],
+    cpt_relative_returns: list[float],
     config: ExperimentConfig,
 ) -> np.ndarray:
     if not relative_returns:
         return np.zeros(len(POLICY_FEATURE_COLUMNS), dtype=float)
-    order = np.argsort(relative_returns)
-    sorted_returns = [relative_returns[idx] for idx in order]
-    sorted_scores = [score_vectors[idx] for idx in order]
-    m = len(sorted_returns)
-    loss_count = sum(value < 0 for value in sorted_returns)
-    gradient = np.zeros_like(sorted_scores[0], dtype=float)
-    for position, (rel, score) in enumerate(zip(sorted_returns, sorted_scores), start=1):
-        if position <= loss_count:
-            delta = cpt_probability_weight(position / m, config.beta_loss) - cpt_probability_weight((position - 1) / m, config.beta_loss)
-            psi = loss_value(rel, config) * delta
-        else:
-            upper = (m - position + 1) / m
-            lower = (m - position) / m
-            delta = cpt_probability_weight(upper, config.beta_gain) - cpt_probability_weight(lower, config.beta_gain)
-            psi = gain_value(rel, config) * delta
+    if len(relative_returns) != len(score_vectors):
+        raise RuntimeError("CPT gradient samples and score vectors length mismatch")
+    if not cpt_relative_returns:
+        raise RuntimeError("CPT quantile samples are required for CPT policy gradient estimation")
+    m = len(relative_returns)
+    gradient = np.zeros_like(score_vectors[0], dtype=float)
+    cpt_samples = np.asarray(cpt_relative_returns, dtype=float)
+    cpt_gain_utilities = np.array([gain_utility_magnitude(value, config) for value in cpt_samples], dtype=float)
+    cpt_loss_utilities = np.array([loss_utility_magnitude(value, config) for value in cpt_samples], dtype=float)
+    for rel, score in zip(relative_returns, score_vectors):
+        psi = cpt_policy_gradient_weight(rel, cpt_gain_utilities, cpt_loss_utilities, config)
         gradient += psi * score
     gradient /= float(m)
     return gradient

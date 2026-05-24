@@ -33,7 +33,7 @@ def main() -> None:
     parser.add_argument(
         "--disable-preference-constraints",
         action="store_true",
-        help="Disable user hard-constraint projection while preserving style_tilt in policy feature scoring",
+        help="Disable user preference constraints and style_tilt effects in policy feature scoring",
     )
     parser.add_argument(
         "--universe-by-date-path",

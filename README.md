@@ -39,6 +39,13 @@ w = project_to_constraints(w_raw)
 
 `normalizer` 默认是 `softmax`，也可用 `sparsemax` 做稀疏化对照实验。高斯噪声负责探索，归一化负责把 latent 分数映射到非负且和为 1 的组合权重。
 
+CPT-PG 的估计层采用 `n_t` 和 `m_t` 分开抽样：
+
+- `n_t` 条窗口收益轨迹用于估计当期 CPT 目标函数，并作为 quantile 样本估计策略梯度中的 CPT 权重项。
+- `m_t` 条窗口收益轨迹用于估计 score function，即窗口内 `grad log pi_theta` 的累加。
+- 目标函数值 `objective_estimate` 使用 CPT 概率权重函数 `w` 本身。
+- 策略梯度权重项使用 `w'` 的排序分位数差分形式，并对概率端点采用有限样本裁剪 `p_min=1/(n_t+1), p_max=n_t/(n_t+1)`。
+
 ## Data
 
 ### Tushare
@@ -119,7 +126,7 @@ artifacts/inputs/preference_path_balanced_240d.csv
 - `--gamma-exponent`：步长衰减指数，`0` 表示固定步长。
 - `--policy-noise-scale`：latent 高斯探索噪声。
 - `--policy-normalizer {softmax,sparsemax}`：latent 到原始权重的归一化方式。
-- `--disable-preference-constraints`：禁用用户硬约束投影，但保留 `style_tilt` 对策略特征打分的影响。
+- `--disable-preference-constraints`：禁用用户硬约束投影，并禁用 `style_tilt` 对策略特征打分的影响。
 - `--eta-gain`、`--eta-loss`：动态参考点上行和下行适应速度。
 - `--enable-tushare-news`：启用 Tushare 新闻补充。
 
@@ -144,7 +151,7 @@ python scripts\run_mvp.py `
   --policy-normalizer sparsemax
 ```
 
-### 禁用偏好硬约束但保留 style
+### 禁用用户偏好影响
 
 ```powershell
 python scripts\run_mvp.py `
@@ -159,6 +166,8 @@ python scripts\run_mvp.py `
   --disable-preference-constraints `
   --universe-by-date-path artifacts\cache\universe_by_date\survivorship_free_universe_20241215_20260512.csv
 ```
+
+该设置会同时禁用用户硬约束投影和 `style_tilt` 对策略特征打分的影响，用于隔离动态参考点本身的作用。
 
 ### 60 天 PG 基线对比
 
@@ -205,7 +214,7 @@ artifacts/results/run_YYYYMMDD_HHMMSS/
 - `turnover`：股票调仓权重之和。
 - `constraint_violation_reason`：约束违反原因。
 - `policy_normalizer`：`softmax` 或 `sparsemax`。
-- `preference_constraints_disabled`：是否禁用偏好硬约束。
+- `preference_constraints_disabled`：是否禁用用户偏好约束和 `style_tilt` 影响。
 
 ## Project Structure
 

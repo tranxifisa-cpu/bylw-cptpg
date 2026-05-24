@@ -57,12 +57,13 @@ def build_continuous_policy_state(
     state: pd.DataFrame,
     preference: PreferenceVector,
     prev_weights: pd.Series | None = None,
+    use_style_tilt: bool = True,
 ) -> ContinuousPolicyState:
     frame = factorize_state(state).sort_values("ts_code").reset_index(drop=True)
     if frame.empty:
         raise RuntimeError("Observed market state is empty")
     news_context = build_news_context(state)
-    feature_matrix = _build_contextual_feature_matrix(frame, preference, news_context)
+    feature_matrix = _build_contextual_feature_matrix(frame, preference, news_context, use_style_tilt=use_style_tilt)
     return ContinuousPolicyState(
         codes=frame["ts_code"].tolist(),
         feature_matrix=feature_matrix,
@@ -354,19 +355,23 @@ def _build_contextual_feature_matrix(
     frame: pd.DataFrame,
     preference: PreferenceVector,
     news_context: dict[str, float],
+    use_style_tilt: bool = True,
 ) -> np.ndarray:
     sentiment = news_context["news_sentiment_score"]
     pressure = news_context["news_risk_pressure"]
     attention = min(1.0, news_context["news_attention"] / math.log1p(20.0))
     positive_mood = max(sentiment, 0.0) * attention
     negative_mood = max(-sentiment, 0.0) * attention
-    style_bias = {
-        "momentum": np.array([0.30, 0.00, 0.00, -0.05, 0.05, 0.00, 0.00, 0.15, 0.15, -0.05], dtype=float),
-        "value": np.array([0.00, 0.30, 0.05, 0.00, 0.10, 0.00, 0.00, 0.00, 0.00, -0.05], dtype=float),
-        "quality": np.array([0.00, 0.00, 0.30, 0.10, 0.00, 0.00, 0.00, 0.00, 0.05, 0.00], dtype=float),
-        "low_vol": np.array([-0.05, 0.00, 0.10, 0.35, 0.00, 0.00, 0.00, -0.05, 0.00, 0.10], dtype=float),
-        "balanced": np.array([0.00, 0.00, 0.05, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00, 0.20], dtype=float),
-    }[preference.style_tilt]
+    if use_style_tilt:
+        style_bias = {
+            "momentum": np.array([0.30, 0.00, 0.00, -0.05, 0.05, 0.00, 0.00, 0.15, 0.15, -0.05], dtype=float),
+            "value": np.array([0.00, 0.30, 0.05, 0.00, 0.10, 0.00, 0.00, 0.00, 0.00, -0.05], dtype=float),
+            "quality": np.array([0.00, 0.00, 0.30, 0.10, 0.00, 0.00, 0.00, 0.00, 0.05, 0.00], dtype=float),
+            "low_vol": np.array([-0.05, 0.00, 0.10, 0.35, 0.00, 0.00, 0.00, -0.05, 0.00, 0.10], dtype=float),
+            "balanced": np.array([0.00, 0.00, 0.05, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00, 0.20], dtype=float),
+        }[preference.style_tilt]
+    else:
+        style_bias = np.zeros(len(POLICY_FEATURE_COLUMNS), dtype=float)
     news_bias = np.array(
         [
             0.22 * positive_mood - 0.18 * pressure * attention,
