@@ -4,9 +4,7 @@ import hashlib
 import json
 import math
 import os
-import re
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -22,22 +20,6 @@ def ensure_dir(path: Path) -> Path:
 def stable_hash(payload: Any) -> str:
     data = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
     return hashlib.sha256(data.encode("utf-8")).hexdigest()
-
-
-def maybe_datetime(value: Any) -> pd.Timestamp | pd.NaT:
-    if value is None or (isinstance(value, float) and math.isnan(value)):
-        return pd.NaT
-    if isinstance(value, pd.Timestamp):
-        return value
-    text = str(value).strip()
-    if not text:
-        return pd.NaT
-    for fmt in ("%Y%m%d", "%Y-%m-%d", "%Y-%m-%d %H:%M:%S"):
-        try:
-            return pd.Timestamp(datetime.strptime(text, fmt))
-        except ValueError:
-            continue
-    return pd.to_datetime(text, errors="coerce")
 
 
 def zscore(series: pd.Series) -> pd.Series:

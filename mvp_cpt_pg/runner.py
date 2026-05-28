@@ -10,7 +10,13 @@ from typing import Callable, Iterable
 import pandas as pd
 
 from .agents import AgentResult, MultiAgentSystem
-from .actions import CASH_CODE, POLICY_FEATURE_COLUMNS, build_news_context, effective_holding_count, format_portfolio_weights_percent
+from .actions import (
+    CASH_CODE,
+    MIN_ACTIVE_WEIGHT,
+    POLICY_FEATURE_COLUMNS,
+    effective_holding_count,
+    format_portfolio_weights_percent,
+)
 from .config import ExperimentConfig
 from .market_data import MarketDataset, MarketDatasetBuilder
 from .metrics import aggregate_methods, summarize_runs
@@ -35,6 +41,7 @@ class ExperimentArtifacts:
 class InitialPortfolio:
     reference_point: float
     portfolio_value: float
+    account_value: float
     weights: pd.Series
     price_date: str
 
@@ -187,6 +194,7 @@ class ExperimentRunner:
                 reference_point=initial_portfolio.reference_point,
                 weights=initial_portfolio.weights,
                 portfolio_value=initial_portfolio.portfolio_value,
+                account_value=initial_portfolio.account_value,
             )
         strategy.initialize()
         initial_value = strategy.performance_base
@@ -201,8 +209,7 @@ class ExperimentRunner:
             else run_key
         )
         initial_state = dataset.observed_stock_state(first_trade_date)
-        initial_news_state = dataset.observed_news_state(first_trade_date)
-        initial_market_summary = self._market_summary(initial_state, initial_news_state)
+        initial_market_summary = self._market_summary(initial_state)
         if preference_provider is None:
             initial_user_input = self.agents.simulate_user(
                 run_key=preference_init_run_key,
@@ -227,9 +234,7 @@ class ExperimentRunner:
             current_preference = initial_preference.payload
         for trade_date in progress(evaluation_dates, desc=run_key, total=len(evaluation_dates)):
             observed_state = dataset.observed_stock_state(trade_date)
-            observed_news_state = dataset.observed_news_state(trade_date)
-            news_context = build_news_context(observed_state)
-            market_summary = self._market_summary(observed_state, observed_news_state)
+            market_summary = self._market_summary(observed_state)
             if current_preference is None:
                 raise RuntimeError("Current preference is not initialized")
             if preference_provider is not None and not strategy.frozen_preference:
@@ -237,7 +242,7 @@ class ExperimentRunner:
             used_preference = current_preference.preference_vector
             used_constraints = (
                 self._unrestricted_constraints(dataset)
-                if self.config.disable_preference_constraints
+                if self.config.disable_preference_constraints or self.config.preference_features_only
                 else current_preference.hard_constraints
             )
             decision = strategy.select(trade_date, used_preference, used_constraints)
@@ -261,6 +266,7 @@ class ExperimentRunner:
                 advisor_rationale = f"preference_path={preference_provider.path.name}"
                 preference_alignment = "external synthetic preference path"
                 risk_note = "LLM dialogue skipped for deterministic preference-path experiment"
+            previous_portfolio_value = strategy.portfolio_value
             execution_capital = strategy.trade_capital()
             outcome = portfolio_step_value(
                 strategy.return_matrix.loc[trade_date],
@@ -270,7 +276,7 @@ class ExperimentRunner:
                 self.config.trade_cost_bps,
             )
             previous_value = execution_capital
-            wealth = outcome.end_value / initial_value if initial_value > 0 else 0.0
+            wealth = outcome.end_account_value / initial_value if initial_value > 0 else 0.0
             step = strategy.after_day(
                 trade_date=trade_date,
                 weights=decision.weights,
@@ -317,7 +323,10 @@ class ExperimentRunner:
                 "investment_return_rate": step.investment_return_rate,
                 "day_relative_return_rate": step.day_relative_return_rate,
                 "portfolio_value": step.portfolio_value,
-                "previous_portfolio_value": previous_value,
+                "account_value": step.account_value,
+                "cash_value": step.cash_value,
+                "previous_portfolio_value": previous_portfolio_value,
+                "previous_account_value": previous_value,
                 "invested_value": outcome.invested_value,
                 "transaction_cost": step.transaction_cost,
                 "traded_value": step.traded_value,
@@ -340,6 +349,12 @@ class ExperimentRunner:
                 "theta_max_abs": step.theta_max_abs,
                 "theta_boundary_share": step.theta_boundary_share,
                 "policy_normalizer": self.config.policy_normalizer,
+                "policy_temperature": self.config.policy_temperature,
+                "fixed_asset_count": self.config.fixed_asset_count,
+                "bootstrap_asset_count": self.config.bootstrap_asset_count,
+                "dirichlet_alpha_min": self.config.dirichlet_alpha_min,
+                "dirichlet_alpha_max": self.config.dirichlet_alpha_max,
+                "dirichlet_execution_mode": self.config.dirichlet_execution_mode,
                 "policy_feature_columns": json.dumps(POLICY_FEATURE_COLUMNS, ensure_ascii=False),
                 "gradient_vector": json.dumps(step.gradient_vector, ensure_ascii=False),
                 "theta_before_vector": json.dumps(step.theta_before_vector, ensure_ascii=False),
@@ -363,24 +378,28 @@ class ExperimentRunner:
                 "diversification_target": used_preference.diversification_target,
                 "style_tilt": used_preference.style_tilt,
                 "preference_constraints_disabled": int(self.config.disable_preference_constraints),
+                "preference_features_enabled": int(self.config.preference_features_enabled),
+                "preference_features_only": int(self.config.preference_features_only),
                 "effective_risk_budget": used_constraints.risk_budget,
                 "effective_max_single_weight": used_constraints.max_single_weight,
                 "effective_turnover_cap": used_constraints.turnover_cap,
                 "effective_diversification_target": used_constraints.diversification_target,
-                "news_total_count": observed_news_state.get("news_total_count", 0),
-                "news_total_positive": observed_news_state.get("news_total_positive", 0),
-                "news_total_negative": observed_news_state.get("news_total_negative", 0),
-                "stock_info_missing_sources": observed_news_state.get("stock_info_missing_sources", 0),
-                "news_sentiment_score": news_context["news_sentiment_score"],
-                "news_risk_pressure": news_context["news_risk_pressure"],
-                "news_attention": news_context["news_attention"],
-                "news_action_adjustment": action_summary.get("news_adjustment", 0.0),
-                "holding_count": action_summary.get("holding_count", effective_holding_count(decision.weights)),
+                "holding_count": action_summary.get(
+                    "holding_count",
+                    effective_holding_count(
+                        decision.weights,
+                        threshold=1e-12 if self.config.preference_features_only else MIN_ACTIVE_WEIGHT,
+                    ),
+                ),
                 "initial_reference_point": initial_portfolio.reference_point if initial_portfolio is not None else 0.0,
-                "initial_portfolio_value": initial_portfolio.portfolio_value if initial_portfolio is not None else self.config.initial_capital_amount,
+                "initial_portfolio_value": initial_portfolio.portfolio_value if initial_portfolio is not None else 0.0,
+                "initial_account_value": initial_portfolio.account_value if initial_portfolio is not None else self.config.initial_capital_amount,
                 "cash_budget": self.config.initial_capital_amount,
                 "initial_portfolio_price_date": initial_portfolio.price_date if initial_portfolio is not None else "",
-                "portfolio_weights": format_portfolio_weights_percent(decision.weights),
+                "portfolio_weights": format_portfolio_weights_percent(
+                    decision.weights,
+                    threshold=1e-12 if self.config.preference_features_only else MIN_ACTIVE_WEIGHT,
+                ),
                 "trade_plan": json.dumps(action_summary.get("trade_plan", []), ensure_ascii=False),
                 "buy_amount": action_summary.get("buy_amount", 0.0),
                 "sell_amount": action_summary.get("sell_amount", 0.0),
@@ -543,18 +562,16 @@ class ExperimentRunner:
         weights = weights / float(weights.sum())
         return InitialPortfolio(
             reference_point=0.0,
-            portfolio_value=total_account_value,
+            portfolio_value=total_value,
+            account_value=total_account_value,
             weights=weights,
             price_date=price_date,
         )
 
-    def _market_summary(self, state: pd.DataFrame, news_state: dict[str, object]) -> dict[str, object]:
+    def _market_summary(self, state: pd.DataFrame) -> dict[str, object]:
         return {
             "mean_ret_1d": round(float(state["ret_1d"].mean()), 6),
             "mean_ret_5d": round(float(state["ret_5d"].mean()), 6),
             "mean_vol_20d": round(float(state["vol_20d"].mean()), 6),
             "turnover_rate": round(float(state["turnover_rate"].mean()), 6),
-            "news_total_count": int(news_state.get("news_total_count", 0)),
-            "news_total_positive": int(news_state.get("news_total_positive", 0)),
-            "news_total_negative": int(news_state.get("news_total_negative", 0)),
         }

@@ -7,9 +7,11 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from scipy.special import digamma, expit
 
 from .actions import (
     CASH_CODE,
+    ContinuousPolicyState,
     POLICY_FEATURE_COLUMNS,
     build_continuous_policy_state,
     check_constraint_violation,
@@ -38,6 +40,8 @@ class StrategyStep:
     investment_return_rate: float
     day_relative_return_rate: float
     portfolio_value: float
+    account_value: float
+    cash_value: float
     transaction_cost: float
     traded_value: float
     objective_estimate: float
@@ -69,6 +73,9 @@ class StrategyStep:
 @dataclass(frozen=True)
 class PortfolioOutcome:
     end_value: float
+    end_account_value: float
+    end_portfolio_value: float
+    cash_value: float
     day_pnl: float
     day_return_rate: float
     investment_return_rate: float
@@ -90,7 +97,8 @@ class BaseStrategy:
         self.asset_codes = [*self.universe_codes, CASH_CODE]
         self.previous_weights = pd.Series(0.0, index=self.asset_codes, dtype=float)
         self.previous_weights.loc[CASH_CODE] = 1.0
-        self.portfolio_value = float(config.initial_capital_amount)
+        self.account_value = float(config.initial_capital_amount)
+        self.portfolio_value = 0.0
         self.budget_limit = float(config.initial_capital_amount)
         self.performance_base = float(config.initial_capital_amount)
         self.reference_point = 0.0
@@ -142,16 +150,19 @@ class BaseStrategy:
         reference_point: float,
         weights: pd.Series | None = None,
         portfolio_value: float | None = None,
+        account_value: float | None = None,
     ) -> None:
         self.reference_point = float(reference_point)
         if weights is not None:
             self.previous_weights = weights.reindex(self.asset_codes, fill_value=0.0)
         if portfolio_value is not None:
             self.portfolio_value = float(portfolio_value)
-            self.performance_base = float(portfolio_value)
+        if account_value is not None:
+            self.account_value = float(account_value)
+            self.performance_base = float(account_value)
 
     def trade_capital(self) -> float:
-        return float(self.portfolio_value)
+        return float(self.account_value)
 
     def select(self, trade_date: str, preference: PreferenceVector, hard_constraints: HardConstraints) -> PortfolioDecision:
         raise NotImplementedError
@@ -178,13 +189,16 @@ class BaseStrategy:
             )
         reference_drift = abs(self.reference_point - previous_reference)
         self.previous_weights = weights.reindex(self.asset_codes, fill_value=0.0)
-        self.portfolio_value = outcome.end_value
+        self.account_value = outcome.end_account_value
+        self.portfolio_value = outcome.end_portfolio_value
         return StrategyStep(
             day_return=outcome.day_pnl,
             day_return_rate=outcome.day_return_rate,
             investment_return_rate=outcome.investment_return_rate,
             day_relative_return_rate=outcome.investment_return_rate - objective_reference,
-            portfolio_value=outcome.end_value,
+            portfolio_value=outcome.end_portfolio_value,
+            account_value=outcome.end_account_value,
+            cash_value=outcome.cash_value,
             transaction_cost=outcome.transaction_cost,
             traded_value=outcome.traded_value,
             objective_estimate=self.last_objective_estimate,
@@ -209,8 +223,12 @@ class BaseStrategy:
             update_vector=self.last_update_vector,
             reference_drift=reference_drift,
             turnover=outcome.turnover,
-            constraint_violation=check_constraint_violation(weights, hard_constraints, previous_weights),
-            constraint_violation_reason=constraint_violation_reason(weights, hard_constraints, previous_weights),
+            constraint_violation=0
+            if self.config.preference_features_only
+            else check_constraint_violation(weights, hard_constraints, previous_weights),
+            constraint_violation_reason=""
+            if self.config.preference_features_only
+            else constraint_violation_reason(weights, hard_constraints, previous_weights),
         )
 
     def _update_model(self, trade_date: str, preference: PreferenceVector, hard_constraints: HardConstraints) -> None:
@@ -254,6 +272,7 @@ class CPTPGStrategy(BaseStrategy):
         self._static_reference = static_reference
         self._frozen_preference = frozen_preference
         self._last_update_trade_date: str | None = None
+        self._fixed_asset_codes: list[str] | None = None
 
     @property
     def use_cpt_optimizer(self) -> bool:
@@ -269,19 +288,44 @@ class CPTPGStrategy(BaseStrategy):
 
     def select(self, trade_date: str, preference: PreferenceVector, hard_constraints: HardConstraints) -> PortfolioDecision:
         pref = self.effective_preference(preference)
-        self._update_model(trade_date, pref, hard_constraints)
         observed_state = self.dataset.observed_stock_state(trade_date)
         policy_state = build_continuous_policy_state(
             observed_state,
             pref,
             prev_weights=self.previous_weights,
-            use_style_tilt=not self.config.disable_preference_constraints,
+            use_style_tilt=self.config.preference_features_enabled,
         )
+        policy_state = self._restrict_to_fixed_asset_pool(policy_state)
+        self._update_model(trade_date, pref, hard_constraints)
         weights, _, metadata = self._sample_continuous_action(policy_state, hard_constraints, self.previous_weights)
         return PortfolioDecision(
             action_name="continuous_weight_policy",
             weights=weights,
             metadata=metadata,
+        )
+
+    def _restrict_to_fixed_asset_pool(self, policy_state: ContinuousPolicyState) -> ContinuousPolicyState:
+        fixed_count = self.config.fixed_asset_count
+        if fixed_count is None:
+            return policy_state
+        fixed_count = int(fixed_count)
+        if fixed_count <= 0:
+            raise RuntimeError("fixed_asset_count must be positive when configured")
+        if self._fixed_asset_codes is None:
+            if len(policy_state.codes) < fixed_count:
+                raise RuntimeError(
+                    f"Fixed asset pool requested {fixed_count} stocks, but only {len(policy_state.codes)} are available"
+                )
+            selected = self.rng.choice(np.asarray(policy_state.codes, dtype=object), size=fixed_count, replace=False)
+            self._fixed_asset_codes = sorted(str(code) for code in selected.tolist())
+        fixed_set = set(self._fixed_asset_codes)
+        keep_positions = [index for index, code in enumerate(policy_state.codes) if code in fixed_set]
+        if not keep_positions:
+            raise RuntimeError("Fixed asset pool has no tradable stocks in the current state")
+        return ContinuousPolicyState(
+            codes=[policy_state.codes[index] for index in keep_positions],
+            feature_matrix=policy_state.feature_matrix[keep_positions],
+            frame=policy_state.frame.iloc[keep_positions].reset_index(drop=True),
         )
 
     def _sample_continuous_action(
@@ -291,34 +335,64 @@ class CPTPGStrategy(BaseStrategy):
         prev_weights: pd.Series,
         rng: np.random.Generator | None = None,
     ) -> tuple[pd.Series, np.ndarray, dict[str, Any]]:
-        if self.policy_noise_scale <= 0:
-            raise RuntimeError("policy_noise_scale must be positive")
         active_rng = rng if rng is not None else self.rng
         mean_vector = policy_state.feature_matrix @ self.theta
-        noise = active_rng.normal(loc=0.0, scale=self.policy_noise_scale, size=len(policy_state.codes))
-        latent = mean_vector + noise
-        raw_risky_weights = policy_weights_from_latent(policy_state.codes, latent, self.config.policy_normalizer)
+        selected_indices = self._sample_asset_indices(len(policy_state.codes), active_rng)
+        selected_features = policy_state.feature_matrix[selected_indices]
+        selected_scores = mean_vector[selected_indices]
+        if self.config.policy_normalizer == "dirichlet":
+            alpha, alpha_derivative = dirichlet_alpha_from_scores(selected_scores, self.config)
+            raw_weight_values = dirichlet_execution_weights(alpha, self.config, active_rng)
+            score_gradient = dirichlet_score_gradient(
+                selected_features,
+                raw_weight_values,
+                alpha,
+                alpha_derivative,
+            )
+        else:
+            if self.policy_noise_scale <= 0:
+                raise RuntimeError("policy_noise_scale must be positive")
+            noise = active_rng.normal(loc=0.0, scale=self.policy_noise_scale, size=len(selected_indices))
+            latent = selected_scores + noise
+            raw_weight_values = normalize_latent_vector(latent, self.config.policy_normalizer, self.config.policy_temperature)
+            latent_score = (latent - selected_scores) / (self.policy_noise_scale**2)
+            score_gradient = selected_features.T @ latent_score
+        raw_full_weights = aggregate_sampled_asset_weights(len(policy_state.codes), selected_indices, raw_weight_values)
+        raw_risky_weights = pd.Series(raw_full_weights, index=policy_state.codes, dtype=float)
         projection_codes = [*policy_state.codes, CASH_CODE]
         raw_weights = raw_risky_weights.reindex(projection_codes, fill_value=0.0)
-        weights = project_continuous_weights(
-            codes=projection_codes,
-            raw_weights=raw_weights,
-            hard_constraints=hard_constraints,
-            prev_weights=prev_weights.reindex(projection_codes, fill_value=0.0),
-        )
-        latent_score = (latent - mean_vector) / (self.policy_noise_scale**2)
-        score_gradient = policy_state.feature_matrix.T @ latent_score
+        if self.config.preference_features_only:
+            weights = normalize_weights(raw_weights)
+        else:
+            weights = project_continuous_weights(
+                codes=projection_codes,
+                raw_weights=raw_weights,
+                hard_constraints=hard_constraints,
+                prev_weights=prev_weights.reindex(projection_codes, fill_value=0.0),
+            )
         action_summary = continuous_action_summary(
             weights=weights,
             prev_weights=prev_weights,
-            portfolio_value=self.portfolio_value,
-            news_context=policy_state.news_context,
+            portfolio_value=self.account_value,
+            display_threshold=1e-12 if self.config.preference_features_only else None,
         )
         metadata = {
             "policy_mean_vector": mean_vector,
             "action_summary": action_summary,
+            "bootstrap_asset_count": int(len(selected_indices)),
         }
         return weights, score_gradient, metadata
+
+    def _sample_asset_indices(self, asset_count: int, rng: np.random.Generator) -> np.ndarray:
+        if asset_count <= 0:
+            raise RuntimeError("Policy state has no risky assets")
+        sample_count = self.config.bootstrap_asset_count
+        if sample_count is None:
+            return np.arange(asset_count, dtype=int)
+        sample_count = int(sample_count)
+        if sample_count <= 0:
+            raise RuntimeError("bootstrap_asset_count must be positive when configured")
+        return rng.integers(0, asset_count, size=sample_count, endpoint=False, dtype=int)
 
     def _sample_continuous_action_batch(
         self,
@@ -329,38 +403,100 @@ class CPTPGStrategy(BaseStrategy):
         rng: np.random.Generator,
         collect_scores: bool,
     ) -> tuple[np.ndarray, np.ndarray]:
-        if self.policy_noise_scale <= 0:
-            raise RuntimeError("policy_noise_scale must be positive")
         mean_vector = policy_state.feature_matrix @ self.theta
-        noise = rng.normal(
-            loc=0.0,
-            scale=self.policy_noise_scale,
-            size=(prev_weight_matrix.shape[0], len(policy_state.codes)),
-        )
-        latent_matrix = mean_vector.reshape(1, -1) + noise
-        raw_risky_weight_matrix = policy_weight_matrix_from_latent(
-            policy_state.codes,
-            latent_matrix,
-            self.config.policy_normalizer,
-        )
+        if self.config.bootstrap_asset_count is None and self.config.policy_normalizer == "dirichlet":
+            alpha, alpha_derivative = dirichlet_alpha_from_scores(mean_vector, self.config)
+            raw_risky_weight_matrix = rng.dirichlet(alpha, size=prev_weight_matrix.shape[0])
+        elif self.config.bootstrap_asset_count is None:
+            if self.policy_noise_scale <= 0:
+                raise RuntimeError("policy_noise_scale must be positive")
+            noise = rng.normal(
+                loc=0.0,
+                scale=self.policy_noise_scale,
+                size=(prev_weight_matrix.shape[0], len(policy_state.codes)),
+            )
+            latent_matrix = mean_vector.reshape(1, -1) + noise
+            raw_risky_weight_matrix = policy_weight_matrix_from_latent(
+                policy_state.codes,
+                latent_matrix,
+                self.config.policy_normalizer,
+                self.config.policy_temperature,
+            )
+        else:
+            raw_risky_weight_matrix = None
         projection_codes = [*policy_state.codes, CASH_CODE]
         aligned_prev = align_weight_matrix(prev_weight_matrix, prev_codes, projection_codes)
-        projected_weight_matrix = np.empty((raw_risky_weight_matrix.shape[0], len(projection_codes)), dtype=float)
+        sample_count = prev_weight_matrix.shape[0]
+        projected_weight_matrix = np.empty((sample_count, len(projection_codes)), dtype=float)
+        score_gradient_matrix = (
+            np.zeros((sample_count, len(POLICY_FEATURE_COLUMNS)), dtype=float)
+            if collect_scores and self.config.bootstrap_asset_count is not None
+            else None
+        )
+        raw_full_weights = np.zeros(len(policy_state.codes), dtype=float)
         raw_weights = np.zeros(len(projection_codes), dtype=float)
-        for row_index in range(raw_risky_weight_matrix.shape[0]):
+        for row_index in range(sample_count):
+            if self.config.bootstrap_asset_count is not None:
+                selected_indices = self._sample_asset_indices(len(policy_state.codes), rng)
+                selected_features = policy_state.feature_matrix[selected_indices]
+                selected_scores = mean_vector[selected_indices]
+                if self.config.policy_normalizer == "dirichlet":
+                    alpha, alpha_derivative = dirichlet_alpha_from_scores(selected_scores, self.config)
+                    raw_selected_weights = rng.dirichlet(alpha)
+                    if collect_scores and score_gradient_matrix is not None:
+                        score_gradient_matrix[row_index] = dirichlet_score_gradient(
+                            selected_features,
+                            raw_selected_weights,
+                            alpha,
+                            alpha_derivative,
+                        )
+                else:
+                    if self.policy_noise_scale <= 0:
+                        raise RuntimeError("policy_noise_scale must be positive")
+                    noise = rng.normal(loc=0.0, scale=self.policy_noise_scale, size=len(selected_indices))
+                    latent = selected_scores + noise
+                    raw_selected_weights = normalize_latent_vector(
+                        latent,
+                        self.config.policy_normalizer,
+                        self.config.policy_temperature,
+                    )
+                    if collect_scores and score_gradient_matrix is not None:
+                        latent_score = (latent - selected_scores) / (self.policy_noise_scale**2)
+                        score_gradient_matrix[row_index] = selected_features.T @ latent_score
+                raw_full_weights = aggregate_sampled_asset_weights(
+                    len(policy_state.codes),
+                    selected_indices,
+                    raw_selected_weights,
+                    out=raw_full_weights,
+                )
+            else:
+                raw_full_weights = raw_risky_weight_matrix[row_index]
             raw_weights.fill(0.0)
-            raw_weights[: len(policy_state.codes)] = raw_risky_weight_matrix[row_index]
-            projected = project_continuous_weights_array(
-                codes=projection_codes,
-                raw_weights=raw_weights,
-                hard_constraints=hard_constraints,
-                prev_weights=aligned_prev[row_index],
-            )
-            projected_weight_matrix[row_index] = projected
+            raw_weights[: len(policy_state.codes)] = raw_full_weights
+            if self.config.preference_features_only:
+                projected_weight_matrix[row_index] = normalize_weight_array(raw_weights)
+            else:
+                projected = project_continuous_weights_array(
+                    codes=projection_codes,
+                    raw_weights=raw_weights,
+                    hard_constraints=hard_constraints,
+                    prev_weights=aligned_prev[row_index],
+                )
+                projected_weight_matrix[row_index] = projected
         if not collect_scores:
             return projected_weight_matrix, np.empty((0, len(POLICY_FEATURE_COLUMNS)), dtype=float)
-        latent_score_matrix = (latent_matrix - mean_vector.reshape(1, -1)) / (self.policy_noise_scale**2)
-        score_gradient_matrix = latent_score_matrix @ policy_state.feature_matrix
+        if score_gradient_matrix is not None:
+            return projected_weight_matrix, score_gradient_matrix
+        if self.config.policy_normalizer == "dirichlet":
+            score_gradient_matrix = dirichlet_score_gradient_matrix(
+                policy_state.feature_matrix,
+                raw_risky_weight_matrix,
+                alpha,
+                alpha_derivative,
+            )
+        else:
+            latent_score_matrix = (latent_matrix - mean_vector.reshape(1, -1)) / (self.policy_noise_scale**2)
+            score_gradient_matrix = latent_score_matrix @ policy_state.feature_matrix
         return projected_weight_matrix, score_gradient_matrix
 
     def _update_model(self, trade_date: str, preference: PreferenceVector, hard_constraints: HardConstraints) -> None:
@@ -532,8 +668,9 @@ class CPTPGStrategy(BaseStrategy):
                 observed_state,
                 preference,
                 prev_weights=pd.Series(prev_weight_matrix.mean(axis=0), index=prev_codes, dtype=float),
-                use_style_tilt=not self.config.disable_preference_constraints,
+                use_style_tilt=self.config.preference_features_enabled,
             )
+            policy_state = self._restrict_to_fixed_asset_pool(policy_state)
             weight_matrix, score_gradient_matrix = self._sample_continuous_action_batch(
                 policy_state,
                 hard_constraints,
@@ -551,10 +688,17 @@ class CPTPGStrategy(BaseStrategy):
             day_returns = returns.to_numpy(dtype=float)
             risky_columns = np.array([code != CASH_CODE for code in projection_codes], dtype=bool)
             risky_weight_sums = weight_matrix[:, risky_columns].sum(axis=1)
-            invested_values = simulated_values * risky_weight_sums
             turnover = np.abs(weight_matrix[:, risky_columns] - aligned_prev[:, risky_columns]).sum(axis=1)
-            transaction_cost = simulated_values * turnover * self.config.trade_cost_bps / 10000.0
-            investable_values = np.maximum(simulated_values - transaction_cost, 0.0)
+            cash_index = projection_codes.index(CASH_CODE)
+            mu = transaction_remainder_factor(
+                aligned_prev,
+                weight_matrix,
+                self.config.trade_cost_bps / 10000.0,
+                cash_index=cash_index,
+            )
+            investable_values = simulated_values * mu
+            transaction_cost = np.maximum(simulated_values - investable_values, 0.0)
+            invested_values = investable_values * risky_weight_sums
             weighted_returns = weight_matrix @ day_returns
             previous_values = simulated_values
             simulated_values = investable_values * (1.0 + weighted_returns)
@@ -684,6 +828,70 @@ def build_strategy(method: str, config: ExperimentConfig, dataset: MarketDataset
     raise ValueError(f"Unknown method: {method}")
 
 
+def dirichlet_alpha_from_scores(scores: np.ndarray, config: ExperimentConfig) -> tuple[np.ndarray, np.ndarray]:
+    alpha_min = float(config.dirichlet_alpha_min)
+    alpha_max = float(config.dirichlet_alpha_max)
+    if not (0.0 < alpha_min < alpha_max):
+        raise RuntimeError("Dirichlet alpha bounds must satisfy 0 < alpha_min < alpha_max")
+    sigmoid_values = expit(np.asarray(scores, dtype=float))
+    span = alpha_max - alpha_min
+    alpha = alpha_min + span * sigmoid_values
+    alpha_derivative = span * sigmoid_values * (1.0 - sigmoid_values)
+    return alpha.astype(float), alpha_derivative.astype(float)
+
+
+def dirichlet_score_gradient(
+    feature_matrix: np.ndarray,
+    weights: np.ndarray,
+    alpha: np.ndarray,
+    alpha_derivative: np.ndarray,
+) -> np.ndarray:
+    safe_weights = np.maximum(np.asarray(weights, dtype=float), 1e-300)
+    coefficient = (digamma(float(np.sum(alpha))) - digamma(alpha) + np.log(safe_weights)) * alpha_derivative
+    return np.asarray(feature_matrix, dtype=float).T @ coefficient
+
+
+def dirichlet_score_gradient_matrix(
+    feature_matrix: np.ndarray,
+    weight_matrix: np.ndarray,
+    alpha: np.ndarray,
+    alpha_derivative: np.ndarray,
+) -> np.ndarray:
+    safe_weights = np.maximum(np.asarray(weight_matrix, dtype=float), 1e-300)
+    coefficient_matrix = (
+        digamma(float(np.sum(alpha))) - digamma(alpha) + np.log(safe_weights)
+    ) * alpha_derivative.reshape(1, -1)
+    return coefficient_matrix @ np.asarray(feature_matrix, dtype=float)
+
+
+def dirichlet_execution_weights(alpha: np.ndarray, config: ExperimentConfig, rng: np.random.Generator) -> np.ndarray:
+    mode = str(config.dirichlet_execution_mode)
+    alpha_values = np.asarray(alpha, dtype=float)
+    if mode == "sample":
+        return rng.dirichlet(alpha_values)
+    if mode == "mean":
+        total = float(alpha_values.sum())
+        if total <= 0.0:
+            raise RuntimeError("Dirichlet alpha sum must be positive")
+        return alpha_values / total
+    raise ValueError(f"Unknown dirichlet_execution_mode: {mode}")
+
+
+def aggregate_sampled_asset_weights(
+    asset_count: int,
+    selected_indices: np.ndarray,
+    selected_weights: np.ndarray,
+    out: np.ndarray | None = None,
+) -> np.ndarray:
+    if out is None:
+        output = np.zeros(asset_count, dtype=float)
+    else:
+        output = out
+        output.fill(0.0)
+    np.add.at(output, np.asarray(selected_indices, dtype=int), np.asarray(selected_weights, dtype=float))
+    return output
+
+
 def softmax_vector(values: np.ndarray) -> np.ndarray:
     shifted = values - float(np.max(values))
     exp_vals = np.exp(np.clip(shifted, -30.0, 30.0))
@@ -693,33 +901,40 @@ def softmax_vector(values: np.ndarray) -> np.ndarray:
     return exp_vals / denom
 
 
-def policy_weights_from_latent(codes: list[str], latent: np.ndarray, normalizer: str = "softmax") -> pd.Series:
-    if len(codes) != len(latent):
-        raise RuntimeError("Policy codes and latent vector length mismatch")
-    weights = normalize_latent_vector(np.asarray(latent, dtype=float), normalizer)
-    return pd.Series(weights, index=codes, dtype=float)
-
-
-def policy_weight_matrix_from_latent(codes: list[str], latent_matrix: np.ndarray, normalizer: str = "softmax") -> np.ndarray:
+def policy_weight_matrix_from_latent(
+    codes: list[str],
+    latent_matrix: np.ndarray,
+    normalizer: str = "softmax",
+    temperature: float = 1.0,
+) -> np.ndarray:
     if latent_matrix.ndim != 2 or latent_matrix.shape[1] != len(codes):
         raise RuntimeError("Policy codes and latent matrix shape mismatch")
-    return normalize_latent_matrix(latent_matrix, normalizer)
+    return normalize_latent_matrix(latent_matrix, normalizer, temperature)
 
 
-def normalize_latent_vector(values: np.ndarray, normalizer: str) -> np.ndarray:
+def normalize_latent_vector(values: np.ndarray, normalizer: str, temperature: float = 1.0) -> np.ndarray:
+    scaled = scale_latent_values(values, temperature)
     if normalizer == "softmax":
-        return softmax_vector(values)
+        return softmax_vector(scaled)
     if normalizer == "sparsemax":
-        return sparsemax_vector(values)
+        return sparsemax_vector(scaled)
     raise ValueError(f"Unknown policy_normalizer: {normalizer}")
 
 
-def normalize_latent_matrix(values: np.ndarray, normalizer: str) -> np.ndarray:
+def normalize_latent_matrix(values: np.ndarray, normalizer: str, temperature: float = 1.0) -> np.ndarray:
+    scaled = scale_latent_values(values, temperature)
     if normalizer == "softmax":
-        return softmax_matrix(values)
+        return softmax_matrix(scaled)
     if normalizer == "sparsemax":
-        return sparsemax_matrix(values)
+        return sparsemax_matrix(scaled)
     raise ValueError(f"Unknown policy_normalizer: {normalizer}")
+
+
+def scale_latent_values(values: np.ndarray, temperature: float) -> np.ndarray:
+    active_temperature = float(temperature)
+    if active_temperature <= 0.0:
+        raise RuntimeError("policy_temperature must be positive")
+    return np.asarray(values, dtype=float) / active_temperature
 
 
 def softmax_matrix(values: np.ndarray) -> np.ndarray:
@@ -776,11 +991,64 @@ def align_weight_matrix(weight_matrix: np.ndarray, source_codes: list[str], targ
     return frame.reindex(columns=target_codes, fill_value=0.0).to_numpy(dtype=float)
 
 
-def traded_notional(prev_weights: pd.Series, new_weights: pd.Series) -> float:
+def normalize_weight_array(weights: np.ndarray) -> np.ndarray:
+    clipped = np.maximum(np.asarray(weights, dtype=float), 0.0)
+    total = float(clipped.sum())
+    if total <= 0.0:
+        raise RuntimeError("Policy weights are non-positive")
+    return clipped / total
+
+
+def one_way_traded_notional(prev_weights: pd.Series, new_weights: pd.Series) -> float:
     all_codes = sorted(code for code in set(prev_weights.index).union(new_weights.index) if code != CASH_CODE)
     prev = prev_weights.reindex(all_codes, fill_value=0.0)
     new = new_weights.reindex(all_codes, fill_value=0.0)
-    return float((new - prev).abs().sum())
+    delta = new - prev
+    buy_notional = float(delta.clip(lower=0.0).sum())
+    sell_notional = float((-delta).clip(lower=0.0).sum())
+    return max(buy_notional, sell_notional)
+
+
+def transaction_remainder_factor(
+    prev_weights: np.ndarray,
+    target_weights: np.ndarray,
+    commission_rate: float,
+    cash_index: int = 0,
+) -> np.ndarray:
+    previous = np.asarray(prev_weights, dtype=float)
+    target = np.asarray(target_weights, dtype=float)
+    if previous.shape != target.shape:
+        raise RuntimeError("Transaction remainder factor weight shape mismatch")
+    if previous.ndim == 1:
+        previous = previous.reshape(1, -1)
+        target = target.reshape(1, -1)
+        squeeze = True
+    elif previous.ndim == 2:
+        squeeze = False
+    else:
+        raise RuntimeError("Transaction remainder factor expects 1D or 2D weights")
+    rate = float(max(0.0, commission_rate))
+    if rate <= 0.0:
+        result = np.ones(previous.shape[0], dtype=float)
+        return result[0] if squeeze else result
+    cash_position = int(cash_index)
+    if cash_position < 0 or cash_position >= previous.shape[1]:
+        raise RuntimeError("Transaction remainder factor cash index is out of range")
+    risky_positions = np.array([index for index in range(previous.shape[1]) if index != cash_position], dtype=int)
+    target_cash = np.clip(target[:, cash_position], 0.0, 1.0)
+    prev_risky = np.clip(previous[:, risky_positions], 0.0, 1.0)
+    target_risky = np.clip(target[:, risky_positions], 0.0, 1.0)
+    mu = np.ones(previous.shape[0], dtype=float)
+    denominator = np.maximum(1.0 - rate * target_cash, 1e-12)
+    for _ in range(32):
+        sell_amount = np.maximum(prev_risky - mu.reshape(-1, 1) * target_risky, 0.0).sum(axis=1)
+        next_mu = (1.0 - rate * target_cash - (2.0 * rate - rate * rate) * sell_amount) / denominator
+        next_mu = np.clip(next_mu, 0.0, 1.0)
+        if float(np.max(np.abs(next_mu - mu))) < 1e-12:
+            mu = next_mu
+            break
+        mu = next_mu
+    return float(mu[0]) if squeeze else mu
 
 
 def portfolio_step_value(
@@ -792,27 +1060,37 @@ def portfolio_step_value(
 ) -> PortfolioOutcome:
     weights = normalize_weights(weights)
     current_value = max(float(portfolio_value), 0.0)
-    turnover = traded_notional(prev_weights, weights)
-    traded_value = current_value * turnover
-    transaction_cost = traded_value * trade_cost_bps / 10000.0
-    investable_value = max(current_value - transaction_cost, 0.0)
+    traded_value = current_value * one_way_traded_notional(prev_weights, weights)
+    all_codes = [CASH_CODE, *sorted(code for code in set(prev_weights.index).union(weights.index) if code != CASH_CODE)]
+    prev_array = normalize_weights(prev_weights.reindex(all_codes, fill_value=0.0)).to_numpy(dtype=float)
+    target_array = normalize_weights(weights.reindex(all_codes, fill_value=0.0)).to_numpy(dtype=float)
+    mu = transaction_remainder_factor(prev_array, target_array, trade_cost_bps / 10000.0)
+    investable_value = current_value * mu
+    transaction_cost = max(current_value - investable_value, 0.0)
     stock_weights = weights.drop(labels=[CASH_CODE], errors="ignore")
     risky_weight_sum = float(stock_weights.clip(lower=0.0).sum())
-    invested_value = current_value * risky_weight_sum
+    invested_value = investable_value * risky_weight_sum
     weighted_return = float((stock_weights.reindex(day_returns.index, fill_value=0.0) * day_returns.fillna(0.0)).sum())
-    end_value = investable_value * (1.0 + weighted_return)
-    day_pnl = end_value - current_value
+    cash_weight = max(float(weights.get(CASH_CODE, 0.0)), 0.0)
+    cash_value = investable_value * cash_weight
+    end_portfolio_value = investable_value * (risky_weight_sum + weighted_return)
+    end_account_value = cash_value + end_portfolio_value
+    day_pnl = end_account_value - current_value
     day_return_rate = 0.0 if current_value <= 0 else day_pnl / current_value
     investment_return_rate = 0.0 if invested_value <= 1e-12 else day_pnl / invested_value
+    turnover_ratio = 0.0 if end_portfolio_value <= 1e-12 else traded_value / end_portfolio_value
     return PortfolioOutcome(
-        end_value=end_value,
+        end_value=end_account_value,
+        end_account_value=end_account_value,
+        end_portfolio_value=end_portfolio_value,
+        cash_value=cash_value,
         day_pnl=day_pnl,
         day_return_rate=day_return_rate,
         investment_return_rate=investment_return_rate,
         invested_value=invested_value,
         transaction_cost=transaction_cost,
         traded_value=traded_value,
-        turnover=turnover,
+        turnover=turnover_ratio,
     )
 
 

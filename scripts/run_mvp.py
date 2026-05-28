@@ -36,6 +36,16 @@ def main() -> None:
         help="Disable user preference constraints and style_tilt effects in policy feature scoring",
     )
     parser.add_argument(
+        "--preference-features-only",
+        action="store_true",
+        help="Use user style and turnover_cap as policy features while disabling preference hard constraints",
+    )
+    parser.add_argument(
+        "--disable-preference-features",
+        action="store_true",
+        help="Disable user style and turnover_cap policy feature conditioning",
+    )
+    parser.add_argument(
         "--universe-by-date-path",
         type=Path,
         default=None,
@@ -49,12 +59,7 @@ def main() -> None:
     parser.add_argument(
         "--strict-drop-missing-stocks",
         action="store_true",
-        help="Drop stocks with any missing required non-news field after skipping empty daily_basic dates",
-    )
-    parser.add_argument(
-        "--enable-tushare-news",
-        action="store_true",
-        help="Add Tushare short-news sources to the Akshare news feature pipeline",
+        help="Drop stocks with any missing required market field after skipping empty daily_basic dates",
     )
     parser.add_argument(
         "--gradient-diagnostic-repeats",
@@ -96,10 +101,36 @@ def main() -> None:
     parser.add_argument("--gamma-exponent", type=float, default=None, help="Decay exponent for gamma_t = gamma0 / t^a")
     parser.add_argument("--policy-noise-scale", type=float, default=None, help="Gaussian policy sampling noise scale")
     parser.add_argument(
-        "--policy-normalizer",
-        choices=("softmax", "sparsemax"),
+        "--policy-temperature",
+        type=float,
         default=None,
-        help="Map latent policy scores to raw portfolio weights before constraint projection",
+        help="Temperature for softmax/sparsemax action normalization; values above 1 flatten latent score gaps",
+    )
+    parser.add_argument(
+        "--policy-normalizer",
+        choices=("dirichlet", "softmax", "sparsemax"),
+        default=None,
+        help="Policy action sampler. Dirichlet is the default CPT-PG portfolio policy",
+    )
+    parser.add_argument(
+        "--bootstrap-asset-count",
+        type=int,
+        default=None,
+        help="Randomly sample this many stock positions with replacement before policy weight sampling",
+    )
+    parser.add_argument(
+        "--fixed-asset-count",
+        type=int,
+        default=None,
+        help="Sample one fixed stock pool of this size at the start of each method/seed run",
+    )
+    parser.add_argument("--dirichlet-alpha-min", type=float, default=None, help="Lower bound for Dirichlet policy alpha")
+    parser.add_argument("--dirichlet-alpha-max", type=float, default=None, help="Upper bound for Dirichlet policy alpha")
+    parser.add_argument(
+        "--dirichlet-execution-mode",
+        choices=("sample", "mean"),
+        default=None,
+        help="How to turn Dirichlet alpha into the current recommendation after theta update",
     )
     args = parser.parse_args()
 
@@ -127,15 +158,27 @@ def main() -> None:
     if args.preference_path is not None:
         config = replace(config, preference_path=args.preference_path)
     if args.disable_preference_constraints:
-        config = replace(config, disable_preference_constraints=True)
+        config = replace(
+            config,
+            disable_preference_constraints=True,
+            preference_features_enabled=False,
+            preference_features_only=False,
+        )
+    if args.preference_features_only:
+        config = replace(
+            config,
+            preference_features_only=True,
+            preference_features_enabled=True,
+            disable_preference_constraints=False,
+        )
+    if args.disable_preference_features:
+        config = replace(config, preference_features_enabled=False)
     if args.universe_by_date_path is not None:
         config = replace(config, universe_by_date_path=args.universe_by_date_path)
     if args.evaluation_horizon is not None:
         config = replace(config, evaluation_horizon=args.evaluation_horizon)
     if args.strict_drop_missing_stocks:
         config = replace(config, strict_drop_missing_stocks=True)
-    if args.enable_tushare_news:
-        config = replace(config, enable_tushare_news=True)
     if args.gradient_diagnostic_repeats is not None:
         config = replace(config, gradient_diagnostic_repeats=args.gradient_diagnostic_repeats)
     if args.gradient_diagnostic_use_mean_update:
@@ -158,8 +201,20 @@ def main() -> None:
         config = replace(config, gamma_exponent=args.gamma_exponent)
     if args.policy_noise_scale is not None:
         config = replace(config, policy_noise_scale=args.policy_noise_scale)
+    if args.policy_temperature is not None:
+        config = replace(config, policy_temperature=args.policy_temperature)
     if args.policy_normalizer is not None:
         config = replace(config, policy_normalizer=args.policy_normalizer)
+    if args.fixed_asset_count is not None:
+        config = replace(config, fixed_asset_count=args.fixed_asset_count)
+    if args.bootstrap_asset_count is not None:
+        config = replace(config, bootstrap_asset_count=args.bootstrap_asset_count)
+    if args.dirichlet_alpha_min is not None:
+        config = replace(config, dirichlet_alpha_min=args.dirichlet_alpha_min)
+    if args.dirichlet_alpha_max is not None:
+        config = replace(config, dirichlet_alpha_max=args.dirichlet_alpha_max)
+    if args.dirichlet_execution_mode is not None:
+        config = replace(config, dirichlet_execution_mode=args.dirichlet_execution_mode)
     if args.llm_model or args.llm_base_url or args.disable_llm_thinking:
         config = _override_llm_config(
             config,

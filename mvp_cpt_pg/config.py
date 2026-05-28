@@ -48,6 +48,8 @@ class ExperimentConfig:
     initial_holdings_path: Path | None = None
     preference_path: Path | None = None
     disable_preference_constraints: bool = False
+    preference_features_enabled: bool = False
+    preference_features_only: bool = False
     strict_drop_missing_stocks: bool = False
     cpt_sample_base: int = 256
     gradient_sample_base: int = 32
@@ -58,7 +60,13 @@ class ExperimentConfig:
     gamma0: float = 3.0
     gamma_exponent: float = 0.51
     policy_noise_scale: float = 0.1
-    policy_normalizer: str = "softmax"
+    policy_temperature: float = 1.0
+    policy_normalizer: str = "dirichlet"
+    fixed_asset_count: int | None = None
+    bootstrap_asset_count: int | None = None
+    dirichlet_alpha_min: float = 0.2
+    dirichlet_alpha_max: float = 1.6
+    dirichlet_execution_mode: str = "sample"
     exponential_risk_aversion: float = 0.5
     alpha_gain: float = 0.88
     alpha_loss: float = 0.88
@@ -75,26 +83,6 @@ class ExperimentConfig:
     user_agent_llm: AgentLLMConfig = field(default_factory=AgentLLMConfig)
     preference_agent_llm: AgentLLMConfig = field(default_factory=AgentLLMConfig)
     advisor_agent_llm: AgentLLMConfig = field(default_factory=AgentLLMConfig)
-    news_sources: tuple[str, ...] = (
-        "stock_info_global_cls",
-        "stock_info_global_em",
-        "stock_info_global_futu",
-        "stock_info_global_sina",
-        "stock_info_global_ths",
-        "stock_info_cjzc_em",
-    )
-    enable_tushare_news: bool = False
-    tushare_news_sources: tuple[str, ...] = ("sina", "10jqka", "eastmoney", "cls")
-    tushare_news_chunk_days: int = 7
-    static_stock_info_sources: tuple[str, ...] = (
-        "stock_info_a_code_name",
-        "stock_info_sh_name_code",
-        "stock_info_sz_name_code",
-        "stock_info_change_name",
-        "stock_info_sz_change_name",
-        "stock_info_sh_delist",
-        "stock_info_sz_delist",
-    )
     finance_industries: tuple[str, ...] = ("银行", "证券", "保险", "多元金融")
     methods: tuple[str, ...] = (
         "dynamic_cpt_pg",
@@ -126,6 +114,8 @@ class ExperimentConfig:
             initial_holdings_path=self.initial_holdings_path,
             preference_path=self.preference_path,
             disable_preference_constraints=self.disable_preference_constraints,
+            preference_features_enabled=self.preference_features_enabled,
+            preference_features_only=self.preference_features_only,
             strict_drop_missing_stocks=self.strict_drop_missing_stocks,
             cpt_sample_base=self.cpt_sample_base,
             gradient_sample_base=self.gradient_sample_base,
@@ -136,7 +126,13 @@ class ExperimentConfig:
             gamma0=self.gamma0,
             gamma_exponent=self.gamma_exponent,
             policy_noise_scale=self.policy_noise_scale,
+            policy_temperature=self.policy_temperature,
             policy_normalizer=self.policy_normalizer,
+            fixed_asset_count=self.fixed_asset_count,
+            bootstrap_asset_count=self.bootstrap_asset_count,
+            dirichlet_alpha_min=self.dirichlet_alpha_min,
+            dirichlet_alpha_max=self.dirichlet_alpha_max,
+            dirichlet_execution_mode=self.dirichlet_execution_mode,
             exponential_risk_aversion=self.exponential_risk_aversion,
             alpha_gain=self.alpha_gain,
             alpha_loss=self.alpha_loss,
@@ -153,11 +149,6 @@ class ExperimentConfig:
             user_agent_llm=self.user_agent_llm,
             preference_agent_llm=self.preference_agent_llm,
             advisor_agent_llm=self.advisor_agent_llm,
-            news_sources=self.news_sources,
-            enable_tushare_news=self.enable_tushare_news,
-            tushare_news_sources=self.tushare_news_sources,
-            tushare_news_chunk_days=self.tushare_news_chunk_days,
-            static_stock_info_sources=self.static_stock_info_sources,
             finance_industries=self.finance_industries,
             methods=self.methods,
             artifact_dir=self.artifact_dir,

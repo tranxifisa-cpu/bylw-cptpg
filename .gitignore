@@ -16,6 +16,8 @@ artifacts/tables/
 .aris/
 .claude/
 idea-stage/
+refine-logs/
+output_paper/
 
 reference_paper/
 *.pdf

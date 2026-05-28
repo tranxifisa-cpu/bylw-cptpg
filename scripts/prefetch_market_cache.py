@@ -16,7 +16,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from mvp_cpt_pg.config import DateWindow, ExperimentConfig
-from mvp_cpt_pg.market_data import AkshareStockInfoClient, MarketDatasetBuilder, TushareDataClient
+from mvp_cpt_pg.market_data import MarketDatasetBuilder, TushareDataClient
 from mvp_cpt_pg.progress import progress
 
 
@@ -27,13 +27,6 @@ DAILY_BASIC_FIELDS = (
 )
 DEFAULT_STATUS_PATH = ROOT / "artifacts" / "inputs" / "prefetch_market_cache_status.csv"
 DEFAULT_MARKET_CONTEXT_PATH = ROOT / "artifacts" / "inputs" / "market_context_20250515_20260512.csv"
-EXTRA_AKSHARE_SOURCES: tuple[tuple[str, dict[str, Any]], ...] = (
-    ("stock_board_industry_name_em", {}),
-    ("stock_board_industry_summary_ths", {}),
-    ("stock_fund_flow_industry", {"symbol": "即时"}),
-)
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="Prefetch MVP market raw cache for the fixed prewarm and evaluation windows")
     parser.add_argument("--sleep-seconds", type=float, default=0.35, help="Sleep between Tushare daily and daily_basic requests")
@@ -42,7 +35,7 @@ def main() -> None:
         "--market-context-path",
         type=Path,
         default=DEFAULT_MARKET_CONTEXT_PATH,
-        help="Output CSV path for daily market and news context",
+        help="Output CSV path for daily market context",
     )
     args = parser.parse_args()
 
@@ -69,9 +62,6 @@ def main() -> None:
 
     prefetch_daily_series(builder.tushare, trade_dates, args.sleep_seconds, status_rows)
     prefetch_daily_basic_series(builder.tushare, trade_dates, args.sleep_seconds, status_rows)
-    prefetch_akshare_news(builder.akshare, config.news_sources, status_rows)
-    prefetch_akshare_static(builder.akshare, config.static_stock_info_sources, universe_codes, status_rows)
-    prefetch_extra_akshare(builder.akshare, status_rows)
     market_context = build_market_context(builder, config, trade_dates, universe_codes)
 
     status_path = args.status_path.resolve()
@@ -221,137 +211,6 @@ def prefetch_daily_basic_series(
         maybe_sleep(index=index, total=total, sleep_seconds=sleep_seconds)
 
 
-def prefetch_akshare_news(
-    akshare: AkshareStockInfoClient,
-    news_sources: tuple[str, ...],
-    status_rows: list[dict[str, Any]],
-) -> None:
-    cached_before_map = {
-        source_name: akshare.cache._record(source_name, news_source_kwargs(source_name)).data_path.exists()
-        for source_name in news_sources
-    }
-    started_at = time.perf_counter()
-    _, source_status = akshare.fetch_news_sources()
-    elapsed_seconds = round(time.perf_counter() - started_at, 3)
-    for item in source_status:
-        source_name = str(item["source"])
-        payload = news_source_kwargs(source_name)
-        record = akshare.cache._record(source_name, payload)
-        status_rows.append(
-            build_status_row(
-                dataset="akshare_news",
-                namespace=source_name,
-                key=source_name,
-                rows=int(item["rows"]),
-                success=int(item["success"]),
-                cached_before=cached_before_map.get(source_name, False),
-                cache_data_path=record.data_path,
-                cache_meta_path=record.meta_path,
-                payload=payload,
-                elapsed_seconds=elapsed_seconds,
-                note="",
-                error=str(item["error"]),
-            )
-        )
-
-
-def prefetch_akshare_static(
-    akshare: AkshareStockInfoClient,
-    static_sources: tuple[str, ...],
-    universe_codes: list[str],
-    status_rows: list[dict[str, Any]],
-) -> None:
-    cached_before_map = {
-        source_name: akshare.cache._record(source_name, static_source_kwargs(source_name)).data_path.exists()
-        for source_name in static_sources
-        if source_name != "stock_info_change_name"
-    }
-    started_at = time.perf_counter()
-    _, source_status = akshare.fetch_static_sources(universe_codes)
-    elapsed_seconds = round(time.perf_counter() - started_at, 3)
-    for item in source_status:
-        source_name = str(item["source"])
-        if source_name == "stock_info_change_name:per_symbol":
-            status_rows.append(
-                build_status_row(
-                    dataset="akshare_static",
-                    namespace="stock_info_change_name",
-                    key=source_name,
-                    rows=int(item["rows"]),
-                    success=int(item["success"]),
-                    cached_before=False,
-                    cache_data_path=None,
-                    cache_meta_path=None,
-                    payload={},
-                    elapsed_seconds=elapsed_seconds,
-                    note="full_universe_skipped_by_existing_client",
-                    error=str(item["error"]),
-                )
-            )
-            continue
-        payload = static_source_kwargs(source_name)
-        record = akshare.cache._record(source_name, payload)
-        status_rows.append(
-            build_status_row(
-                dataset="akshare_static",
-                namespace=source_name,
-                key=source_name,
-                rows=int(item["rows"]),
-                success=int(item["success"]),
-                cached_before=cached_before_map.get(source_name, False),
-                cache_data_path=record.data_path,
-                cache_meta_path=record.meta_path,
-                payload=payload,
-                elapsed_seconds=elapsed_seconds,
-                note="",
-                error=str(item["error"]),
-            )
-        )
-
-
-def prefetch_extra_akshare(akshare: AkshareStockInfoClient, status_rows: list[dict[str, Any]]) -> None:
-    for source_name, kwargs in EXTRA_AKSHARE_SOURCES:
-        payload = {"source_name": source_name, **kwargs}
-        record = akshare.cache._record(source_name, payload)
-        cached_before = record.data_path.exists()
-        started_at = time.perf_counter()
-        try:
-            frame = akshare.fetch_source(source_name, **kwargs)
-            status_rows.append(
-                build_status_row(
-                    dataset="akshare_industry",
-                    namespace=source_name,
-                    key=source_name,
-                    rows=len(frame),
-                    success=1,
-                    cached_before=cached_before,
-                    cache_data_path=record.data_path,
-                    cache_meta_path=record.meta_path,
-                    payload=payload,
-                    elapsed_seconds=round(time.perf_counter() - started_at, 3),
-                    note="industry_snapshot",
-                    error="",
-                )
-            )
-        except Exception as exc:  # noqa: BLE001
-            status_rows.append(
-                build_status_row(
-                    dataset="akshare_industry",
-                    namespace=source_name,
-                    key=source_name,
-                    rows=0,
-                    success=0,
-                    cached_before=cached_before,
-                    cache_data_path=record.data_path,
-                    cache_meta_path=record.meta_path,
-                    payload=payload,
-                    elapsed_seconds=round(time.perf_counter() - started_at, 3),
-                    note="industry_snapshot",
-                    error=repr(exc),
-                )
-            )
-
-
 def build_status_row(
     *,
     dataset: str,
@@ -402,9 +261,7 @@ def build_market_context(
         if universe_set and "ts_code" in daily_basic.columns:
             daily_basic = daily_basic[daily_basic["ts_code"].astype(str).isin(universe_set)].copy()
         rows.append(market_context_row(trade_date, daily, daily_basic))
-    context = pd.DataFrame(rows)
-    news_daily, _ = builder._build_news_features(evaluation_dates, universe_codes)
-    return context.merge(news_daily, on="trade_date", how="left").fillna(0)
+    return pd.DataFrame(rows).fillna(0)
 
 
 def market_context_row(trade_date: str, daily: pd.DataFrame, daily_basic: pd.DataFrame) -> dict[str, Any]:
@@ -455,24 +312,6 @@ def numeric_median(frame: pd.DataFrame, column: str) -> float:
 
 def numeric_sum(frame: pd.DataFrame, column: str) -> float:
     return float(pd.to_numeric(frame[column], errors="coerce").sum())
-
-
-def news_source_kwargs(source_name: str) -> dict[str, Any]:
-    if source_name == "stock_info_global_cls":
-        return {"source_name": source_name, "symbol": "全部"}
-    return {"source_name": source_name}
-
-
-def static_source_kwargs(source_name: str) -> dict[str, Any]:
-    default_kwargs: dict[str, dict[str, Any]] = {
-        "stock_info_a_code_name": {},
-        "stock_info_sh_name_code": {"symbol": "主板A股"},
-        "stock_info_sz_name_code": {"symbol": "A股列表"},
-        "stock_info_sz_change_name": {"symbol": "全称变更"},
-        "stock_info_sh_delist": {"symbol": "全部"},
-        "stock_info_sz_delist": {"symbol": "终止上市公司"},
-    }
-    return {"source_name": source_name, **default_kwargs.get(source_name, {})}
 
 
 def maybe_sleep(*, index: int, total: int, sleep_seconds: float) -> None:

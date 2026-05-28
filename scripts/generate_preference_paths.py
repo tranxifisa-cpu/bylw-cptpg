@@ -69,9 +69,6 @@ def load_market_context(path: Path) -> pd.DataFrame:
         "advancing_ratio",
         "declining_ratio",
         "turnover_rate_mean",
-        "news_total_count",
-        "news_total_positive",
-        "news_total_negative",
     }
     missing = required.difference(frame.columns)
     if missing:
@@ -132,12 +129,8 @@ def market_signals(market_context: pd.DataFrame) -> pd.DataFrame:
     advancing = pd.to_numeric(market_context["advancing_ratio"], errors="coerce").fillna(0.5)
     declining = pd.to_numeric(market_context["declining_ratio"], errors="coerce").fillna(0.5)
     turnover = pd.to_numeric(market_context["turnover_rate_mean"], errors="coerce").ffill().bfill().fillna(0.0)
-    news_count = pd.to_numeric(market_context["news_total_count"], errors="coerce").fillna(0.0)
-    news_pos = pd.to_numeric(market_context["news_total_positive"], errors="coerce").fillna(0.0)
-    news_neg = pd.to_numeric(market_context["news_total_negative"], errors="coerce").fillna(0.0)
     wealth = (1.0 + ret).cumprod()
     drawdown = (wealth.cummax() - wealth) / wealth.cummax().replace(0.0, np.nan)
-    sentiment = ((news_pos - news_neg) / news_count.clip(lower=1.0)).clip(-1.0, 1.0)
     signals = pd.DataFrame(
         {
             "momentum": rank01(ret.rolling(5, min_periods=1).mean()),
@@ -145,22 +138,19 @@ def market_signals(market_context: pd.DataFrame) -> pd.DataFrame:
             "volatility": rank01(cross_vol),
             "breadth": advancing - declining,
             "turnover": rank01(turnover),
-            "attention": rank01(np.log1p(news_count)),
-            "sentiment": sentiment,
             "drawdown": rank01(drawdown.fillna(0.0)),
         }
     )
     signals["risk_on"] = (
         0.45 * signals["momentum"]
-        + 0.25 * rank01(signals["breadth"])
-        + 0.20 * rank01(signals["sentiment"])
-        + 0.10 * signals["turnover"]
+        + 0.30 * rank01(signals["breadth"])
+        + 0.25 * signals["turnover"]
     ).clip(0.0, 1.0)
     signals["stress"] = (
-        0.45 * signals["volatility"]
-        + 0.30 * signals["drawdown"]
-        + 0.25 * rank01(-signals["sentiment"])
+        0.55 * signals["volatility"]
+        + 0.45 * signals["drawdown"]
     ).clip(0.0, 1.0)
+    signals["attention"] = (0.5 * signals["turnover"] + 0.5 * signals["abs_return"]).clip(0.0, 1.0)
     return signals
 
 

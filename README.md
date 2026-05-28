@@ -1,79 +1,127 @@
 # Dynamic Reference CPT-PG Portfolio Experiment
 
-本项目用于验证一个面向 A 股投资组合的多 Agent 动态参考点 CPT-PG 框架。核心实验问题是：在同一市场状态和同一用户偏好路径下，动态参考点 CPT-PG 是否比静态参考点或普通 PG 基线表现出更好的训练稳定性、用户适配性和投资结果。
+本项目用于验证面向 A 股投资组合的动态参考点 CPT-PG 在线优化框架。核心问题是：在同一市场状态、同一用户偏好路径和同一实验设置下，动态参考点 CPT-PG 是否能稳定跟踪时变目标，并在财富、风险、用户偏好适配等指标上形成可解释结果。
 
-代码保留核心算法、数据构建、实验运行和绘图汇总。缓存、结果文件、LLM 缓存、参考 PDF、本地 Agent 状态不应提交到 Git。
+代码保留核心算法、数据构建、实验运行、结果汇总和绘图。缓存、实验结果、LLM 缓存、参考论文、本地 Agent 状态不应提交到 Git。
 
 ## Methods
 
-`scripts/run_mvp.py` 支持：
+`scripts/run_mvp.py` 支持六类方法：
 
 - `dynamic_cpt_pg`：动态参考点 CPT-PG，偏好动态更新。
 - `static_cpt_pg`：静态参考点 CPT-PG，偏好冻结。
 - `dynamic_cpt_pg_frozen_pref`：动态参考点 CPT-PG，偏好冻结。
 - `static_ref_dynamic_pref_cpt_pg`：静态参考点 CPT-PG，偏好动态更新。
-- `expected_return_pg`：期望收益策略梯度。
-- `exponential_utility_pg`：指数效用风险敏感策略梯度。
+- `expected_return_pg`：以收益随机变量的期望为目标的策略梯度。
+- `exponential_utility_pg`：以指数效用期望为目标的风险敏感策略梯度。
 
-已移除的旧实验逻辑包括候选池 Top-K 筛选、`mean_variance`、`equal_weight`、临时聊天/烟测/eta 分析脚本。
+已移除旧实验逻辑：外部文本资讯读取模块、候选池 Top-K 筛选、`mean_variance`、`equal_weight`、Dirichlet 第三类执行模式。
 
-## Algorithm
+## Core Algorithm
 
-每个评估交易日 `t` 的流程：
+每个评估交易日 `t` 的主流程：
 
 1. 开盘前读取 `t-1` 交易日可观测市场状态。
-2. 用户偏好路径或偏好 Agent 给出 `style_tilt` 和硬约束。
-3. CPT-PG 用 `< t` 的滑动历史窗口估计当期目标函数和策略梯度。
-4. 参数按 `theta_{t+1} = clip(theta_t + gamma_t * g_t)` 更新。
-5. 策略从更新后的参数抽样连续投资组合权重。
-6. 投顾 Agent 或 deterministic trace 输出推荐解释。
-7. 收盘后用当日 open-to-close 收益结算净收益率，并更新动态参考点。
+2. 读取预生成偏好路径，或调用用户 Agent 与偏好 Agent 得到当期偏好。
+3. 用 `< t` 的最近 `h=evaluation_horizon` 个交易日构造滑动窗口。
+4. 用 `n_t` 条窗口收益轨迹估计目标函数值。
+5. 用独立的 `m_t` 条窗口收益轨迹估计策略梯度。
+6. 按 `theta_{t+1}=clip(theta_t+gamma_t g_t)` 更新策略参数。
+7. 用更新后的 `theta_{t+1}` 生成当期连续组合权重。
+8. 投顾 Agent 输出解释，或在偏好路径实验中写入 deterministic trace。
+9. 收盘后用当日 open-to-close 收益结算净盈亏和净收益率。
+10. 动态参考点方法用当日已投资组合净收益率更新参考点。
 
-策略是连续权重策略。默认 latent policy 为：
+## CPT Estimation
+
+CPT-PG 的目标函数是滑动窗口收益轨迹形成的收益随机变量的 CPT 效用。当前收益随机变量口径为每条 `h` 步轨迹的累计已投资组合净收益率。
+
+目标函数估计：
 
 ```text
-z = Phi(s) theta + epsilon,  epsilon ~ N(0, sigma^2 I)
-w_raw = normalizer(z)
-w = project_to_constraints(w_raw)
+objective_estimate = CPT({R_i - r_t}_{i=1}^{n_t})
 ```
 
-`normalizer` 默认是 `softmax`，也可用 `sparsemax` 做稀疏化对照实验。高斯噪声负责探索，归一化负责把 latent 分数映射到非负且和为 1 的组合权重。
+该目标函数值使用 CPT 概率权重函数 `w` 本身。代码位置：
 
-CPT-PG 的估计层采用 `n_t` 和 `m_t` 分开抽样：
+- `compute_cpt_objective()`
+- `cpt_probability_weight()`
+- `gain_value()`
+- `loss_value()`
 
-- `n_t` 条窗口收益轨迹用于估计当期 CPT 目标函数，并作为 quantile 样本估计策略梯度中的 CPT 权重项。
-- `m_t` 条窗口收益轨迹用于估计 score function，即窗口内 `grad log pi_theta` 的累加。
-- 目标函数值 `objective_estimate` 使用 CPT 概率权重函数 `w` 本身。
-- 策略梯度权重项使用 `w'` 的排序分位数差分形式，并对概率端点采用有限样本裁剪 `p_min=1/(n_t+1), p_max=n_t/(n_t+1)`。
+CPT 策略梯度估计：
+
+```text
+g_t = 1 / m_t * sum_j psi(R_j - r_t) * score_j
+```
+
+其中 `psi` 是 CPT 梯度中的权重项。该权重项通过 `n_t` 条 CPT 样本构造 gain/loss utility 分位数差分，并使用概率权重函数导数 `w'`。代码位置：
+
+- `compute_cpt_gradient()`
+- `cpt_policy_gradient_weight()`
+- `quantile_tail_sum()`
+- `cpt_probability_weight_derivative()`
+
+因此当前口径是：目标函数值用 `w`，CPT 策略梯度权重项用 `w'`。
+
+## Policy Function
+
+默认策略函数是 Dirichlet policy。流程如下：
+
+1. 每只股票有一行特征 `x_i(s_t)`。
+2. 策略参数 `theta` 表示各特征的重要性。
+3. 股票打分为 `z_i = x_i(s_t)^T theta`。
+4. 打分映射到 Dirichlet 参数：
+
+```text
+alpha_i = alpha_min + (alpha_max - alpha_min) * sigmoid(z_i)
+```
+
+5. 根据 `dirichlet_execution_mode` 输出权重：
+
+- `sample`：从 `Dirichlet(alpha)` 随机抽样。
+- `mean`：使用 `alpha / sum(alpha)`。
+
+保留 `softmax` 和 `sparsemax` 作为对照策略。它们使用 `z_i + Gaussian noise` 得到 latent score，再归一化为非负且和为 1 的权重。
+
+## Preference Modes
+
+偏好字段包括：
+
+- `risk_budget`
+- `max_single_weight`
+- `turnover_cap`
+- `diversification_target`
+- `style_tilt`
+
+当前有三类偏好模式：
+
+- 默认模式：偏好作为硬约束进入权重投影。`preference_features_enabled=False`，所以 style 默认不进入特征。
+- `--preference-features-only`：偏好只进入策略特征，跳过硬约束投影。
+- `--disable-preference-constraints`：禁用偏好硬约束，也禁用偏好特征。
+
+若希望 style 和换手率只影响策略打分，可以使用 `--preference-features-only`。
 
 ## Data
 
-### Tushare
-
-需要设置 `TUSHARE_TOKEN` 或 `Tushare_Token`。使用的数据包括：
+需要设置 `TUSHARE_TOKEN` 或 `Tushare_Token`。当前数据模块只使用 Tushare：
 
 - `stock_basic`
 - `trade_cal`
 - `daily`
 - `daily_basic`
-- 可选 `news`
 
-### Akshare
-
-用于市场新闻和股票信息源。新闻聚合为市场级情绪特征，并通过 `style_tilt` 和新闻压力调整策略特征矩阵。
+外部文本资讯读取模块已经移除。
 
 ### Survivorship-Free Universe
 
-为避免只用当前上市股票倒推历史导致 survivorship bias，项目支持预处理每日可交易股票池：
+项目支持每日可交易股票池缓存，用于降低 survivorship bias：
 
 ```powershell
-$env:HTTP_PROXY='http://127.0.0.1:7897'
-$env:HTTPS_PROXY='http://127.0.0.1:7897'
-
 python scripts\prefetch_survivorship_free_universe.py --sleep-seconds 0.35
 ```
 
-输出示例：
+运行实验时通过 `--universe-by-date-path` 启用：
 
 ```text
 artifacts/cache/universe_by_date/survivorship_free_universe_20241215_20260512.csv
@@ -87,27 +135,89 @@ artifacts/cache/universe_by_date/survivorship_free_universe_20241215_20260512.cs
 - 当日 `daily` 有行情
 - 若字段可用，则 `amount > 0` 且 `vol > 0`
 
-运行实验时通过 `--universe-by-date-path` 启用该缓存。缓存文件不提交 Git。
-
 ### Strict Clean Mode
 
-`--strict-drop-missing-stocks` 会在构建 panel 后剔除任一必需非新闻字段缺失的股票。该模式用于干净数据实验，不会实时请求接口，主要使用本地 raw cache。
+`--strict-drop-missing-stocks` 会剔除任一必需市场字段缺失的股票。该模式用于干净数据实验，主要读取本地 raw cache。
 
-## LLM Agents
+## Module Logic
 
-系统包含三个 Agent：
+`mvp_cpt_pg/config.py`
 
-- 用户 Agent：生成用户反馈。
-- 偏好 Agent：把语义反馈转为下一期偏好和约束。
-- 投顾 Agent：解释优化器输出的组合调仓动作。
+集中管理实验默认配置，包括日期、样本数、步长、CPT 参数、Dirichlet 参数、LLM 配置、方法列表和输出目录。
 
-默认 LLM 配置在 `mvp_cpt_pg/config.py`。如果使用预生成偏好路径，例如：
+`mvp_cpt_pg/market_data.py`
 
-```text
-artifacts/inputs/preference_path_balanced_240d.csv
-```
+负责 Tushare 数据读取、缓存、股票池构建、行情 panel 构建、严格清洗、技术因子生成。输出 `MarketDataset`，包含 `universe`、`panel`、`source_status`、`trade_dates`。
 
-则运行时跳过逐轮 LLM 交互，更适合可复现实验。
+`mvp_cpt_pg/actions.py`
+
+负责把市场状态转换为策略特征矩阵，构造连续权重动作，执行偏好硬约束投影，统计持仓、调仓计划和约束违反原因。
+
+`mvp_cpt_pg/strategies.py`
+
+实现所有优化方法。核心包括 CPT 目标估计、CPT 策略梯度、期望收益 PG、指数效用 PG、Dirichlet/softmax/sparsemax 策略、交易成本、参考点更新、组合价值结算。
+
+`mvp_cpt_pg/runner.py`
+
+负责完整实验流程。包括加载数据、读取初始持仓、读取偏好路径或调用 Agent、逐日运行策略、实时写入 trace、summary、aggregate 和 plots。
+
+`mvp_cpt_pg/agents.py`
+
+封装用户 Agent、偏好 Agent、投顾 Agent。使用预生成偏好路径时，逐轮 LLM 交互会跳过。
+
+`mvp_cpt_pg/llm.py`
+
+封装 OpenAI-compatible LLM 调用、缓存、JSON 解析和错误处理。
+
+`mvp_cpt_pg/schemas.py`
+
+定义偏好、硬约束、用户反馈、投顾输出等结构化数据格式。
+
+`mvp_cpt_pg/metrics.py`
+
+从 `daily_trace.csv` 汇总 run 级别和 method 级别指标，包括财富、Sharpe、最大回撤、梯度范数、平方梯度范数、theta 规模、参考点漂移等。
+
+`mvp_cpt_pg/plots.py`
+
+根据 trace 实时生成财富、参考点、收益率、梯度范数、平方梯度范数、偏好和换手率图。
+
+`mvp_cpt_pg/raw_cache.py`
+
+提供 DataFrame 原始数据缓存，避免重复请求 Tushare。
+
+`mvp_cpt_pg/utils.py`
+
+提供目录创建、稳定哈希、z-score、权重归一化、JSON 提取、环境变量读取等通用函数。
+
+`mvp_cpt_pg/progress.py`
+
+封装 tqdm 进度条。
+
+## Scripts
+
+`scripts/run_mvp.py`
+
+主实验入口，支持方法选择、seed、日期窗口、样本数、步长、策略函数、Dirichlet 参数、偏好模式、严格清洗、每日股票池缓存等 CLI 参数。
+
+`scripts/run_grid_search.py`
+
+用于分阶段并行运行参数搜索。会启动多个 `run_mvp.py` 子进程，并写入 grid log 和 manifest。
+
+`scripts/prefetch_market_cache.py`
+
+预取交易日、日线行情和 `daily_basic`，并生成市场上下文 CSV，供合成偏好路径使用。
+
+`scripts/prefetch_survivorship_free_universe.py`
+
+预处理每日可交易股票池缓存。
+
+`scripts/generate_preference_paths.py`
+
+根据市场上下文生成保守、均衡、激进三类动态偏好路径。
+
+`scripts/deepseektest.py`、`scripts/test.py`
+
+手动验证 LLM 接入，不参与主实验流程。
 
 ## Key CLI Options
 
@@ -117,69 +227,38 @@ artifacts/inputs/preference_path_balanced_240d.csv
 - `--initial-capital`：用户预算上限。
 - `--initial-holdings`：初始持仓 CSV，字段至少为 `ts_code,buy_price,shares`。
 - `--preference-path`：预生成动态偏好路径。
-- `--universe-by-date-path`：每日无幸存者偏差股票池缓存。
+- `--universe-by-date-path`：每日可交易股票池缓存。
 - `--strict-drop-missing-stocks`：剔除缺失特征股票。
-- `--fixed-sample-counts`：固定 CPT 目标函数样本数 `n_t` 和梯度样本数 `m_t`。
+- `--fixed-sample-counts`：固定 `n_t` 和 `m_t`。
 - `--cpt-sample-base`：CPT 目标函数估计样本数初值，默认 `256`。
 - `--gradient-sample-base`：策略梯度估计样本数初值，默认 `32`。
 - `--gamma0`：策略梯度初始步长。
 - `--gamma-exponent`：步长衰减指数，`0` 表示固定步长。
-- `--policy-noise-scale`：latent 高斯探索噪声。
-- `--policy-normalizer {softmax,sparsemax}`：latent 到原始权重的归一化方式。
-- `--disable-preference-constraints`：禁用用户硬约束投影，并禁用 `style_tilt` 对策略特征打分的影响。
+- `--policy-normalizer {dirichlet,softmax,sparsemax}`：策略权重生成方式。
+- `--policy-temperature`：softmax/sparsemax 温度。
+- `--policy-noise-scale`：softmax/sparsemax 的高斯探索噪声。
+- `--dirichlet-alpha-min`：Dirichlet 参数下界。
+- `--dirichlet-alpha-max`：Dirichlet 参数上界。
+- `--dirichlet-execution-mode {sample,mean}`：Dirichlet 执行模式。
+- `--fixed-asset-count`：每个 method/seed 固定抽取一次股票池。
+- `--bootstrap-asset-count`：每次采样时 bootstrap 抽取股票位置。
+- `--preference-features-only`：偏好只进特征，跳过硬约束投影。
+- `--disable-preference-constraints`：禁用偏好硬约束和偏好特征。
 - `--eta-gain`、`--eta-loss`：动态参考点上行和下行适应速度。
-- `--enable-tushare-news`：启用 Tushare 新闻补充。
 
-## Recommended Commands
-
-### Sparsemax 对照实验
-
-```powershell
-$env:HTTP_PROXY='http://127.0.0.1:7897'
-$env:HTTPS_PROXY='http://127.0.0.1:7897'
-
-python scripts\run_mvp.py `
-  --methods dynamic_cpt_pg static_cpt_pg dynamic_cpt_pg_frozen_pref static_ref_dynamic_pref_cpt_pg `
-  --seeds 29 147 3141 `
-  --initial-capital 1000000 `
-  --preference-path artifacts\inputs\preference_path_balanced_240d.csv `
-  --fixed-sample-counts `
-  --gamma0 2 `
-  --gamma-exponent 0 `
-  --strict-drop-missing-stocks `
-  --universe-by-date-path artifacts\cache\universe_by_date\survivorship_free_universe_20241215_20260512.csv `
-  --policy-normalizer sparsemax
-```
-
-### 禁用用户偏好影响
+## Example Command
 
 ```powershell
 python scripts\run_mvp.py `
-  --methods dynamic_cpt_pg static_cpt_pg `
-  --seeds 29 147 3141 `
-  --initial-capital 1000000 `
-  --preference-path artifacts\inputs\preference_path_balanced_240d.csv `
-  --fixed-sample-counts `
-  --gamma0 2 `
-  --gamma-exponent 0 `
-  --strict-drop-missing-stocks `
-  --disable-preference-constraints `
-  --universe-by-date-path artifacts\cache\universe_by_date\survivorship_free_universe_20241215_20260512.csv
-```
-
-该设置会同时禁用用户硬约束投影和 `style_tilt` 对策略特征打分的影响，用于隔离动态参考点本身的作用。
-
-### 60 天 PG 基线对比
-
-```powershell
-python scripts\run_mvp.py `
-  --methods dynamic_cpt_pg expected_return_pg exponential_utility_pg `
+  --methods dynamic_cpt_pg static_cpt_pg expected_return_pg exponential_utility_pg `
   --seeds 4703 `
   --dry-run-days 60 `
   --initial-capital 1000000 `
   --preference-path artifacts\inputs\preference_path_balanced_240d.csv `
   --fixed-sample-counts `
-  --strict-drop-missing-stocks
+  --strict-drop-missing-stocks `
+  --policy-normalizer dirichlet `
+  --dirichlet-execution-mode sample
 ```
 
 ## Outputs
@@ -193,53 +272,31 @@ artifacts/results/run_YYYYMMDD_HHMMSS/
 主要输出：
 
 - `traces/daily_trace.csv`：逐日 trace。
-- `tables/summary_by_run.csv`：方法 × seed 汇总。
-- `tables/summary_by_method.csv`：方法层面聚合。
+- `tables/summary_by_run.csv`：方法与 seed 级别汇总。
+- `tables/summary_by_method.csv`：方法级别聚合。
 - `tables/stock_info_source_status.csv`：数据源和清洗状态。
 - `plots/*.png`：自动结果图。
 - `config_snapshot.json`：本次运行配置快照。
 
-重要字段：
+关键字段：
 
 - `wealth`：账户财富曲线。
-- `investment_return_rate`：当日已投资组合净收益率。
-- `reference_point`：动态参考点，按净收益率口径更新。
-- `objective_estimate`：当期采样随机变量上的目标函数估计。
+- `day_return_rate`：总账户日净收益率。
+- `investment_return_rate`：已投资组合日净收益率。
+- `reference_point`：动态参考点，按已投资组合净收益率更新。
+- `objective_estimate`：当期收益随机变量上的目标函数估计。
 - `offline_cpt_common_ref`：统一参考点口径下的离线 CPT 重评估。
 - `gradient_norm`：策略梯度估计 L2 范数。
 - `average_squared_gradient_norm`：平均平方梯度范数。
 - `cumulative_squared_gradient_norm`：累计平方梯度范数。
+- `projected_gradient_mapping_norm`：参数裁剪后的梯度映射范数。
 - `theta_norm`、`theta_max_abs`、`theta_boundary_share`：参数规模和边界诊断。
 - `holding_count`：有效持仓股票数。
-- `turnover`：股票调仓权重之和。
+- `turnover`：按股票权重变化计算的单边换手率。
 - `constraint_violation_reason`：约束违反原因。
-- `policy_normalizer`：`softmax` 或 `sparsemax`。
-- `preference_constraints_disabled`：是否禁用用户偏好约束和 `style_tilt` 影响。
-
-## Project Structure
-
-```text
-mvp_cpt_pg/
-  actions.py       连续权重动作、特征矩阵、约束投影、交易摘要
-  agents.py        用户、偏好、投顾 Agent
-  config.py        默认实验配置
-  llm.py           OpenAI-compatible LLM client
-  market_data.py   Tushare/Akshare 数据读取、缓存、特征构造
-  metrics.py       汇总指标
-  plots.py         结果图生成
-  raw_cache.py     DataFrame 原始缓存
-  runner.py        实验主流程
-  schemas.py       Agent 和偏好结构
-  strategies.py    CPT-PG、期望 PG、指数效用 PG
-  utils.py         通用工具
-
-scripts/
-  run_mvp.py                            主实验入口
-  run_grid_search.py                    网格搜索入口
-  prefetch_market_cache.py              预取市场行情和新闻缓存
-  prefetch_survivorship_free_universe.py 每日可交易股票池缓存
-  generate_preference_paths.py          生成合成用户偏好路径
-```
+- `policy_normalizer`：`dirichlet`、`softmax` 或 `sparsemax`。
+- `preference_features_only`：偏好是否只作为特征。
+- `preference_constraints_disabled`：是否禁用偏好硬约束和偏好特征。
 
 ## Git Hygiene
 
@@ -249,7 +306,6 @@ scripts/
 - `scripts/`
 - `README.md`
 - `requirements.txt`
-- 论文框架 tex 文件
 
 不要提交：
 
@@ -260,7 +316,7 @@ scripts/
 - `.agents/`
 - `.aris/`
 - `.claude/`
-- PDF、临时结果和本地环境文件
+- PDF、临时结果、本地环境文件、token。
 
 提交前检查：
 
@@ -268,5 +324,3 @@ scripts/
 git status --short
 git diff --cached --name-only
 ```
-
-确认 staged 文件中没有缓存、结果、PDF、token 或本地私有状态。

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 import json
 from dataclasses import dataclass
 from typing import Any
@@ -10,10 +9,10 @@ import pandas as pd
 
 from .market_data import factorize_state
 from .schemas import HardConstraints, MIN_SINGLE_STOCK_WEIGHT, PreferenceVector
-from .utils import normalize_weights
 
 CASH_CODE = "__CASH__"
 MIN_ACTIVE_WEIGHT = MIN_SINGLE_STOCK_WEIGHT
+POLICY_FEATURE_BOUND = 10.0
 
 POLICY_FEATURE_COLUMNS = [
     "momentum_score",
@@ -26,31 +25,23 @@ POLICY_FEATURE_COLUMNS = [
     "qbot_macd_trend_score",
     "qbot_rsrs_timing_score",
     "balanced_score",
+    "style_momentum_score",
+    "style_value_score",
+    "style_quality_score",
+    "style_low_vol_score",
+    "style_balanced_score",
+    "prev_weight_score",
+    "low_turnover_prev_weight_score",
+    "high_turnover_prev_weight_score",
 ]
+
+BASE_POLICY_FEATURE_COLUMNS = POLICY_FEATURE_COLUMNS[:10]
 
 @dataclass(frozen=True)
 class ContinuousPolicyState:
     codes: list[str]
     feature_matrix: np.ndarray
     frame: pd.DataFrame
-    news_context: dict[str, float]
-
-
-def build_news_context(state: pd.DataFrame) -> dict[str, float]:
-    count = _frame_scalar(state, "news_total_count")
-    positive = _frame_scalar(state, "news_total_positive")
-    negative = _frame_scalar(state, "news_total_negative")
-    raw_sentiment = positive - negative
-    sentiment_scale = math.sqrt(max(count, 1.0))
-    return {
-        "news_total_count": count,
-        "news_total_positive": positive,
-        "news_total_negative": negative,
-        "news_sentiment": raw_sentiment,
-        "news_sentiment_score": math.tanh(raw_sentiment / sentiment_scale),
-        "news_risk_pressure": negative / max(count, 1.0),
-        "news_attention": math.log1p(max(count, 0.0)),
-    }
 
 
 def build_continuous_policy_state(
@@ -62,14 +53,19 @@ def build_continuous_policy_state(
     frame = factorize_state(state).sort_values("ts_code").reset_index(drop=True)
     if frame.empty:
         raise RuntimeError("Observed market state is empty")
-    news_context = build_news_context(state)
-    feature_matrix = _build_contextual_feature_matrix(frame, preference, news_context, use_style_tilt=use_style_tilt)
+    feature_matrix = _build_contextual_feature_matrix(
+        frame,
+        preference,
+        prev_weights=prev_weights,
+        use_preference_features=use_style_tilt,
+    )
     return ContinuousPolicyState(
         codes=frame["ts_code"].tolist(),
         feature_matrix=feature_matrix,
         frame=frame,
-        news_context=news_context,
     )
+
+
 def project_continuous_weights(
     codes: list[str],
     raw_weights: np.ndarray | pd.Series,
@@ -229,9 +225,10 @@ def continuous_action_summary(
     weights: pd.Series,
     prev_weights: pd.Series,
     portfolio_value: float,
-    news_context: dict[str, float],
+    display_threshold: float | None = None,
 ) -> dict[str, Any]:
-    holding_count = effective_holding_count(weights)
+    threshold = MIN_ACTIVE_WEIGHT if display_threshold is None else float(display_threshold)
+    holding_count = effective_holding_count(weights, threshold=threshold)
     trades: list[dict[str, Any]] = []
     all_codes = sorted(set(prev_weights.index).union(weights.index))
     prev = prev_weights.reindex(all_codes, fill_value=0.0)
@@ -262,13 +259,12 @@ def continuous_action_summary(
         )
     return {
         "name": "continuous_weight_policy",
-        "portfolio_weights": portfolio_weights_dict(weights),
+        "portfolio_weights": portfolio_weights_dict(weights, threshold=threshold),
         "holding_count": holding_count,
         "trade_plan": trades,
         "buy_amount": round(buy_amount, 2),
         "sell_amount": round(sell_amount, 2),
         "cash_after_trade": round(float(weights.get(CASH_CODE, 0.0)), 6),
-        "news_adjustment": float(news_context["news_sentiment_score"]),
     }
 
 
@@ -342,73 +338,50 @@ def format_portfolio_weights_percent(weights: pd.Series, threshold: float = MIN_
     return json.dumps(portfolio_weights_percent_dict(weights, threshold=threshold), ensure_ascii=False, sort_keys=True)
 
 
-def _frame_scalar(frame: pd.DataFrame, column: str) -> float:
-    if column not in frame.columns or frame.empty:
-        return 0.0
-    values = pd.to_numeric(frame[column], errors="coerce").dropna()
-    if values.empty:
-        return 0.0
-    return float(values.iloc[0])
-
-
 def _build_contextual_feature_matrix(
     frame: pd.DataFrame,
     preference: PreferenceVector,
-    news_context: dict[str, float],
-    use_style_tilt: bool = True,
+    prev_weights: pd.Series | None = None,
+    use_preference_features: bool = True,
 ) -> np.ndarray:
-    sentiment = news_context["news_sentiment_score"]
-    pressure = news_context["news_risk_pressure"]
-    attention = min(1.0, news_context["news_attention"] / math.log1p(20.0))
-    positive_mood = max(sentiment, 0.0) * attention
-    negative_mood = max(-sentiment, 0.0) * attention
-    if use_style_tilt:
-        style_bias = {
-            "momentum": np.array([0.30, 0.00, 0.00, -0.05, 0.05, 0.00, 0.00, 0.15, 0.15, -0.05], dtype=float),
-            "value": np.array([0.00, 0.30, 0.05, 0.00, 0.10, 0.00, 0.00, 0.00, 0.00, -0.05], dtype=float),
-            "quality": np.array([0.00, 0.00, 0.30, 0.10, 0.00, 0.00, 0.00, 0.00, 0.05, 0.00], dtype=float),
-            "low_vol": np.array([-0.05, 0.00, 0.10, 0.35, 0.00, 0.00, 0.00, -0.05, 0.00, 0.10], dtype=float),
-            "balanced": np.array([0.00, 0.00, 0.05, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00, 0.20], dtype=float),
-        }[preference.style_tilt]
+    base_features = frame[BASE_POLICY_FEATURE_COLUMNS].to_numpy(dtype=float)
+    if use_preference_features:
+        style_features = _style_interaction_features(frame, preference.style_tilt)
+        prev_weight = _previous_weight_feature(frame, prev_weights)
+        turnover_cap = float(max(0.0, min(1.0, preference.turnover_cap)))
+        turnover_features = np.column_stack(
+            [
+                prev_weight,
+                (1.0 - turnover_cap) * prev_weight,
+                turnover_cap * prev_weight,
+            ]
+        )
     else:
-        style_bias = np.zeros(len(POLICY_FEATURE_COLUMNS), dtype=float)
-    news_bias = np.array(
-        [
-            0.22 * positive_mood - 0.18 * pressure * attention,
-            0.00,
-            0.18 * negative_mood,
-            0.24 * negative_mood,
-            0.00,
-            0.00,
-            0.00,
-            0.12 * positive_mood,
-            0.12 * positive_mood,
-            0.14 * pressure,
-        ],
-        dtype=float,
-    )
-    column_scale = 1.0 + style_bias + news_bias
-    return frame[POLICY_FEATURE_COLUMNS].to_numpy(dtype=float) * column_scale
+        style_features = np.zeros((len(frame), 5), dtype=float)
+        turnover_features = np.zeros((len(frame), 3), dtype=float)
+    feature_matrix = np.column_stack([base_features, style_features, turnover_features])
+    return np.clip(feature_matrix, -POLICY_FEATURE_BOUND, POLICY_FEATURE_BOUND)
 
 
-def _cap_risky_weights_preserve_sum(
-    risky_weights: pd.Series,
-    max_weight: float,
-) -> pd.Series:
-    risky_weights = risky_weights.clip(lower=0.0).astype(float)
-    max_weight = float(max(1e-6, min(1.0, max_weight)))
-    for _ in range(8):
-        over = risky_weights > max_weight
-        if not over.any():
-            return risky_weights
-        excess = float((risky_weights[over] - max_weight).sum())
-        risky_weights.loc[over] = max_weight
-        under = risky_weights < max_weight - 1e-12
-        if not under.any() or excess <= 1e-12:
-            return risky_weights
-        room = max_weight - risky_weights[under]
-        room_sum = float(room.sum())
-        if room_sum <= 1e-12:
-            return risky_weights
-        risky_weights.loc[under] += excess * (room / room_sum)
-    return risky_weights
+def _style_interaction_features(frame: pd.DataFrame, style_tilt: str) -> np.ndarray:
+    style_to_column = {
+        "momentum": "momentum_score",
+        "value": "value_score",
+        "quality": "quality_score",
+        "low_vol": "low_vol_score",
+        "balanced": "balanced_score",
+    }
+    output = np.zeros((len(frame), len(style_to_column)), dtype=float)
+    columns = list(style_to_column)
+    if style_tilt in style_to_column:
+        feature_name = style_to_column[style_tilt]
+        output[:, columns.index(style_tilt)] = frame[feature_name].to_numpy(dtype=float)
+    return output
+
+
+def _previous_weight_feature(frame: pd.DataFrame, prev_weights: pd.Series | None) -> np.ndarray:
+    if prev_weights is None:
+        return np.zeros(len(frame), dtype=float)
+    weights = prev_weights.reindex(frame["ts_code"].astype(str), fill_value=0.0).to_numpy(dtype=float)
+    return np.clip(weights * 100.0, 0.0, POLICY_FEATURE_BOUND)
+
