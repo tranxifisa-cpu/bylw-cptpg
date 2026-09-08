@@ -8,10 +8,9 @@ import numpy as np
 import pandas as pd
 
 from .market_data import factorize_state
-from .schemas import HardConstraints, MIN_SINGLE_STOCK_WEIGHT, PreferenceVector
 
 CASH_CODE = "__CASH__"
-MIN_ACTIVE_WEIGHT = MIN_SINGLE_STOCK_WEIGHT
+MIN_ACTIVE_WEIGHT = 1e-12
 POLICY_FEATURE_BOUND = 10.0
 
 POLICY_FEATURE_COLUMNS = [
@@ -25,17 +24,7 @@ POLICY_FEATURE_COLUMNS = [
     "qbot_macd_trend_score",
     "qbot_rsrs_timing_score",
     "balanced_score",
-    "style_momentum_score",
-    "style_value_score",
-    "style_quality_score",
-    "style_low_vol_score",
-    "style_balanced_score",
-    "prev_weight_score",
-    "low_turnover_prev_weight_score",
-    "high_turnover_prev_weight_score",
 ]
-
-BASE_POLICY_FEATURE_COLUMNS = POLICY_FEATURE_COLUMNS[:10]
 
 @dataclass(frozen=True)
 class ContinuousPolicyState:
@@ -46,179 +35,21 @@ class ContinuousPolicyState:
 
 def build_continuous_policy_state(
     state: pd.DataFrame,
-    preference: PreferenceVector,
-    prev_weights: pd.Series | None = None,
-    use_style_tilt: bool = True,
 ) -> ContinuousPolicyState:
     frame = factorize_state(state).sort_values("ts_code").reset_index(drop=True)
     if frame.empty:
         raise RuntimeError("Observed market state is empty")
-    feature_matrix = _build_contextual_feature_matrix(
-        frame,
-        preference,
-        prev_weights=prev_weights,
-        use_preference_features=use_style_tilt,
-    )
+    if CASH_CODE in set(frame["ts_code"].astype(str)):
+        raise RuntimeError(f"Market state contains reserved cash code: {CASH_CODE}")
+    cash_row = {column: 0.0 for column in frame.columns}
+    cash_row["ts_code"] = CASH_CODE
+    frame = pd.concat([pd.DataFrame([cash_row]), frame], ignore_index=True)
+    feature_matrix = _build_contextual_feature_matrix(frame)
     return ContinuousPolicyState(
         codes=frame["ts_code"].tolist(),
         feature_matrix=feature_matrix,
         frame=frame,
     )
-
-
-def project_continuous_weights(
-    codes: list[str],
-    raw_weights: np.ndarray | pd.Series,
-    hard_constraints: HardConstraints,
-    prev_weights: pd.Series,
-) -> pd.Series:
-    raw_array = np.asarray(raw_weights, dtype=float)
-    prev_array = prev_weights.reindex(codes, fill_value=0.0).to_numpy(dtype=float)
-    projected = project_continuous_weights_array(
-        codes=codes,
-        raw_weights=raw_array,
-        hard_constraints=hard_constraints,
-        prev_weights=prev_array,
-    )
-    return pd.Series(projected, index=codes, dtype=float)
-
-
-def project_continuous_weights_array(
-    codes: list[str],
-    raw_weights: np.ndarray,
-    hard_constraints: HardConstraints,
-    prev_weights: np.ndarray,
-) -> np.ndarray:
-    if len(codes) != len(raw_weights) or len(codes) != len(prev_weights):
-        raise RuntimeError("Projected continuous portfolio array shape mismatch")
-    if CASH_CODE not in codes:
-        raise RuntimeError("Cash asset is missing from policy action space")
-    cash_index = codes.index(CASH_CODE)
-    risky_indices = np.array([index for index, code in enumerate(codes) if code != CASH_CODE], dtype=int)
-    max_weight = float(max(1e-6, min(1.0, hard_constraints.max_single_weight)))
-    risk_budget = float(max(0.0, min(1.0, hard_constraints.risk_budget)))
-    turnover_cap = float(max(0.0, min(2.0, hard_constraints.turnover_cap)))
-
-    weights = np.maximum(np.asarray(raw_weights, dtype=float), 0.0)
-    total = float(weights.sum())
-    if total <= 0.0:
-        raise RuntimeError("Projected continuous portfolio weights are non-positive")
-    weights = weights / total
-    risky = weights[risky_indices].copy()
-
-    risky = np.maximum(risky, 0.0)
-    for _ in range(8):
-        over = risky > max_weight
-        if not bool(over.any()):
-            break
-        excess = float((risky[over] - max_weight).sum())
-        risky[over] = max_weight
-        under = risky < max_weight - 1e-12
-        if not bool(under.any()) or excess <= 1e-12:
-            break
-        room = max_weight - risky[under]
-        room_sum = float(room.sum())
-        if room_sum <= 1e-12:
-            break
-        risky[under] += excess * (room / room_sum)
-
-    positive_indices = np.flatnonzero(risky > 0.0)
-    if len(positive_indices) > 0:
-        target_sum = float(risky[positive_indices].sum())
-        feasible_count = int(target_sum // MIN_ACTIVE_WEIGHT)
-        if feasible_count < 1 or target_sum <= 0.0:
-            risky = np.zeros_like(risky)
-        else:
-            target_count = max(1, min(int(hard_constraints.diversification_target), len(positive_indices), feasible_count))
-            target_sum = min(target_sum, float(target_count) * max_weight)
-            selected_order = np.argsort(-risky[positive_indices], kind="mergesort")[:target_count]
-            selected_indices = positive_indices[selected_order]
-            selected = risky[selected_indices]
-            selected_total = float(selected.sum())
-            output = np.zeros_like(risky)
-            if selected_total > 0.0 and target_sum > 0.0:
-                selected = selected / selected_total * target_sum
-                selected = np.maximum(selected, 0.0)
-                for _ in range(8):
-                    over = selected > max_weight
-                    if not bool(over.any()):
-                        break
-                    excess = float((selected[over] - max_weight).sum())
-                    selected[over] = max_weight
-                    under = selected < max_weight - 1e-12
-                    if not bool(under.any()) or excess <= 1e-12:
-                        break
-                    room = max_weight - selected[under]
-                    room_sum = float(room.sum())
-                    if room_sum <= 1e-12:
-                        break
-                    selected[under] += excess * (room / room_sum)
-                output[selected_indices] = selected
-            risky = output
-    risky = np.where(risky >= MIN_ACTIVE_WEIGHT, risky, 0.0)
-    risky_sum = float(risky.sum())
-    if risky_sum > 1.0:
-        risky = risky / risky_sum
-
-    prev_risky = np.maximum(np.asarray(prev_weights, dtype=float)[risky_indices], 0.0)
-    prev_risky = np.where(prev_risky >= MIN_ACTIVE_WEIGHT, prev_risky, 0.0)
-    target_risky = np.where(risky >= MIN_ACTIVE_WEIGHT, risky, 0.0)
-    turnover = float(np.abs(target_risky - prev_risky).sum())
-    if turnover > turnover_cap + 1e-12 and turnover > 1e-12:
-        mix = min(1.0, turnover_cap / turnover)
-        risky = np.maximum(prev_risky + mix * (target_risky - prev_risky), 0.0)
-    else:
-        risky = target_risky
-
-    positive_indices = np.flatnonzero(risky > 0.0)
-    if len(positive_indices) > 0:
-        target_sum = float(risky[positive_indices].sum())
-        feasible_count = int(target_sum // MIN_ACTIVE_WEIGHT)
-        if feasible_count < 1 or target_sum <= 0.0:
-            risky = np.zeros_like(risky)
-        else:
-            target_count = max(1, min(int(hard_constraints.diversification_target), len(positive_indices), feasible_count))
-            target_sum = min(target_sum, float(target_count) * max_weight)
-            selected_order = np.argsort(-risky[positive_indices], kind="mergesort")[:target_count]
-            selected_indices = positive_indices[selected_order]
-            selected = risky[selected_indices]
-            selected_total = float(selected.sum())
-            output = np.zeros_like(risky)
-            if selected_total > 0.0 and target_sum > 0.0:
-                selected = selected / selected_total * target_sum
-                selected = np.maximum(selected, 0.0)
-                for _ in range(8):
-                    over = selected > max_weight
-                    if not bool(over.any()):
-                        break
-                    excess = float((selected[over] - max_weight).sum())
-                    selected[over] = max_weight
-                    under = selected < max_weight - 1e-12
-                    if not bool(under.any()) or excess <= 1e-12:
-                        break
-                    room = max_weight - selected[under]
-                    room_sum = float(room.sum())
-                    if room_sum <= 1e-12:
-                        break
-                    selected[under] += excess * (room / room_sum)
-                output[selected_indices] = selected
-            risky = output
-    risky = np.where((risky >= MIN_ACTIVE_WEIGHT) | (prev_risky >= MIN_ACTIVE_WEIGHT), risky, 0.0)
-    prev_cash_weight = max(float(np.asarray(prev_weights, dtype=float)[cash_index]), 0.0)
-    min_cash_weight = max(0.0, prev_cash_weight * (1.0 - risk_budget))
-    max_risky_sum = min(1.0, 1.0 - min_cash_weight)
-    risky_sum = float(risky.sum())
-    if risky_sum > max_risky_sum and risky_sum > 1e-12:
-        risky = risky * (max_risky_sum / risky_sum)
-        risky = np.where((risky >= MIN_ACTIVE_WEIGHT) | (prev_risky >= MIN_ACTIVE_WEIGHT), risky, 0.0)
-
-    output = np.zeros(len(codes), dtype=float)
-    output[risky_indices] = np.maximum(risky, 0.0)
-    output[cash_index] = max(0.0, 1.0 - float(output[risky_indices].sum()))
-    total = float(output.sum())
-    if total <= 0.0 or output[cash_index] < -1e-8:
-        raise RuntimeError("Projected continuous portfolio weights are non-positive")
-    return output / total
 
 
 def continuous_action_summary(
@@ -268,50 +99,6 @@ def continuous_action_summary(
     }
 
 
-def check_constraint_violation(
-    weights: pd.Series,
-    hard_constraints: HardConstraints,
-    prev_weights: pd.Series | None = None,
-) -> int:
-    return 0 if constraint_violation_reason(weights, hard_constraints, prev_weights) == "" else 1
-
-
-def constraint_violation_reason(
-    weights: pd.Series,
-    hard_constraints: HardConstraints,
-    prev_weights: pd.Series | None = None,
-) -> str:
-    if weights.empty:
-        return "empty_weights"
-    if abs(float(weights.sum()) - 1.0) > 1e-4:
-        return "weight_sum_not_one"
-    if float(weights.min()) < -1e-8:
-        return "negative_weight"
-    raw_risky_weights = weights.drop(labels=[CASH_CODE], errors="ignore").clip(lower=0.0).astype(float)
-    dust_weights = raw_risky_weights[(raw_risky_weights > 1e-8) & (raw_risky_weights < MIN_ACTIVE_WEIGHT - 1e-8)]
-    if not dust_weights.empty:
-        return "single_stock_below_min_weight"
-    risky_weights = effective_risky_weights(weights)
-    if len(risky_weights) > hard_constraints.diversification_target:
-        return "holding_count_exceeds_target"
-    if not risky_weights.empty and float(risky_weights.max()) > hard_constraints.max_single_weight + 1e-4:
-        return "single_stock_exceeds_max_weight"
-    if prev_weights is not None:
-        prev_cash = max(float(prev_weights.get(CASH_CODE, 0.0)), 0.0)
-        min_cash = max(0.0, prev_cash * (1.0 - hard_constraints.risk_budget))
-        cash_weight = max(float(weights.get(CASH_CODE, 0.0)), 0.0)
-        if cash_weight + 1e-4 < min_cash:
-            return "cash_deployment_exceeds_risk_budget"
-        risky_prev = effective_risky_weights(prev_weights)
-        all_codes = sorted(set(risky_prev.index).union(risky_weights.index))
-        risky_prev = risky_prev.reindex(all_codes, fill_value=0.0)
-        risky_new = risky_weights.reindex(all_codes, fill_value=0.0)
-        turnover = float((risky_new - risky_prev).abs().sum())
-        if turnover > hard_constraints.turnover_cap + 1e-4:
-            return "turnover_exceeds_cap"
-    return ""
-
-
 def effective_risky_weights(weights: pd.Series, threshold: float = MIN_ACTIVE_WEIGHT) -> pd.Series:
     risky_weights = weights.drop(labels=[CASH_CODE], errors="ignore").clip(lower=0.0).astype(float)
     return risky_weights[risky_weights >= threshold]
@@ -338,50 +125,7 @@ def format_portfolio_weights_percent(weights: pd.Series, threshold: float = MIN_
     return json.dumps(portfolio_weights_percent_dict(weights, threshold=threshold), ensure_ascii=False, sort_keys=True)
 
 
-def _build_contextual_feature_matrix(
-    frame: pd.DataFrame,
-    preference: PreferenceVector,
-    prev_weights: pd.Series | None = None,
-    use_preference_features: bool = True,
-) -> np.ndarray:
-    base_features = frame[BASE_POLICY_FEATURE_COLUMNS].to_numpy(dtype=float)
-    if use_preference_features:
-        style_features = _style_interaction_features(frame, preference.style_tilt)
-        prev_weight = _previous_weight_feature(frame, prev_weights)
-        turnover_cap = float(max(0.0, min(1.0, preference.turnover_cap)))
-        turnover_features = np.column_stack(
-            [
-                prev_weight,
-                (1.0 - turnover_cap) * prev_weight,
-                turnover_cap * prev_weight,
-            ]
-        )
-    else:
-        style_features = np.zeros((len(frame), 5), dtype=float)
-        turnover_features = np.zeros((len(frame), 3), dtype=float)
-    feature_matrix = np.column_stack([base_features, style_features, turnover_features])
+def _build_contextual_feature_matrix(frame: pd.DataFrame) -> np.ndarray:
+    feature_matrix = frame[POLICY_FEATURE_COLUMNS].to_numpy(dtype=float)
     return np.clip(feature_matrix, -POLICY_FEATURE_BOUND, POLICY_FEATURE_BOUND)
-
-
-def _style_interaction_features(frame: pd.DataFrame, style_tilt: str) -> np.ndarray:
-    style_to_column = {
-        "momentum": "momentum_score",
-        "value": "value_score",
-        "quality": "quality_score",
-        "low_vol": "low_vol_score",
-        "balanced": "balanced_score",
-    }
-    output = np.zeros((len(frame), len(style_to_column)), dtype=float)
-    columns = list(style_to_column)
-    if style_tilt in style_to_column:
-        feature_name = style_to_column[style_tilt]
-        output[:, columns.index(style_tilt)] = frame[feature_name].to_numpy(dtype=float)
-    return output
-
-
-def _previous_weight_feature(frame: pd.DataFrame, prev_weights: pd.Series | None) -> np.ndarray:
-    if prev_weights is None:
-        return np.zeros(len(frame), dtype=float)
-    weights = prev_weights.reindex(frame["ts_code"].astype(str), fill_value=0.0).to_numpy(dtype=float)
-    return np.clip(weights * 100.0, 0.0, POLICY_FEATURE_BOUND)
 

@@ -1,0 +1,311 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+<marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#123D78"/></marker>
+<marker id="arrowGray" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#374151"/></marker>
+</defs>
+<rect width="1920" height="1080" fill="#FFFFFF"/>
+<text x="960.0" y="62" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="42" font-weight="800" fill="#0B0F19" text-anchor="middle">
+<tspan x="960.0" dy="0">基于动态参考点的 CPT-PG 在线策略优化研究框架图</tspan>
+</text>
+<text x="960.0" y="102" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="21" font-weight="400" fill="#6B7280" text-anchor="middle">
+<tspan x="960.0" dy="0">从行为金融机制出发，构建非平稳市场下的在线策略追踪框架，并通过理论、仿真与 A 股回测验证</tspan>
+</text>
+<rect x="70" y="134" width="420" height="82" rx="12" fill="#F8FAFD" fill-opacity="1" stroke="#123D78" stroke-width="2"/>
+<text x="98" y="169" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="23" font-weight="700" fill="#0B2F66" text-anchor="start">
+<tspan x="98" dy="0">行为金融基础</tspan>
+</text>
+<text x="98" y="194" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="98" dy="0">CPT刻画参考点依赖、损失厌恶与概率权重扭曲</tspan>
+</text>
+<rect x="520" y="134" width="420" height="82" rx="12" fill="#F8FAFD" fill-opacity="1" stroke="#123D78" stroke-width="2"/>
+<text x="548" y="169" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="23" font-weight="700" fill="#0B2F66" text-anchor="start">
+<tspan x="548" dy="0">动态参考点机制</tspan>
+</text>
+<text x="548" y="194" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="548" dy="0">参考点随收益路径更新，盈亏方向适应速度可能不</tspan>
+<tspan x="548" dy="20.0">同</tspan>
+</text>
+<rect x="970" y="134" width="420" height="82" rx="12" fill="#F8FAFD" fill-opacity="1" stroke="#123D78" stroke-width="2"/>
+<text x="998" y="169" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="23" font-weight="700" fill="#0B2F66" text-anchor="start">
+<tspan x="998" dy="0">非平稳策略优化</tspan>
+</text>
+<text x="998" y="194" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="998" dy="0">市场状态与转移机制随时间变化，目标函数持续漂</tspan>
+<tspan x="998" dy="20.0">移</tspan>
+</text>
+<rect x="1420" y="134" width="420" height="82" rx="12" fill="#F8FAFD" fill-opacity="1" stroke="#123D78" stroke-width="2"/>
+<text x="1448" y="169" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="23" font-weight="700" fill="#0B2F66" text-anchor="start">
+<tspan x="1448" dy="0">投资组合参数化</tspan>
+</text>
+<text x="1448" y="194" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="1448" dy="0">Dirichlet策略输出连续权重，天然满足非负与权</tspan>
+<tspan x="1448" dy="20.0">重和为1</tspan>
+</text>
+<line x1="496" y1="175" x2="510" y2="175" stroke="#123D78" stroke-width="2.4" marker-end="url(#arrow)"/>
+<line x1="946" y1="175" x2="960" y2="175" stroke="#123D78" stroke-width="2.4" marker-end="url(#arrow)"/>
+<line x1="1396" y1="175" x2="1410" y2="175" stroke="#123D78" stroke-width="2.4" marker-end="url(#arrow)"/>
+<rect x="70" y="250" width="340" height="610" rx="12" fill="white" fill-opacity="1" stroke="#123D78" stroke-width="3"/>
+<rect x="70" y="250" width="340" height="54" rx="12" fill="#123D78" stroke="none"/>
+<rect x="70" y="278" width="340" height="26" fill="#123D78" stroke="none"/>
+<text x="240.0" y="286" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="240.0" dy="0">1  研究问题</tspan>
+</text>
+<rect x="438" y="250" width="340" height="610" rx="12" fill="white" fill-opacity="1" stroke="#123D78" stroke-width="3"/>
+<rect x="438" y="250" width="340" height="54" rx="12" fill="#123D78" stroke="none"/>
+<rect x="438" y="278" width="340" height="26" fill="#123D78" stroke="none"/>
+<text x="608.0" y="286" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="608.0" dy="0">2  问题建模</tspan>
+</text>
+<rect x="806" y="250" width="340" height="610" rx="12" fill="white" fill-opacity="1" stroke="#123D78" stroke-width="3"/>
+<rect x="806" y="250" width="340" height="54" rx="12" fill="#123D78" stroke="none"/>
+<rect x="806" y="278" width="340" height="26" fill="#123D78" stroke="none"/>
+<text x="976.0" y="286" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="976.0" dy="0">3  方法设计</tspan>
+</text>
+<rect x="1174" y="250" width="340" height="610" rx="12" fill="white" fill-opacity="1" stroke="#123D78" stroke-width="3"/>
+<rect x="1174" y="250" width="340" height="54" rx="12" fill="#123D78" stroke="none"/>
+<rect x="1174" y="278" width="340" height="26" fill="#123D78" stroke="none"/>
+<text x="1344.0" y="286" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="1344.0" dy="0">4  研究验证</tspan>
+</text>
+<rect x="1542" y="250" width="340" height="610" rx="12" fill="white" fill-opacity="1" stroke="#123D78" stroke-width="3"/>
+<rect x="1542" y="250" width="340" height="54" rx="12" fill="#123D78" stroke="none"/>
+<rect x="1542" y="278" width="340" height="26" fill="#123D78" stroke="none"/>
+<text x="1712.0" y="286" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="1712.0" dy="0">5  研究输出</tspan>
+</text>
+<line x1="415" y1="555.0" x2="425" y2="555.0" stroke="#123D78" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="783" y1="555.0" x2="793" y2="555.0" stroke="#123D78" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="1151" y1="555.0" x2="1161" y2="555.0" stroke="#123D78" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="1519" y1="555.0" x2="1529" y2="555.0" stroke="#123D78" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="104" y="338" width="272" height="112" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="122" cy="394.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="122" y="401.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="122" dy="0">1</tspan>
+</text>
+<text x="146" y="369" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="146" dy="0">现实缺口</tspan>
+</text>
+<text x="146" y="400" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="146" dy="0">固定参考点难以解释非平稳</tspan>
+<tspan x="146" dy="20.48">市场中投资者经历盈亏后的</tspan>
+<tspan x="146" dy="20.48">心理变化。</tspan>
+</text>
+<rect x="104" y="474" width="272" height="112" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="122" cy="530.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="122" y="537.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="122" dy="0">2</tspan>
+</text>
+<text x="146" y="505" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="146" dy="0">核心问题</tspan>
+</text>
+<text x="146" y="536" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="146" dy="0">动态参考点变化时，策略能</tspan>
+<tspan x="146" dy="20.48">否稳定跟踪时变 CPT 目标函</tspan>
+<tspan x="146" dy="20.48">数。</tspan>
+</text>
+<rect x="104" y="610" width="272" height="134" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="122" cy="677.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="122" y="684.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="122" dy="0">3</tspan>
+</text>
+<text x="146" y="641" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="146" dy="0">三类子问题</tspan>
+</text>
+<text x="146" y="672" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="146" dy="0">追踪稳定性、行为有效性、</tspan>
+<tspan x="146" dy="20.48">真实 A 股场景适用性。</tspan>
+</text>
+<rect x="472" y="338" width="272" height="112" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="490" cy="394.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="490" y="401.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="490" dy="0">1</tspan>
+</text>
+<text x="514" y="369" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="514" dy="0">非平稳 MDP</tspan>
+</text>
+<text x="514" y="400" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="514" dy="0">有限期 T 内，转移机制随时</tspan>
+<tspan x="514" dy="20.48">间变化，策略 π_θ 由参数 θ</tspan>
+<tspan x="514" dy="20.48"> 表示。</tspan>
+</text>
+<rect x="472" y="474" width="272" height="112" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="490" cy="530.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="490" y="537.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="490" dy="0">2</tspan>
+</text>
+<text x="514" y="505" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="514" dy="0">滑动窗口 H_t</tspan>
+</text>
+<text x="514" y="536" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="514" dy="0">用最近 h 期历史近似当前环</tspan>
+<tspan x="514" dy="20.48">境，生成收益轨迹估计当期 </tspan>
+<tspan x="514" dy="20.48">CPT。</tspan>
+</text>
+<rect x="472" y="610" width="272" height="134" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="490" cy="677.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="490" y="684.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="490" dy="0">3</tspan>
+</text>
+<text x="514" y="641" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="514" dy="0">移动目标</tspan>
+</text>
+<text x="514" y="672" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="514" dy="0">CPT 非凸且参考点 r_t 内生</tspan>
+<tspan x="514" dy="20.48">更新，问题转化为跟踪一阶</tspan>
+<tspan x="514" dy="20.48">驻点集合。</tspan>
+</text>
+<rect x="840" y="328" width="272" height="96" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="858" cy="376.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="858" y="383.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="858" dy="0">1</tspan>
+</text>
+<text x="882" y="359" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="882" dy="0">算法一</tspan>
+</text>
+<text x="882" y="390" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="882" dy="0">因子特征打分 → Dirichlet </tspan>
+<tspan x="882" dy="20.48">浓度参数 → 抽样组合权重。</tspan>
+</text>
+<rect x="840" y="448" width="272" height="126" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="858" cy="511.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="858" y="518.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="858" dy="0">2</tspan>
+</text>
+<text x="882" y="479" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="882" dy="0">算法二</tspan>
+</text>
+<text x="882" y="510" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="882" dy="0">收益轨迹采样、相对收益排</tspan>
+<tspan x="882" dy="20.48">序、CPT 权重计算、策略梯</tspan>
+<tspan x="882" dy="20.48">度更新。</tspan>
+</text>
+<rect x="840" y="598" width="272" height="118" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="858" cy="657.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="858" y="664.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="858" dy="0">3</tspan>
+</text>
+<text x="882" y="629" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="882" dy="0">在线执行</tspan>
+</text>
+<text x="882" y="660" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="882" dy="0">开盘后抽样得到投资组合，</tspan>
+<tspan x="882" dy="20.48">收盘观测收益并更新参考点 </tspan>
+<tspan x="882" dy="20.48">r_{t+1}。</tspan>
+</text>
+<path d="M 1096 426 C 1132 475, 1132 647, 1096 704" fill="none" stroke="#0F766E" stroke-width="2.4" stroke-dasharray="7 6" marker-end="url(#arrow)"/>
+<text x="1041" y="755" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="17" font-weight="700" fill="#0F766E" text-anchor="start">
+<tspan x="1041" dy="0">在线循环：t = 1,2,…,T</tspan>
+</text>
+<rect x="1208" y="328" width="272" height="108" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="1226" cy="382.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="1226" y="389.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="1226" dy="0">1</tspan>
+</text>
+<text x="1250" y="359" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="1250" dy="0">理论分析</tspan>
+</text>
+<text x="1250" y="390" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="1250" dy="0">引理：梯度误差可控、驻点</tspan>
+<tspan x="1250" dy="20.48">集合漂移稳定；定理：追踪</tspan>
+<tspan x="1250" dy="20.48">误差上界。</tspan>
+</text>
+<rect x="1208" y="460" width="272" height="118" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="1226" cy="519.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="1226" y="526.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="1226" dy="0">2</tspan>
+</text>
+<text x="1250" y="491" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="1250" dy="0">仿真实验</tspan>
+</text>
+<text x="1250" y="522" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="1250" dy="0">合成非平稳市场，验证长期</tspan>
+<tspan x="1250" dy="20.48">跟踪、市场突变后再跟踪。</tspan>
+</text>
+<rect x="1208" y="602" width="272" height="138" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="1226" cy="671.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="1226" y="678.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="1226" dy="0">3</tspan>
+</text>
+<text x="1250" y="633" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="1250" dy="0">对比与行为验证</tspan>
+</text>
+<text x="1250" y="664" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="1250" dy="0">对称/非对称参考点、动态/</tspan>
+<tspan x="1250" dy="20.48">静态参考点、期望效用PG、</tspan>
+<tspan x="1250" dy="20.48">指数效用PG；路径依赖与处</tspan>
+<tspan x="1250" dy="20.48">置效应。</tspan>
+</text>
+<rect x="1576" y="328" width="272" height="108" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="1594" cy="382.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="1594" y="389.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="1594" dy="0">1</tspan>
+</text>
+<text x="1618" y="359" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="1618" dy="0">理论贡献</tspan>
+</text>
+<text x="1618" y="390" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="1618" dy="0">将 CPT-RL 从静态参考点推</tspan>
+<tspan x="1618" dy="20.48">广到动态参考点，并给出追</tspan>
+<tspan x="1618" dy="20.48">踪分析框架。</tspan>
+</text>
+<rect x="1576" y="460" width="272" height="118" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="1594" cy="519.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="1594" y="526.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="1594" dy="0">2</tspan>
+</text>
+<text x="1618" y="491" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="1618" dy="0">方法贡献</tspan>
+</text>
+<text x="1618" y="522" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="1618" dy="0">结合 Dirichlet 因子策略与</tspan>
+<tspan x="1618" dy="20.48"> CPT-PG，提高高维投资组合</tspan>
+<tspan x="1618" dy="20.48">优化的可解释性。</tspan>
+</text>
+<rect x="1576" y="602" width="272" height="138" rx="12" fill="white" fill-opacity="1" stroke="#374151" stroke-width="1.7"/>
+<circle cx="1594" cy="671.0" r="16" fill="#123D78" stroke="none" stroke-width="0"/>
+<text x="1594" y="678.0" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">
+<tspan x="1594" dy="0">3</tspan>
+</text>
+<text x="1618" y="633" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827" text-anchor="start">
+<tspan x="1618" dy="0">实证边界</tspan>
+</text>
+<text x="1618" y="664" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="16" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="1618" dy="0">基于 Tushare 的 2024–2026</tspan>
+<tspan x="1618" dy="20.48"> 年 A 股回测，比较收益、S</tspan>
+<tspan x="1618" dy="20.48">harpe、最大回撤与追踪指标</tspan>
+<tspan x="1618" dy="20.48">。</tspan>
+</text>
+<rect x="70" y="900" width="1780" height="120" rx="14" fill="#EAF3FA" fill-opacity="1" stroke="#123D78" stroke-width="2.5"/>
+<text x="98" y="938" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="24" font-weight="800" fill="#0B2F66" text-anchor="start">
+<tspan x="98" dy="0">非平稳市场下投资组合配置场景</tspan>
+</text>
+<text x="98" y="974" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="17" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="98" dy="0">状态 s_t：价格、波动率、成交量、财务因子；市场可呈现牛市转跌、周期波动、长期稳定等情形。</tspan>
+</text>
+<text x="98" y="1001" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="17" font-weight="400" fill="#111827" text-anchor="start">
+<tspan x="98" dy="0">算法输出：投资组合序列 {a_t} 与参数序列 {θ_t}；评估重点包括追踪能力、财富表现与行为金融一致性。</tspan>
+</text>
+<rect x="990" y="942" width="200" height="36" rx="18" fill="#EFF6FF" fill-opacity="1" stroke="#123D78" stroke-width="1.8"/>
+<text x="1090.0" y="966" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="17" font-weight="700" fill="#0B2F66" text-anchor="middle">
+<tspan x="1090.0" dy="0">输入</tspan>
+</text>
+<line x1="1194" y1="960" x2="1212" y2="960" stroke="#123D78" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="1224" y="942" width="200" height="36" rx="18" fill="#FFFFFF" fill-opacity="1" stroke="#123D78" stroke-width="1.8"/>
+<text x="1324.0" y="966" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="17" font-weight="700" fill="#0B2F66" text-anchor="middle">
+<tspan x="1324.0" dy="0">DRCPT-PG</tspan>
+</text>
+<line x1="1428" y1="960" x2="1446" y2="960" stroke="#123D78" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="1458" y="942" width="200" height="36" rx="18" fill="#FFFFFF" fill-opacity="1" stroke="#123D78" stroke-width="1.8"/>
+<text x="1558.0" y="966" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="17" font-weight="700" fill="#0B2F66" text-anchor="middle">
+<tspan x="1558.0" dy="0">组合执行</tspan>
+</text>
+<line x1="1662" y1="960" x2="1680" y2="960" stroke="#123D78" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="1692" y="942" width="200" height="36" rx="18" fill="#FFFFFF" fill-opacity="1" stroke="#123D78" stroke-width="1.8"/>
+<text x="1792.0" y="966" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="17" font-weight="700" fill="#0B2F66" text-anchor="middle">
+<tspan x="1792.0" dy="0">反馈更新</tspan>
+</text>
+<text x="1850" y="1052" font-family="Noto Sans CJK SC, Microsoft YaHei, SimHei, Arial, sans-serif" font-size="15" font-weight="400" fill="#6B7280" text-anchor="end">
+<tspan x="1850" dy="0">原生 SVG：矩形、线条、箭头与文本，无复杂图标</tspan>
+</text>
+</svg>

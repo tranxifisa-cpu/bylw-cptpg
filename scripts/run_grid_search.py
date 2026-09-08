@@ -34,7 +34,6 @@ def main() -> None:
     parser.add_argument("--seeds", nargs="+", type=int, default=[42])
     parser.add_argument("--dry-run-days", type=int, default=30)
     parser.add_argument("--initial-capital", type=float, default=1_000_000.0)
-    parser.add_argument("--preference-path", type=Path, default=None)
     parser.add_argument("--prewarm-start", default=None)
     parser.add_argument("--prewarm-end", default=None)
     parser.add_argument("--evaluation-start", default=None)
@@ -128,7 +127,7 @@ def build_jobs(args: argparse.Namespace) -> list[GridJob]:
         return [
             GridJob(
                 name=f"stage2_ep{eta_gain}_em{eta_loss}",
-                methods=("dynamic_cpt_pg", "static_cpt_pg", "dynamic_cpt_pg_frozen_pref", "static_ref_dynamic_pref_cpt_pg"),
+                methods=("dynamic_cpt_pg", "symmetric_cpt_pg", "static_cpt_pg"),
                 gamma0=args.gamma0,
                 policy_noise_scale=args.policy_noise_scale,
                 gamma_exponent=args.gamma_exponent,
@@ -142,7 +141,7 @@ def build_jobs(args: argparse.Namespace) -> list[GridJob]:
     return [
         GridJob(
             name=f"stage3_h{h}",
-            methods=("dynamic_cpt_pg", "static_cpt_pg", "dynamic_cpt_pg_frozen_pref", "static_ref_dynamic_pref_cpt_pg"),
+            methods=("dynamic_cpt_pg", "symmetric_cpt_pg", "static_cpt_pg"),
             gamma0=args.gamma0,
             policy_noise_scale=args.policy_noise_scale,
             gamma_exponent=args.gamma_exponent,
@@ -184,7 +183,6 @@ def run_job(args: argparse.Namespace, job: GridJob, log_dir: Path, index: int) -
         "--evaluation-horizon",
         str(job.evaluation_horizon),
     ]
-    append_optional(command, "--preference-path", args.preference_path)
     append_optional(command, "--prewarm-start", args.prewarm_start)
     append_optional(command, "--prewarm-end", args.prewarm_end)
     append_optional(command, "--evaluation-start", args.evaluation_start)

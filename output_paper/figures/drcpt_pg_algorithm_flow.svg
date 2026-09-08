@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">动态参考点 CPT-PG 投资组合算法流程</title>
+  <desc id="desc">动态参考点 CPT-PG 投资组合算法流程图，展示开盘前观察、Dirichlet 策略函数、真实执行路径、训练估计路径、策略参数更新和诊断输出。</desc>
+  <defs>
+    <linearGradient id="topBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#071f55"/>
+      <stop offset="0.55" stop-color="#082965"/>
+      <stop offset="1" stop-color="#061b4c"/>
+    </linearGradient>
+    <linearGradient id="greenHead" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0b6f6c"/>
+      <stop offset="1" stop-color="#0b4e58"/>
+    </linearGradient>
+    <linearGradient id="softFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef8f8"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#09265f" flood-opacity="0.16"/>
+    </filter>
+    <marker id="arrowNavy" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#08245c"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#0b6665"/>
+    </marker>
+    <style>
+      .font { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", Arial, sans-serif; }
+      .title { font-size: 48px; font-weight: 800; fill: #071f55; letter-spacing: 1px; }
+      .bar { font-size: 27px; font-weight: 700; fill: #ffffff; }
+      .header { font-size: 24px; font-weight: 800; fill: #ffffff; }
+      .body { font-size: 23px; font-weight: 500; fill: #111827; }
+      .bodyBold { font-size: 23px; font-weight: 800; fill: #071f55; }
+      .small { font-size: 20px; font-weight: 600; fill: #111827; }
+      .tiny { font-size: 18px; font-weight: 500; fill: #111827; }
+      .box { fill: #ffffff; stroke: #08245c; stroke-width: 3; }
+      .tealBox { fill: #ffffff; stroke: #0b6665; stroke-width: 3; }
+      .softBox { fill: url(#softFill); stroke: none; }
+      .flowLine { fill: none; stroke: #08245c; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrowNavy); }
+      .flowLineThin { fill: none; stroke: #08245c; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrowNavy); }
+      .flowLineTeal { fill: none; stroke: #0b6665; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrowTeal); }
+      .loopLine { fill: none; stroke: #08245c; stroke-width: 3.6; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#ffffff"/>
+
+  <text x="800" y="66" text-anchor="middle" class="font title">动态参考点 CPT-PG 投资组合算法流程</text>
+
+  <rect x="82" y="98" width="1436" height="64" rx="10" fill="url(#topBar)" filter="url(#shadow)"/>
+  <text x="800" y="138" text-anchor="middle" class="font bar">实际场景：100万元初始资金，沪深300股票 + 现金，非平稳市场，每个episode运行 h 个交易日</text>
+
+  <!-- Left observation block -->
+  <rect x="36" y="283" width="185" height="252" rx="12" class="box" filter="url(#shadow)"/>
+  <rect x="36" y="283" width="185" height="46" rx="12" fill="url(#topBar)"/>
+  <path d="M36 317 H221 V329 H36 Z" fill="url(#topBar)"/>
+  <text x="129" y="313" text-anchor="middle" class="font header">1. 开盘前观察</text>
+  <text x="129" y="377" text-anchor="middle" class="font body">市场因子、现金、</text>
+  <text x="129" y="421" text-anchor="middle" class="font body">上一期持仓、</text>
+  <text x="129" y="466" text-anchor="middle" class="font body">参考点 r<tspan baseline-shift="sub" font-size="15">t</tspan></text>
+
+  <!-- Algorithm 1 -->
+  <rect x="276" y="252" width="298" height="351" rx="14" class="tealBox" filter="url(#shadow)"/>
+  <rect x="276" y="252" width="298" height="50" rx="14" fill="url(#greenHead)"/>
+  <path d="M276 291 H574 V302 H276 Z" fill="url(#greenHead)"/>
+  <text x="425" y="284" text-anchor="middle" class="font header">算法一：Dirichlet策略函数</text>
+
+  <rect x="294" y="312" width="260" height="47" rx="8" class="softBox"/>
+  <text x="424" y="342" text-anchor="middle" class="font body">资产因子 q<tspan baseline-shift="sub" font-size="15">i</tspan></text>
+  <path d="M425 365 V387" class="flowLineThin"/>
+
+  <rect x="294" y="386" width="260" height="47" rx="8" class="softBox"/>
+  <text x="424" y="416" text-anchor="middle" class="font body">策略参数 θ 打分</text>
+  <path d="M425 439 V461" class="flowLineThin"/>
+
+  <rect x="294" y="460" width="260" height="47" rx="8" class="softBox"/>
+  <text x="424" y="490" text-anchor="middle" class="font body">转成 Dirichlet 强度 α</text>
+  <path d="M425 513 V535" class="flowLineThin"/>
+
+  <rect x="294" y="534" width="260" height="48" rx="8" class="softBox"/>
+  <text x="424" y="565" text-anchor="middle" class="font small">输出组合权重：现金 + 股票</text>
+
+  <path d="M221 409 H276" class="flowLine"/>
+
+  <!-- Route A -->
+  <rect x="636" y="224" width="663" height="170" rx="15" fill="#ffffff" stroke="#08245c" stroke-width="3.2" filter="url(#shadow)"/>
+  <rect x="772" y="201" width="266" height="43" rx="10" fill="url(#topBar)"/>
+  <text x="905" y="231" text-anchor="middle" class="font header">路径 A：真实执行路径</text>
+
+  <rect x="655" y="257" width="142" height="81" rx="9" class="box"/>
+  <text x="726" y="306" text-anchor="middle" class="font body">取均值组合</text>
+  <rect x="827" y="257" width="123" height="81" rx="9" class="box"/>
+  <text x="889" y="291" text-anchor="middle" class="font body">开盘后</text>
+  <text x="889" y="324" text-anchor="middle" class="font body">执行 h 天</text>
+  <rect x="986" y="257" width="121" height="81" rx="9" class="box"/>
+  <text x="1047" y="291" text-anchor="middle" class="font body">收盘观测</text>
+  <text x="1047" y="324" text-anchor="middle" class="font body">财富 x</text>
+  <rect x="1140" y="257" width="134" height="81" rx="9" class="box"/>
+  <text x="1207" y="291" text-anchor="middle" class="font body">动态更新</text>
+  <text x="1207" y="324" text-anchor="middle" class="font body">参考点 r</text>
+  <text x="1125" y="371" text-anchor="middle" class="font small">盈利适应快，亏损适应慢</text>
+
+  <path d="M797 298 H827" class="flowLineThin"/>
+  <path d="M950 298 H986" class="flowLineThin"/>
+  <path d="M1107 298 H1140" class="flowLineThin"/>
+
+  <!-- Route B -->
+  <rect x="638" y="451" width="663" height="165" rx="15" fill="#ffffff" stroke="#0b6665" stroke-width="3.2" filter="url(#shadow)"/>
+  <rect x="772" y="429" width="268" height="43" rx="10" fill="url(#greenHead)"/>
+  <text x="906" y="459" text-anchor="middle" class="font header">路径 B：训练估计路径</text>
+
+  <rect x="650" y="485" width="176" height="83" rx="9" fill="#ffffff" stroke="#08245c" stroke-width="2.2"/>
+  <text x="738" y="518" text-anchor="middle" class="font small">从同一episode</text>
+  <text x="738" y="550" text-anchor="middle" class="font small">起点采样多条轨迹</text>
+  <rect x="854" y="485" width="137" height="83" rx="9" fill="#ffffff" stroke="#08245c" stroke-width="2.2"/>
+  <text x="923" y="518" text-anchor="middle" class="font small">得到多种</text>
+  <text x="923" y="550" text-anchor="middle" class="font small">可能财富结果</text>
+  <rect x="1017" y="485" width="124" height="83" rx="9" fill="#ffffff" stroke="#08245c" stroke-width="2.2"/>
+  <text x="1079" y="518" text-anchor="middle" class="font small">估计CPT</text>
+  <text x="1079" y="550" text-anchor="middle" class="font small">目标值</text>
+  <rect x="1169" y="485" width="126" height="83" rx="9" fill="#ffffff" stroke="#08245c" stroke-width="2.2"/>
+  <text x="1232" y="518" text-anchor="middle" class="font small">估计 CPT</text>
+  <text x="1232" y="550" text-anchor="middle" class="font small">策略梯度 ∇J</text>
+  <text x="780" y="595" text-anchor="middle" class="font small">一条轨迹 = h天组合变化</text>
+
+  <path d="M826 526 H854" class="flowLineThin"/>
+  <path d="M991 526 H1017" class="flowLineThin"/>
+  <path d="M1141 526 H1169" class="flowLineThin"/>
+
+  <!-- Connections from algorithm to routes -->
+  <path d="M574 382 H596 Q610 382 610 360 V298 Q610 298 636 298" class="flowLine"/>
+  <path d="M574 459 H604 Q620 459 620 526 H638" class="flowLineTeal"/>
+
+  <!-- Strategy update -->
+  <rect x="1372" y="358" width="187" height="180" rx="12" class="box" filter="url(#shadow)"/>
+  <rect x="1372" y="358" width="187" height="49" rx="12" fill="url(#topBar)"/>
+  <path d="M1372 395 H1559 V407 H1372 Z" fill="url(#topBar)"/>
+  <text x="1466" y="390" text-anchor="middle" class="font header">更新策略参数 θ</text>
+  <text x="1466" y="444" text-anchor="middle" class="font body">让下一轮组合</text>
+  <text x="1466" y="487" text-anchor="middle" class="font body">更贴近当前动态</text>
+  <text x="1466" y="523" text-anchor="middle" class="font body">CPT目标</text>
+
+  <path d="M1299 298 H1336 Q1352 298 1352 405 Q1352 448 1372 448" class="flowLine"/>
+  <path d="M1301 526 H1346 Q1358 526 1358 492 Q1358 472 1372 472" class="flowLineTeal"/>
+
+  <!-- Loop -->
+  <path d="M1466 538 V680 Q1466 680 1410 680 H128 Q128 680 128 535" class="loopLine"/>
+  <path d="M128 535 V535" class="flowLineThin"/>
+  <text x="800" y="710" text-anchor="middle" class="font bodyBold">进入下一episode</text>
+
+  <!-- Separator -->
+  <line x1="84" y1="745" x2="1518" y2="745" stroke="#08245c" stroke-width="2" stroke-dasharray="7 7"/>
+
+  <!-- Bottom diagnostics -->
+  <rect x="84" y="779" width="433" height="80" rx="10" class="box" filter="url(#shadow)"/>
+  <text x="300" y="828" text-anchor="middle" class="font bodyBold">目标：<tspan class="body"> 跟踪时变一阶驻点集合</tspan></text>
+
+  <rect x="558" y="779" width="410" height="80" rx="10" class="tealBox" filter="url(#shadow)"/>
+  <text x="763" y="828" text-anchor="middle" class="font bodyBold" fill="#0b6665">诊断：<tspan class="body"> 平均平方梯度范数</tspan></text>
+
+  <rect x="1006" y="779" width="511" height="80" rx="10" class="box" filter="url(#shadow)"/>
+  <text x="1262" y="828" text-anchor="middle" class="font bodyBold">输出：<tspan class="body"> 组合权重、财富曲线、参考点轨迹</tspan></text>
+</svg>

@@ -135,6 +135,24 @@ class TushareDataClient:
             return pd.DataFrame(columns=expected_columns)
         return df.reindex(columns=expected_columns)
 
+    def index_weight(self, index_code: str, start_date: str, end_date: str) -> pd.DataFrame:
+        fields = "index_code,con_code,trade_date,weight"
+        return self._cached(
+            "index_weight",
+            {
+                "index_code": index_code,
+                "start_date": start_date,
+                "end_date": end_date,
+                "fields": fields,
+            },
+            lambda: self.pro.index_weight(
+                index_code=index_code,
+                start_date=start_date,
+                end_date=end_date,
+                fields=fields,
+            ),
+        ).reindex(columns=fields.split(","))
+
 class MarketDatasetBuilder:
     def __init__(self, config: ExperimentConfig) -> None:
         self.config = config
@@ -196,6 +214,8 @@ class MarketDatasetBuilder:
         stock_basic = self.tushare.stock_basic_all_status().copy() if universe_by_date is not None else self.tushare.stock_basic().copy()
         stock_basic["industry"] = stock_basic["industry"].fillna("未知行业")
         stock_basic["list_date"] = stock_basic["list_date"].astype(str)
+        if universe_by_date is None and self.config.index_universe_code is not None:
+            return self._build_index_universe(stock_basic)
         listing_cutoff = self.config.evaluation.end if universe_by_date is not None else self.config.prewarm.end
         stock_basic = stock_basic[stock_basic["list_date"] <= listing_cutoff]
         stock_basic = stock_basic[~stock_basic["industry"].isin(self.config.finance_industries)].copy()
@@ -237,6 +257,31 @@ class MarketDatasetBuilder:
         if len(universe) < target_size:
             raise RuntimeError(f"Universe selection returned only {len(universe)} stocks")
         return universe
+
+    def _build_index_universe(self, stock_basic: pd.DataFrame) -> pd.DataFrame:
+        weights = self.tushare.index_weight(
+            self.config.index_universe_code,
+            self.config.prewarm.start,
+            self.config.prewarm.end,
+        )
+        if weights.empty:
+            raise RuntimeError(
+                f"Tushare index_weight returned no constituents for "
+                f"{self.config.index_universe_code} between {self.config.prewarm.start} and {self.config.prewarm.end}"
+            )
+        weights = weights.dropna(subset=["con_code", "trade_date"]).copy()
+        weights["trade_date"] = weights["trade_date"].astype(str)
+        latest_date = str(weights["trade_date"].max())
+        latest_weights = weights[weights["trade_date"] == latest_date].copy()
+        latest_codes = latest_weights["con_code"].astype(str).drop_duplicates().tolist()
+        if not latest_codes:
+            raise RuntimeError(f"Index universe {self.config.index_universe_code} has no constituent codes on {latest_date}")
+        stock_basic = stock_basic[stock_basic["ts_code"].astype(str).isin(latest_codes)].copy()
+        if stock_basic.empty:
+            raise RuntimeError(f"Index universe {self.config.index_universe_code} is not covered by stock_basic")
+        stock_basic["index_universe_code"] = self.config.index_universe_code
+        stock_basic["index_universe_date"] = latest_date
+        return stock_basic.sort_values("ts_code").reset_index(drop=True)
 
     def _build_stock_panel(
         self,
@@ -293,7 +338,7 @@ class MarketDatasetBuilder:
         ]
         for col in numeric_cols:
             if col in panel.columns:
-                panel[col] = pd.to_numeric(panel[col], errors="coerce")
+                panel[col] = pd.to_numeric(panel[col], errors="coerce", downcast="float")
         panel["ret_1d"] = panel["pct_chg"] / 100.0
         panel["open_close_ret"] = panel["close"] / panel["open"] - 1.0
         panel["ret_5d"] = panel.groupby("ts_code")["close"].transform(lambda s: s / s.shift(5) - 1.0)
@@ -308,9 +353,10 @@ class MarketDatasetBuilder:
         for col in ("pe", "pb", "ps", "dv_ratio", "turnover_rate", "turnover_rate_f", "volume_ratio", "total_mv", "circ_mv"):
             if col not in panel.columns:
                 panel[col] = 0.0
-            panel[col] = pd.to_numeric(panel[col], errors="coerce").fillna(0.0)
+            panel[col] = pd.to_numeric(panel[col], errors="coerce", downcast="float").fillna(0.0)
         for col in ("qbot_boll_z", "qbot_rsi_14", "qbot_macd_hist", "qbot_rsrs_beta"):
-            panel[col] = pd.to_numeric(panel[col], errors="coerce").fillna(0.0)
+            panel[col] = pd.to_numeric(panel[col], errors="coerce", downcast="float").fillna(0.0)
+        panel = _downcast_panel_float_columns(panel)
         panel = panel.drop(columns=["trade_date_dt"])
         return panel
 
@@ -414,6 +460,14 @@ def _add_qbot_technical_factors(panel: pd.DataFrame) -> pd.DataFrame:
     )
     frame["qbot_macd_hist"] = frame["qbot_macd_diff"] - frame["qbot_macd_dea"]
     frame["qbot_rsrs_beta"] = frame.groupby("ts_code", group_keys=False)[["high", "low"]].apply(_rsrs_beta).reset_index(level=0, drop=True)
+    return frame
+
+
+def _downcast_panel_float_columns(panel: pd.DataFrame) -> pd.DataFrame:
+    frame = panel.copy()
+    float_columns = frame.select_dtypes(include=["float64"]).columns
+    for column in float_columns:
+        frame[column] = frame[column].astype("float32", copy=False)
     return frame
 
 

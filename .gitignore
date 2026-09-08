@@ -8,6 +8,7 @@ venv/
 artifacts/cache/
 artifacts/inputs/
 artifacts/results/
+artifacts/synthetic/
 artifacts/traces/
 artifacts/plots/
 artifacts/tables/
@@ -17,7 +18,7 @@ artifacts/tables/
 .claude/
 idea-stage/
 refine-logs/
-output_paper/
+#output_paper/
 
 reference_paper/
 *.pdf

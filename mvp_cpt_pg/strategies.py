@@ -7,22 +7,18 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from scipy.special import digamma, expit
+from scipy.special import digamma
 
 from .actions import (
     CASH_CODE,
     ContinuousPolicyState,
     POLICY_FEATURE_COLUMNS,
     build_continuous_policy_state,
-    check_constraint_violation,
-    constraint_violation_reason,
     continuous_action_summary,
-    project_continuous_weights_array,
-    project_continuous_weights,
 )
 from .config import ExperimentConfig
 from .market_data import MarketDataset
-from .schemas import HardConstraints, PreferenceVector
+from .metrics import DYNAMIC_LOCAL_REGRET_ALPHA, smoothed_gradient
 from .utils import normalize_weights
 
 
@@ -38,6 +34,8 @@ class StrategyStep:
     day_return: float
     day_return_rate: float
     investment_return_rate: float
+    objective_signal: float
+    objective_relative_value: float
     day_relative_return_rate: float
     portfolio_value: float
     account_value: float
@@ -66,8 +64,6 @@ class StrategyStep:
     update_vector: list[float]
     reference_drift: float
     turnover: float
-    constraint_violation: int
-    constraint_violation_reason: str
 
 
 @dataclass(frozen=True)
@@ -76,6 +72,7 @@ class PortfolioOutcome:
     end_account_value: float
     end_portfolio_value: float
     cash_value: float
+    end_weights: pd.Series
     day_pnl: float
     day_return_rate: float
     investment_return_rate: float
@@ -101,8 +98,9 @@ class BaseStrategy:
         self.portfolio_value = 0.0
         self.budget_limit = float(config.initial_capital_amount)
         self.performance_base = float(config.initial_capital_amount)
-        self.reference_point = 0.0
+        self.reference_point = 1.0
         self.seen_dates: list[str] = []
+        self.gradient_history: list[np.ndarray] = []
         self.last_gradient_norm = 0.0
         self.last_projected_gradient_mapping_norm = math.nan
         self.last_gradient_bootstrap_error_norm = math.nan
@@ -132,18 +130,27 @@ class BaseStrategy:
     def static_reference(self) -> bool:
         return False
 
-    @property
-    def frozen_preference(self) -> bool:
-        return False
-
     def initialize(self) -> None:
         return None
 
-    def effective_preference(self, preference: PreferenceVector) -> PreferenceVector:
-        return preference
-
     def objective_reference(self) -> float:
         return self.reference_point
+
+    def reference_update_rates(self) -> tuple[float, float]:
+        return self.config.eta_gain, self.config.eta_loss
+
+    def update_reference_from_signal(self, signal: float) -> float:
+        if self.static_reference:
+            return 0.0
+        previous_reference = self.reference_point
+        eta_gain, eta_loss = self.reference_update_rates()
+        self.reference_point = update_reference_point(
+            self.reference_point,
+            float(signal),
+            eta_gain,
+            eta_loss,
+        )
+        return abs(self.reference_point - previous_reference)
 
     def set_initial_portfolio(
         self,
@@ -164,7 +171,7 @@ class BaseStrategy:
     def trade_capital(self) -> float:
         return float(self.account_value)
 
-    def select(self, trade_date: str, preference: PreferenceVector, hard_constraints: HardConstraints) -> PortfolioDecision:
+    def select(self, trade_date: str) -> PortfolioDecision:
         raise NotImplementedError
 
     def after_day(
@@ -172,30 +179,27 @@ class BaseStrategy:
         trade_date: str,
         weights: pd.Series,
         outcome: PortfolioOutcome,
-        preference: PreferenceVector,
-        hard_constraints: HardConstraints,
     ) -> StrategyStep:
         objective_reference = self.objective_reference()
         previous_reference = self.reference_point
         previous_weights = self.previous_weights.copy()
         self.seen_dates.append(trade_date)
-        objective_signal = outcome.investment_return_rate
-        if not self.static_reference:
-            self.reference_point = update_reference_point(
-                self.reference_point,
-                objective_signal,
-                self.config.eta_gain,
-                self.config.eta_loss,
-            )
+        objective_signal = outcome.end_account_value / self.performance_base if self.performance_base > 0 else 0.0
+        if self.config.reference_update_frequency == "daily":
+            self.update_reference_from_signal(objective_signal)
+        elif self.config.reference_update_frequency != "episode":
+            raise RuntimeError(f"Unknown reference_update_frequency: {self.config.reference_update_frequency}")
         reference_drift = abs(self.reference_point - previous_reference)
-        self.previous_weights = weights.reindex(self.asset_codes, fill_value=0.0)
+        self.previous_weights = outcome.end_weights.reindex(self.asset_codes, fill_value=0.0)
         self.account_value = outcome.end_account_value
         self.portfolio_value = outcome.end_portfolio_value
         return StrategyStep(
             day_return=outcome.day_pnl,
             day_return_rate=outcome.day_return_rate,
             investment_return_rate=outcome.investment_return_rate,
-            day_relative_return_rate=outcome.investment_return_rate - objective_reference,
+            objective_signal=objective_signal,
+            objective_relative_value=objective_signal - objective_reference,
+            day_relative_return_rate=objective_signal - objective_reference,
             portfolio_value=outcome.end_portfolio_value,
             account_value=outcome.end_account_value,
             cash_value=outcome.cash_value,
@@ -223,15 +227,9 @@ class BaseStrategy:
             update_vector=self.last_update_vector,
             reference_drift=reference_drift,
             turnover=outcome.turnover,
-            constraint_violation=0
-            if self.config.preference_features_only
-            else check_constraint_violation(weights, hard_constraints, previous_weights),
-            constraint_violation_reason=""
-            if self.config.preference_features_only
-            else constraint_violation_reason(weights, hard_constraints, previous_weights),
         )
 
-    def _update_model(self, trade_date: str, preference: PreferenceVector, hard_constraints: HardConstraints) -> None:
+    def _update_model(self, trade_date: str) -> None:
         self.last_gradient_norm = 0.0
         self.last_projected_gradient_mapping_norm = math.nan
         self.last_gradient_bootstrap_error_norm = math.nan
@@ -263,14 +261,12 @@ class CPTPGStrategy(BaseStrategy):
         seed: int,
         *,
         static_reference: bool = False,
-        frozen_preference: bool = False,
     ) -> None:
         super().__init__(name=name, config=config, dataset=dataset, seed=seed)
         self.theta = np.zeros(len(POLICY_FEATURE_COLUMNS), dtype=float)
         self.gamma0 = config.gamma0
         self.policy_noise_scale = config.policy_noise_scale
         self._static_reference = static_reference
-        self._frozen_preference = frozen_preference
         self._last_update_trade_date: str | None = None
         self._fixed_asset_codes: list[str] | None = None
 
@@ -282,22 +278,15 @@ class CPTPGStrategy(BaseStrategy):
     def static_reference(self) -> bool:
         return self._static_reference
 
-    @property
-    def frozen_preference(self) -> bool:
-        return self._frozen_preference
-
-    def select(self, trade_date: str, preference: PreferenceVector, hard_constraints: HardConstraints) -> PortfolioDecision:
-        pref = self.effective_preference(preference)
+    def select(self, trade_date: str) -> PortfolioDecision:
         observed_state = self.dataset.observed_stock_state(trade_date)
-        policy_state = build_continuous_policy_state(
-            observed_state,
-            pref,
-            prev_weights=self.previous_weights,
-            use_style_tilt=self.config.preference_features_enabled,
-        )
+        policy_state = build_continuous_policy_state(observed_state)
         policy_state = self._restrict_to_fixed_asset_pool(policy_state)
-        self._update_model(trade_date, pref, hard_constraints)
-        weights, _, metadata = self._sample_continuous_action(policy_state, hard_constraints, self.previous_weights)
+        if self.config.estimation_mode == "rolling_window":
+            self._update_model(trade_date)
+        elif self.config.estimation_mode != "on_policy_episode":
+            raise RuntimeError(f"Unknown estimation_mode: {self.config.estimation_mode}")
+        weights, _, metadata = self._sample_continuous_action(policy_state, self.previous_weights)
         return PortfolioDecision(
             action_name="continuous_weight_policy",
             weights=weights,
@@ -312,15 +301,18 @@ class CPTPGStrategy(BaseStrategy):
         if fixed_count <= 0:
             raise RuntimeError("fixed_asset_count must be positive when configured")
         if self._fixed_asset_codes is None:
-            if len(policy_state.codes) < fixed_count:
+            stock_codes = [code for code in policy_state.codes if code != CASH_CODE]
+            if len(stock_codes) < fixed_count:
                 raise RuntimeError(
-                    f"Fixed asset pool requested {fixed_count} stocks, but only {len(policy_state.codes)} are available"
+                    f"Fixed asset pool requested {fixed_count} stocks, but only {len(stock_codes)} are available"
                 )
-            selected = self.rng.choice(np.asarray(policy_state.codes, dtype=object), size=fixed_count, replace=False)
+            selected = self.rng.choice(np.asarray(stock_codes, dtype=object), size=fixed_count, replace=False)
             self._fixed_asset_codes = sorted(str(code) for code in selected.tolist())
         fixed_set = set(self._fixed_asset_codes)
-        keep_positions = [index for index, code in enumerate(policy_state.codes) if code in fixed_set]
-        if not keep_positions:
+        keep_positions = [
+            index for index, code in enumerate(policy_state.codes) if code == CASH_CODE or code in fixed_set
+        ]
+        if not any(policy_state.codes[index] != CASH_CODE for index in keep_positions):
             raise RuntimeError("Fixed asset pool has no tradable stocks in the current state")
         return ContinuousPolicyState(
             codes=[policy_state.codes[index] for index in keep_positions],
@@ -331,7 +323,6 @@ class CPTPGStrategy(BaseStrategy):
     def _sample_continuous_action(
         self,
         policy_state,
-        hard_constraints: HardConstraints,
         prev_weights: pd.Series,
         rng: np.random.Generator | None = None,
     ) -> tuple[pd.Series, np.ndarray, dict[str, Any]]:
@@ -358,23 +349,14 @@ class CPTPGStrategy(BaseStrategy):
             latent_score = (latent - selected_scores) / (self.policy_noise_scale**2)
             score_gradient = selected_features.T @ latent_score
         raw_full_weights = aggregate_sampled_asset_weights(len(policy_state.codes), selected_indices, raw_weight_values)
-        raw_risky_weights = pd.Series(raw_full_weights, index=policy_state.codes, dtype=float)
-        projection_codes = [*policy_state.codes, CASH_CODE]
-        raw_weights = raw_risky_weights.reindex(projection_codes, fill_value=0.0)
-        if self.config.preference_features_only:
-            weights = normalize_weights(raw_weights)
-        else:
-            weights = project_continuous_weights(
-                codes=projection_codes,
-                raw_weights=raw_weights,
-                hard_constraints=hard_constraints,
-                prev_weights=prev_weights.reindex(projection_codes, fill_value=0.0),
-            )
+        projection_codes = list(policy_state.codes)
+        raw_weights = pd.Series(raw_full_weights, index=projection_codes, dtype=float)
+        weights = normalize_weights(raw_weights)
         action_summary = continuous_action_summary(
             weights=weights,
             prev_weights=prev_weights,
             portfolio_value=self.account_value,
-            display_threshold=1e-12 if self.config.preference_features_only else None,
+            display_threshold=1e-12,
         )
         metadata = {
             "policy_mean_vector": mean_vector,
@@ -397,7 +379,6 @@ class CPTPGStrategy(BaseStrategy):
     def _sample_continuous_action_batch(
         self,
         policy_state,
-        hard_constraints: HardConstraints,
         prev_weight_matrix: np.ndarray,
         prev_codes: list[str],
         rng: np.random.Generator,
@@ -424,8 +405,7 @@ class CPTPGStrategy(BaseStrategy):
             )
         else:
             raw_risky_weight_matrix = None
-        projection_codes = [*policy_state.codes, CASH_CODE]
-        aligned_prev = align_weight_matrix(prev_weight_matrix, prev_codes, projection_codes)
+        projection_codes = list(policy_state.codes)
         sample_count = prev_weight_matrix.shape[0]
         projected_weight_matrix = np.empty((sample_count, len(projection_codes)), dtype=float)
         score_gradient_matrix = (
@@ -473,16 +453,7 @@ class CPTPGStrategy(BaseStrategy):
                 raw_full_weights = raw_risky_weight_matrix[row_index]
             raw_weights.fill(0.0)
             raw_weights[: len(policy_state.codes)] = raw_full_weights
-            if self.config.preference_features_only:
-                projected_weight_matrix[row_index] = normalize_weight_array(raw_weights)
-            else:
-                projected = project_continuous_weights_array(
-                    codes=projection_codes,
-                    raw_weights=raw_weights,
-                    hard_constraints=hard_constraints,
-                    prev_weights=aligned_prev[row_index],
-                )
-                projected_weight_matrix[row_index] = projected
+            projected_weight_matrix[row_index] = normalize_weight_array(raw_weights)
         if not collect_scores:
             return projected_weight_matrix, np.empty((0, len(POLICY_FEATURE_COLUMNS)), dtype=float)
         if score_gradient_matrix is not None:
@@ -499,7 +470,7 @@ class CPTPGStrategy(BaseStrategy):
             score_gradient_matrix = latent_score_matrix @ policy_state.feature_matrix
         return projected_weight_matrix, score_gradient_matrix
 
-    def _update_model(self, trade_date: str, preference: PreferenceVector, hard_constraints: HardConstraints) -> None:
+    def _update_model(self, trade_date: str) -> None:
         if self._last_update_trade_date == trade_date:
             return
         self._last_update_trade_date = trade_date
@@ -508,7 +479,42 @@ class CPTPGStrategy(BaseStrategy):
             raise RuntimeError(
                 f"Insufficient history before {trade_date}: expected {self.config.evaluation_horizon} trade dates, got {len(history_dates)}"
             )
-        pref = self.effective_preference(preference)
+        self._run_gradient_update(
+            estimation_dates=history_dates,
+            update_key=trade_date,
+        )
+
+    def update_from_episode(
+        self,
+        *,
+        episode_dates: list[str],
+        starting_value: float,
+        starting_weights: pd.Series,
+        objective_reference: float,
+        update_key: str,
+    ) -> None:
+        if not episode_dates:
+            raise RuntimeError("Cannot update CPT-PG from an empty episode")
+        if self._last_update_trade_date == update_key:
+            return
+        self._last_update_trade_date = update_key
+        self._run_gradient_update(
+            estimation_dates=episode_dates,
+            update_key=update_key,
+            starting_value=starting_value,
+            starting_weights=starting_weights,
+            objective_reference=objective_reference,
+        )
+
+    def _run_gradient_update(
+        self,
+        *,
+        estimation_dates: list[str],
+        update_key: str,
+        starting_value: float | None = None,
+        starting_weights: pd.Series | None = None,
+        objective_reference: float | None = None,
+    ) -> None:
         repeat_count = max(1, int(self.config.gradient_diagnostic_repeats))
         gradients: list[np.ndarray] = []
         objective_estimates: list[float] = []
@@ -517,11 +523,12 @@ class CPTPGStrategy(BaseStrategy):
         gradient_sample_counts: list[int] = []
         for repeat_index in range(repeat_count):
             gradient_i, objective_i, offline_i, cpt_n_i, gradient_m_i = self._estimate_gradient_and_objective(
-                history_dates,
-                pref,
-                hard_constraints,
-                cpt_rng=self._sampling_rng(trade_date, repeat_index, "cpt"),
-                gradient_rng=self._sampling_rng(trade_date, repeat_index, "gradient"),
+                estimation_dates,
+                cpt_rng=self._sampling_rng(update_key, repeat_index, "cpt"),
+                gradient_rng=self._sampling_rng(update_key, repeat_index, "gradient"),
+                starting_value=starting_value,
+                starting_weights=starting_weights,
+                objective_reference=objective_reference,
             )
             gradients.append(gradient_i)
             objective_estimates.append(float(objective_i))
@@ -552,13 +559,25 @@ class CPTPGStrategy(BaseStrategy):
             gradient_bootstrap_relative_error = math.nan
             objective_bootstrap_std = math.nan
         gradient_norm = float(np.linalg.norm(gradient))
+        update_gradient = smoothed_gradient(
+            self.gradient_history,
+            gradient,
+            window=self._gradient_smoothing_window(),
+            alpha=DYNAMIC_LOCAL_REGRET_ALPHA,
+        )
+        update_direction = (
+            normalized_update_direction(update_gradient)
+            if self.config.normalize_gradient_update
+            else np.asarray(update_gradient, dtype=float)
+        )
         step_index = max(1, len(self.seen_dates) + 1)
         gamma_t = self.gamma0 / (step_index ** self.config.gamma_exponent)
-        update = gamma_t * gradient
+        update = gamma_t * update_direction
         theta_before = self.theta.copy()
-        theta_after = np.clip(theta_before + update, -self.config.max_logit_abs, self.config.max_logit_abs)
+        theta_after = theta_before + update
         projected_gradient_mapping_norm = float(np.linalg.norm(theta_after - theta_before) / max(gamma_t, 1e-12))
         self.theta = theta_after
+        self.gradient_history.append(gradient.copy())
         self.last_gradient_norm = gradient_norm
         self.last_projected_gradient_mapping_norm = projected_gradient_mapping_norm
         self.last_gradient_bootstrap_error_norm = gradient_bootstrap_error_norm
@@ -572,7 +591,7 @@ class CPTPGStrategy(BaseStrategy):
         self.last_update_norm = float(np.linalg.norm(update))
         self.last_theta_norm = float(np.linalg.norm(theta_after))
         self.last_theta_max_abs = float(np.max(np.abs(theta_after)))
-        self.last_theta_boundary_share = float(np.mean(np.abs(theta_after) >= self.config.max_logit_abs - 1e-8))
+        self.last_theta_boundary_share = 0.0
         self.last_objective_estimate = float(objective_estimate)
         self.last_offline_cpt_common_ref = float(offline_cpt_common_ref)
         self.last_gradient_vector = gradient.astype(float).tolist()
@@ -589,33 +608,47 @@ class CPTPGStrategy(BaseStrategy):
     def _estimate_gradient_and_objective(
         self,
         history_dates: list[str],
-        preference: PreferenceVector,
-        hard_constraints: HardConstraints,
         cpt_rng: np.random.Generator,
         gradient_rng: np.random.Generator,
+        starting_value: float | None = None,
+        starting_weights: pd.Series | None = None,
+        objective_reference: float | None = None,
     ) -> tuple[np.ndarray, float, float, int, int]:
         online_step = max(1, len(self.seen_dates) + 1)
         n_t = self._sample_count(self.config.cpt_sample_base, online_step)
         m_t = self._sample_count(self.config.gradient_sample_base, online_step)
-        objective_reference = self.objective_reference()
-        cpt_returns, _ = self._sample_window_outcomes(
+        if self.config.shared_cpt_gradient_samples:
+            n_t = m_t
+        active_reference = self.objective_reference() if objective_reference is None else float(objective_reference)
+        track_reference_path = self.config.estimation_mode == "on_policy_episode" and not self.static_reference
+        gradient_returns, score_matrix, gradient_references = self._sample_window_outcomes(
             history_dates=history_dates,
-            preference=preference,
-            hard_constraints=hard_constraints,
-            sample_count=n_t,
-            rng=cpt_rng,
-            collect_scores=False,
-        )
-        gradient_returns, score_matrix = self._sample_window_outcomes(
-            history_dates=history_dates,
-            preference=preference,
-            hard_constraints=hard_constraints,
             sample_count=m_t,
             rng=gradient_rng,
             collect_scores=True,
+            starting_value=starting_value,
+            starting_weights=starting_weights,
+            reference_start=active_reference,
+            track_reference_path=track_reference_path,
         )
-        cpt_relative_returns = cpt_returns - objective_reference
-        gradient_relative_returns = gradient_returns - objective_reference
+        if self.config.shared_cpt_gradient_samples:
+            cpt_returns = gradient_returns
+            cpt_references = gradient_references
+        else:
+            cpt_returns, _, cpt_references = self._sample_window_outcomes(
+                history_dates=history_dates,
+                sample_count=n_t,
+                rng=cpt_rng,
+                collect_scores=False,
+                starting_value=starting_value,
+                starting_weights=starting_weights,
+                reference_start=active_reference,
+                track_reference_path=track_reference_path,
+            )
+        cpt_relative_returns = cpt_returns - (cpt_references if cpt_references is not None else active_reference)
+        gradient_relative_returns = gradient_returns - (
+            gradient_references if gradient_references is not None else active_reference
+        )
         common_reference_returns = cpt_returns - self.config.offline_cpt_reference
         if score_matrix is None:
             raise RuntimeError("Gradient sample scores were not collected")
@@ -628,7 +661,7 @@ class CPTPGStrategy(BaseStrategy):
         )
         return (
             gradient,
-            self._objective_from_returns(cpt_returns, objective_reference),
+            compute_cpt_objective(cpt_relative_returns.tolist(), self.config),
             compute_cpt_objective(common_reference_returns.tolist(), self.config),
             n_t,
             m_t,
@@ -643,37 +676,44 @@ class CPTPGStrategy(BaseStrategy):
             return max(1, int(base_count))
         return max(1, int(math.ceil(base_count * (online_step ** self.config.sample_exponent))))
 
+    def _gradient_smoothing_window(self) -> int:
+        configured = self.config.gradient_smoothing_window
+        if configured is None:
+            configured = self.config.evaluation_horizon
+        return max(1, int(configured))
+
     def _sample_window_outcomes(
         self,
         *,
         history_dates: list[str],
-        preference: PreferenceVector,
-        hard_constraints: HardConstraints,
         sample_count: int,
         rng: np.random.Generator,
         collect_scores: bool,
-    ) -> tuple[np.ndarray, np.ndarray | None]:
-        starting_value = self.trade_capital()
-        simulated_values = np.full(sample_count, starting_value, dtype=float)
-        trajectory_growth = np.ones(sample_count, dtype=float)
+        starting_value: float | None = None,
+        starting_weights: pd.Series | None = None,
+        reference_start: float | None = None,
+        track_reference_path: bool = False,
+    ) -> tuple[np.ndarray, np.ndarray | None, np.ndarray | None]:
+        initial_value = self.trade_capital() if starting_value is None else float(starting_value)
+        initial_weights = self.previous_weights if starting_weights is None else starting_weights
+        simulated_values = np.full(sample_count, initial_value, dtype=float)
+        reference_values = (
+            np.full(sample_count, self.objective_reference() if reference_start is None else float(reference_start), dtype=float)
+            if track_reference_path
+            else None
+        )
         score_matrix = np.zeros((sample_count, len(POLICY_FEATURE_COLUMNS)), dtype=float) if collect_scores else None
         prev_codes = list(self.asset_codes)
         prev_weight_matrix = np.tile(
-            self.previous_weights.reindex(prev_codes, fill_value=0.0).to_numpy(dtype=float),
+            initial_weights.reindex(prev_codes, fill_value=0.0).to_numpy(dtype=float),
             (sample_count, 1),
         )
         for history_date in history_dates:
             observed_state = self.dataset.observed_stock_state(history_date)
-            policy_state = build_continuous_policy_state(
-                observed_state,
-                preference,
-                prev_weights=pd.Series(prev_weight_matrix.mean(axis=0), index=prev_codes, dtype=float),
-                use_style_tilt=self.config.preference_features_enabled,
-            )
+            policy_state = build_continuous_policy_state(observed_state)
             policy_state = self._restrict_to_fixed_asset_pool(policy_state)
             weight_matrix, score_gradient_matrix = self._sample_continuous_action_batch(
                 policy_state,
-                hard_constraints,
                 prev_weight_matrix,
                 prev_codes,
                 rng,
@@ -681,14 +721,11 @@ class CPTPGStrategy(BaseStrategy):
             )
             if score_matrix is not None:
                 score_matrix += score_gradient_matrix
-            projection_codes = [*policy_state.codes, CASH_CODE]
+            projection_codes = list(policy_state.codes)
             aligned_prev = align_weight_matrix(prev_weight_matrix, prev_codes, projection_codes)
             returns = self.return_matrix.loc[history_date].reindex(projection_codes, fill_value=0.0).fillna(0.0)
             returns.loc[CASH_CODE] = 0.0
             day_returns = returns.to_numpy(dtype=float)
-            risky_columns = np.array([code != CASH_CODE for code in projection_codes], dtype=bool)
-            risky_weight_sums = weight_matrix[:, risky_columns].sum(axis=1)
-            turnover = np.abs(weight_matrix[:, risky_columns] - aligned_prev[:, risky_columns]).sum(axis=1)
             cash_index = projection_codes.index(CASH_CODE)
             mu = transaction_remainder_factor(
                 aligned_prev,
@@ -697,23 +734,29 @@ class CPTPGStrategy(BaseStrategy):
                 cash_index=cash_index,
             )
             investable_values = simulated_values * mu
-            transaction_cost = np.maximum(simulated_values - investable_values, 0.0)
-            invested_values = investable_values * risky_weight_sums
             weighted_returns = weight_matrix @ day_returns
-            previous_values = simulated_values
             simulated_values = investable_values * (1.0 + weighted_returns)
-            day_net_pnl = simulated_values - previous_values
-            day_investment_return = np.divide(
-                day_net_pnl,
-                invested_values,
-                out=np.zeros_like(day_net_pnl),
-                where=invested_values > 1e-12,
-            )
-            trajectory_growth *= 1.0 + day_investment_return
+            if reference_values is not None:
+                normalized_values = simulated_values / max(self.performance_base, 1e-12)
+                gain_mask = normalized_values >= reference_values
+                eta_gain, eta_loss = self.reference_update_rates()
+                reference_values = np.where(
+                    gain_mask,
+                    reference_values + eta_gain * (normalized_values - reference_values),
+                    reference_values - eta_loss * (reference_values - normalized_values),
+                )
             prev_codes = projection_codes
-            prev_weight_matrix = weight_matrix
-        investment_return = trajectory_growth - 1.0
-        return investment_return, score_matrix
+            post_weight_matrix = weight_matrix * (1.0 + day_returns.reshape(1, -1))
+            post_weight_sum = np.maximum(post_weight_matrix.sum(axis=1), 1e-12)
+            prev_weight_matrix = post_weight_matrix / post_weight_sum.reshape(-1, 1)
+        normalized_wealth = simulated_values / self.performance_base if self.performance_base > 0 else np.zeros(sample_count, dtype=float)
+        return normalized_wealth, score_matrix, reference_values
+
+
+class SymmetricCPTPGStrategy(CPTPGStrategy):
+    def reference_update_rates(self) -> tuple[float, float]:
+        eta = 0.5 * (self.config.eta_gain + self.config.eta_loss)
+        return eta, eta
 
 
 class ExpectedReturnPGStrategy(CPTPGStrategy):
@@ -723,30 +766,36 @@ class ExpectedReturnPGStrategy(CPTPGStrategy):
     def _estimate_gradient_and_objective(
         self,
         history_dates: list[str],
-        preference: PreferenceVector,
-        hard_constraints: HardConstraints,
         cpt_rng: np.random.Generator,
         gradient_rng: np.random.Generator,
+        starting_value: float | None = None,
+        starting_weights: pd.Series | None = None,
+        objective_reference: float | None = None,
     ) -> tuple[np.ndarray, float, float, int, int]:
         online_step = max(1, len(self.seen_dates) + 1)
         n_t = self._sample_count(self.config.cpt_sample_base, online_step)
         m_t = self._sample_count(self.config.gradient_sample_base, online_step)
-        objective_returns, _ = self._sample_window_outcomes(
+        if self.config.shared_cpt_gradient_samples:
+            n_t = m_t
+        gradient_returns, score_matrix, _ = self._sample_window_outcomes(
             history_dates=history_dates,
-            preference=preference,
-            hard_constraints=hard_constraints,
-            sample_count=n_t,
-            rng=cpt_rng,
-            collect_scores=False,
-        )
-        gradient_returns, score_matrix = self._sample_window_outcomes(
-            history_dates=history_dates,
-            preference=preference,
-            hard_constraints=hard_constraints,
             sample_count=m_t,
             rng=gradient_rng,
             collect_scores=True,
+            starting_value=starting_value,
+            starting_weights=starting_weights,
         )
+        if self.config.shared_cpt_gradient_samples:
+            objective_returns = gradient_returns
+        else:
+            objective_returns, _, _ = self._sample_window_outcomes(
+                history_dates=history_dates,
+                sample_count=n_t,
+                rng=cpt_rng,
+                collect_scores=False,
+                starting_value=starting_value,
+                starting_weights=starting_weights,
+            )
         if score_matrix is None:
             raise RuntimeError("Gradient sample scores were not collected")
         common_reference_returns = objective_returns - self.config.offline_cpt_reference
@@ -769,30 +818,36 @@ class ExponentialUtilityPGStrategy(CPTPGStrategy):
     def _estimate_gradient_and_objective(
         self,
         history_dates: list[str],
-        preference: PreferenceVector,
-        hard_constraints: HardConstraints,
         cpt_rng: np.random.Generator,
         gradient_rng: np.random.Generator,
+        starting_value: float | None = None,
+        starting_weights: pd.Series | None = None,
+        objective_reference: float | None = None,
     ) -> tuple[np.ndarray, float, float, int, int]:
         online_step = max(1, len(self.seen_dates) + 1)
         n_t = self._sample_count(self.config.cpt_sample_base, online_step)
         m_t = self._sample_count(self.config.gradient_sample_base, online_step)
-        objective_returns, _ = self._sample_window_outcomes(
+        if self.config.shared_cpt_gradient_samples:
+            n_t = m_t
+        gradient_returns, score_matrix, _ = self._sample_window_outcomes(
             history_dates=history_dates,
-            preference=preference,
-            hard_constraints=hard_constraints,
-            sample_count=n_t,
-            rng=cpt_rng,
-            collect_scores=False,
-        )
-        gradient_returns, score_matrix = self._sample_window_outcomes(
-            history_dates=history_dates,
-            preference=preference,
-            hard_constraints=hard_constraints,
             sample_count=m_t,
             rng=gradient_rng,
             collect_scores=True,
+            starting_value=starting_value,
+            starting_weights=starting_weights,
         )
+        if self.config.shared_cpt_gradient_samples:
+            objective_returns = gradient_returns
+        else:
+            objective_returns, _, _ = self._sample_window_outcomes(
+                history_dates=history_dates,
+                sample_count=n_t,
+                rng=cpt_rng,
+                collect_scores=False,
+                starting_value=starting_value,
+                starting_weights=starting_weights,
+            )
         if score_matrix is None:
             raise RuntimeError("Gradient sample scores were not collected")
         common_reference_returns = objective_returns - self.config.offline_cpt_reference
@@ -814,30 +869,32 @@ class ExponentialUtilityPGStrategy(CPTPGStrategy):
 
 def build_strategy(method: str, config: ExperimentConfig, dataset: MarketDataset, seed: int) -> BaseStrategy:
     if method == "dynamic_cpt_pg":
-        return CPTPGStrategy(method, config, dataset, seed, static_reference=False, frozen_preference=False)
+        return CPTPGStrategy(method, config, dataset, seed, static_reference=False)
+    if method == "symmetric_cpt_pg":
+        return SymmetricCPTPGStrategy(method, config, dataset, seed, static_reference=False)
     if method == "static_cpt_pg":
-        return CPTPGStrategy(method, config, dataset, seed, static_reference=True, frozen_preference=True)
-    if method == "dynamic_cpt_pg_frozen_pref":
-        return CPTPGStrategy(method, config, dataset, seed, static_reference=False, frozen_preference=True)
-    if method == "static_ref_dynamic_pref_cpt_pg":
-        return CPTPGStrategy(method, config, dataset, seed, static_reference=True, frozen_preference=False)
+        return CPTPGStrategy(method, config, dataset, seed, static_reference=True)
     if method == "expected_return_pg":
-        return ExpectedReturnPGStrategy(method, config, dataset, seed, static_reference=False, frozen_preference=False)
+        return ExpectedReturnPGStrategy(method, config, dataset, seed, static_reference=False)
     if method == "exponential_utility_pg":
-        return ExponentialUtilityPGStrategy(method, config, dataset, seed, static_reference=False, frozen_preference=False)
+        return ExponentialUtilityPGStrategy(method, config, dataset, seed, static_reference=False)
     raise ValueError(f"Unknown method: {method}")
 
 
-def dirichlet_alpha_from_scores(scores: np.ndarray, config: ExperimentConfig) -> tuple[np.ndarray, np.ndarray]:
-    alpha_min = float(config.dirichlet_alpha_min)
-    alpha_max = float(config.dirichlet_alpha_max)
-    if not (0.0 < alpha_min < alpha_max):
-        raise RuntimeError("Dirichlet alpha bounds must satisfy 0 < alpha_min < alpha_max")
-    sigmoid_values = expit(np.asarray(scores, dtype=float))
-    span = alpha_max - alpha_min
-    alpha = alpha_min + span * sigmoid_values
-    alpha_derivative = span * sigmoid_values * (1.0 - sigmoid_values)
+def dirichlet_alpha_from_scores(scores: np.ndarray, _config: ExperimentConfig) -> tuple[np.ndarray, np.ndarray]:
+    alpha = np.exp(np.asarray(scores, dtype=float))
+    if not np.all(np.isfinite(alpha)) or np.any(alpha <= 0.0):
+        raise RuntimeError("Dirichlet exponential alpha mapping produced invalid values")
+    alpha_derivative = alpha.copy()
     return alpha.astype(float), alpha_derivative.astype(float)
+
+
+def normalized_update_direction(gradient: np.ndarray) -> np.ndarray:
+    gradient_values = np.asarray(gradient, dtype=float)
+    scale = float(np.max(np.abs(gradient_values))) if gradient_values.size else 0.0
+    if scale <= 0.0:
+        return np.zeros_like(gradient_values)
+    return gradient_values / scale
 
 
 def dirichlet_score_gradient(
@@ -1075,6 +1132,18 @@ def portfolio_step_value(
     cash_value = investable_value * cash_weight
     end_portfolio_value = investable_value * (risky_weight_sum + weighted_return)
     end_account_value = cash_value + end_portfolio_value
+    end_value_by_code = pd.Series(0.0, index=all_codes, dtype=float)
+    end_value_by_code.loc[CASH_CODE] = cash_value
+    risky_codes = [code for code in all_codes if code != CASH_CODE]
+    if risky_codes:
+        risky_returns = day_returns.reindex(risky_codes, fill_value=0.0).fillna(0.0)
+        risky_target_weights = weights.reindex(risky_codes, fill_value=0.0).clip(lower=0.0)
+        end_value_by_code.loc[risky_codes] = investable_value * risky_target_weights * (1.0 + risky_returns)
+    if end_account_value <= 1e-12:
+        end_weights = pd.Series(0.0, index=all_codes, dtype=float)
+        end_weights.loc[CASH_CODE] = 1.0
+    else:
+        end_weights = end_value_by_code.clip(lower=0.0) / end_account_value
     day_pnl = end_account_value - current_value
     day_return_rate = 0.0 if current_value <= 0 else day_pnl / current_value
     investment_return_rate = 0.0 if invested_value <= 1e-12 else day_pnl / invested_value
@@ -1084,6 +1153,7 @@ def portfolio_step_value(
         end_account_value=end_account_value,
         end_portfolio_value=end_portfolio_value,
         cash_value=cash_value,
+        end_weights=end_weights,
         day_pnl=day_pnl,
         day_return_rate=day_return_rate,
         investment_return_rate=investment_return_rate,

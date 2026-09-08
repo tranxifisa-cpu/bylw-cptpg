@@ -1,0 +1,661 @@
+\zhiheng{第三章：仿真实验}
+\chapter{理论框架与问题设定}
+
+\section{非平稳MDP、累积前景理论与符号表示}
+设有限离散时间点$t=1,\dots,T$下，第$t$天开盘前，非平稳马尔可夫决策元组（Non-Stationary MDP）为：
+\begin{equation*}
+\mathcal{M}_t=(\mathcal{S},\mathcal{A},\mathcal{P}_t,\{x_\ell\}_{\ell\le t},h,r_t,s_t,a^*_{t})
+\end{equation*}
+
+其中 $\mathcal{S}$ 为市场状态空间，$s_t\in \mathcal{S}$ 表示第 $t$ 日开盘前可观测状态，包含各资产行情因子（开盘价、收盘价、最高价、最低价、成交量等）、公司财务因子等信息；$\mathcal{A}$ 为动作空间，$a_{t}^* \in \mathcal{A}$为当期开盘前的持仓组合，$\mathcal{P}_t$ 为第 $t$ 期市场状态转移机制，$h$ 为on-policy有限时域长度，$r_t$ 为第 $t$ 期开盘前已经形成的心理参考点。
+
+在非平稳MDP中，常用有限时域交互片段和局部变化预算来近似当前环境分布，且局部变化预算包含转移机制的局部变化预算和奖励函数的局部变化预算\citep{feng2023nonstationary}。而在本文的研究设定中，对于$\mathcal{P}_t$视为未知，不显式用模型的方式估计；奖励则是每天更新的投资组合$a_{t+1}^*$收盘后的客观收益$x_{t+1}$，定义为剔除交易成本后当前账户总财富与初始财富之比。因此，本文用有限时域近似误差$\delta_t(h)$来统一表示长度为$h$的交互片段内的非平稳变化。为了避免前视偏差，$s_t$和$r_t$都是第$t$天开盘前可观测到的信息，$x_{t+1}$只能在第$t$天收盘后观测到，因此元组里包含的奖励是$x_{t}$及之前的历史值。
+
+投资组合动作记为：$a_t=(\omega_{0,t},\omega_{1,t},\ldots,\omega_{N,t})^\top\in \mathcal{A}$，其中$i=0$表示现金项，$i=1,\dots,N$表示风险资产。
+其中，动作空间符合单纯性约束。
+\begin{equation*}
+\mathcal{A}=\left\{a\in \mathbb{R}^{N+1} \mid \sum_{i=0}^N \omega_i=1,\; \omega_i\ge 0\right\}.
+\end{equation*}
+
+策略写作：$\pi_\theta(a\mid s_t)$
+其中，$\theta\in\Theta$，$\Theta$为策略参数空间。
+
+第 $t$ 期策略 $\pi_{\theta_t}$ 在长度为$h$的on-policy有限时域内采样生成多条收益轨迹，一条轨迹记为：
+\begin{equation*}
+\tau_t=(s_{t,1},a_{t,1},x_{t,1},\ldots,s_{t,h},a_{t,h},x_{t,h})
+\end{equation*}
+其有限时域末端客观收益为归一化财富：
+\begin{equation}
+X_t(\tau_t)=x_{t+h}(\tau_t)
+\end{equation}
+给定起点参考点$r_t$，沿轨迹$\tau_t$逐日使用式\eqref{eq:reference_update}更新得到有限时域末端参考点，记为$r_{t,h}(\tau_t)$。基于动态参考点的相对收益为：
+\begin{equation}
+Y_t(\tau_t)=X_t(\tau_t)-r_{t,h}(\tau_t).
+\end{equation}
+当参考点固定时，有$r_{t,h}(\tau_t)=r_t$。
+
+由于本文聚焦研究动态参考点，因此所用的CPT的效用函数和概率权重函数均为KT模型，CPT相关的参数为前人估算得出的固定值\citep{kahneman1979prospect}。
+
+收益侧效用函数与损失侧效用函数分别为：
+\begin{equation}
+v_g(Y)
+=(Y^+)^{\alpha_g},
+\qquad
+Y^+\ge 0
+\end{equation}
+\begin{equation}
+v_l(Y)
+=\lambda (-Y^-)^{\alpha_l},  
+\qquad
+Y^-<0
+\end{equation}
+
+其中，$\lambda>1$ 为损失厌恶系数，刻画了人相比于收益更不愿意亏损的心理；$\alpha_g,\alpha_l\in(0,1]$ 分别为收益侧与损失侧的敏感度，表示收益或亏损幅度变大时，边际感知强度逐步降低。
+
+收益侧和损失侧概率权重函数为：
+\begin{equation}
+ w_g(p)=\frac{p^{\beta_g}}{\left(p^{\beta_g}+(1-p)^{\beta_g}\right)^{1/\beta_g}},\qquad p\in[0,1],
+\end{equation}
+\begin{equation}
+ w_l(p)=\frac{p^{\beta_l}}{\left(p^{\beta_l}+(1-p)^{\beta_l}\right)^{1/\beta_l}},\qquad p\in[0,1].
+\end{equation}
+
+其中 $\beta_g,\beta_l>0$ 刻画概率扭曲强度，表示人类常会放大小概率事件、缩小大概率事件的心理。
+
+% 有限样本实现中，为避免在 $0$ 或 $1$ 处直接计算 $w_g'$ 和 $w_l'$，可对经验尾概率作端点正则化：
+% \begin{equation}
+%  p\leftarrow \min\left\{\frac{n_t}{n_t+1},\max\left\{\frac{1}{n_t+1},p\right\}\right\}.
+% \end{equation}
+% 该处理只影响有限样本数值稳定性，理论极限下随着 $n_t\to\infty$ 逐渐消失。
+
+第 $t$ 期目标函数定义为：策略$\pi_{\theta_t}$基于on-policy有限时域采样得到的收益随机变量对应的CPT效用：
+\begin{equation}
+\label{eq:cpt_objective}
+\begin{aligned}
+J_t(\theta,r_t)
+:=&\int_0^\infty w_g\!\left(\mathbb{P}_{t,\theta}\left(v_g(Y_t^+)>\xi\right)\right)\,d\xi \\
+&-\int_0^\infty  w_l\!\left(\mathbb{P}_{t,\theta}\left(v_l(Y_t^-)>\xi\right)\right)\,d\xi,
+\end{aligned}
+\end{equation}
+其中，概率 $\mathbb{P}_{t,\theta}$ 为第 $t$ 期收益随机变量的$Y_t$的概率分布，用来计算盈利和亏损超过阈值$\xi$的尾概率。
+
+因此，第 $t$ 日收盘后，系统观测到新组合的客观收益 $x_{t+1}$，并按照实现非对称自适应参考点的动态交易模型更新参考点\citep{he2019realization}。
+\begin{equation}
+\label{eq:reference_update}
+r_{t+1}
+=
+\begin{cases}
+r_t+\eta_+\left(x_{t+1}-r_t\right), & x_{t+1}\ge r_t\\[4pt]
+r_t-\eta_-\left(r_t-x_{t+1}\right), & x_{t+1}<r_t
+\end{cases}
+\end{equation}
+其中，$\eta_+,\eta_-\in[0,1]$，且$\eta_+ >\eta_-$。
+
+
+本文主要的数学符号及含义见下表：
+\begin{table}[H]
+\centering
+\caption{主要符号及其含义}
+\begin{tabular}{p{0.18\textwidth} p{0.72\textwidth}}
+\hline
+符号 & 含义 \\
+\hline
+$N$ & 可投资资产数量 \\
+$s_t$ & 第 $t$ 天开盘前的市场状态 \\
+$r_t$ & 第 $t$ 天开盘前的心理参考点 \\
+$r_{t,h}(\tau_t)$ & 从$r_t$出发，沿长度为$h$的轨迹$\tau_t$递推得到的末端参考点 \\
+$\pi_{\theta_t}(a_t\mid s_t)$ & 第 $t$ 期的策略 \\
+$a_{t}^*$ & 第 $t$ 天开盘前的投资组合 \\
+$\theta_t \in \Theta$ & 第 $t$ 期策略参数 \\
+$q_{i,t}$ & 第 $t$ 期资产项 $i$ 的策略输入向量，其中 $i=0$ 表示现金，$i=1,\dots,N$ 表示风险资产 \\
+$z_{i,t}$ & 第 $t$ 期资产项 $i$ 的线性策略得分，$z_{i,t}=\theta_t^\top q_{i,t}$ \\
+$\alpha^D_{i,t}$ & 第 $t$ 期资产项 $i$ 的Dirichlet浓度参数，$\alpha^D_{i,t}=\exp(z_{i,t})$ \\
+$n_t$ & 第 $t$ 期用于估计CPT分位数的收益轨迹条数 \\
+$m_t$ & 第 $t$ 期用于估计策略梯度的收益轨迹条数 \\
+$x_t$ & 第 $t$ 天收盘后观测到的投资组合客观收益 \\
+$X_t^{(j)}$ & 第 $t$ 期第 $j$ 条收益轨迹在有限时域末端对应的投资组合客观收益样本 \\
+$Y_t^{(j)}$ & 相对收益样本，$Y_t^{(j)}=X_t^{(j)}-r_{t,h}^{(j)}$ \\
+$G_t^{(j)}$ & 第 $t$ 期第 $j$ 条策略梯度轨迹对应的得分函数 \\
+$\psi_t^{(j)}$ & 第$j$条收益轨迹对应的CPT权重 \\
+$v_g(\cdot),v_l(\cdot)$ & 收益侧与损失侧的效用函数 \\
+$w_g(\cdot),w_l(\cdot)$ & 收益侧与损失侧的权重函数 \\
+$J_t(\theta,r_t)$ & 第 $t$ 期的优化目标函数 \\
+$\gamma$ & 策略参数更新步长 \\
+$S_t$ & 第 $t$ 期目标函数 $J_t$ 的一阶驻点集合 \\
+\hline
+\end{tabular}
+\end{table}
+\section{问题设定}
+\subsection{问题建模}
+
+本文的现实对象是一个在线投资顾问系统。系统在每个交易日开盘前观察市场状态$s_t$、已有持仓$a_t^*$和心理参考点$r_t$；在开盘后输出现金和风险资产的组合权重；在收盘后观测剔除交易成本后的归一化财富$x_{t+1}$，并据此更新参考点。这里的归一化财富以初始账户财富为基准，$x_t=1.2$表示账户财富已经变为初始财富的1.2倍。该口径和实验中展示的财富曲线一致，因此参考点$r_t$也处在同一归一化财富尺度上。
+
+为刻画on-policy有限时域学习，本文把第$k$个episode的起点记为$t_k$，其中$t_{k+1}=t_k+h$，总episode数记为$K=\lceil T/h\rceil$。在episode起点$t_k$，系统已经观测到$s_{t_k}$、$a_{t_k}^*$和$r_{t_k}$。给定策略参数$\theta$后，策略$\pi_\theta$在长度为$h$的有限时域内生成收益轨迹$\tau_{t_k}$。一条轨迹的末端归一化财富为$X_{t_k}(\tau_{t_k})$，从起点参考点$r_{t_k}$沿该轨迹递推得到的末端参考点为$r_{t_k,h}(\tau_{t_k})$，相对收益为
+\begin{equation}
+\label{eq:episode_relative_outcome}
+Y_{t_k}(\tau_{t_k})
+=
+X_{t_k}(\tau_{t_k})
+-
+r_{t_k,h}(\tau_{t_k}).
+\end{equation}
+式\eqref{eq:episode_relative_outcome}把参考点的路径依赖纳入收益随机变量。静态参考点方法是该定义的特例，此时$r_{t_k,h}(\tau_{t_k})=r_{t_k}$。
+
+由策略$\pi_\theta$诱导的轨迹分布记为$\mathbb{P}_{t_k,\theta}$，它把有限时域末端相对收益$Y_{t_k}$变成一个随机变量。本文的当期优化目标是最大化该随机变量的CPT效用，即$J_{t_k}(\theta,r_{t_k})$。因此，本文处理的是一个时变非凸在线优化问题：
+\begin{equation}
+\label{eq:online_problem}
+\text{given } (s_{t_k},a_{t_k}^*,r_{t_k}),\qquad
+\text{update }\theta_{t_k}\text{ so that }\theta_{t_k}\text{ tracks }S_{t_k}.
+\end{equation}
+其中，一阶驻点集合定义为：
+\begin{equation}
+\label{eq:stationary_set}
+S_{t_k}
+=
+\left\{
+\theta\in\Theta:
+\nabla_\theta J_{t_k}(\theta,r_{t_k})=0
+\right\}.
+\end{equation}
+式\eqref{eq:stationary_set}中的$\nabla_\theta J_{t_k}$是当期CPT目标函数对策略参数的梯度。本文当前算法采用Dirichlet策略直接输出单纯形内的组合权重，不对策略参数做额外投影，因此理论表述采用无投影的一阶驻点集合。若后续加入显式参数约束或正则项，则可把$S_{t_k}$替换为广义梯度映射为零的集合。
+
+为了度量策略是否能够跟踪移动的一阶驻点集合，本文采用非凸在线优化中的动态局部遗憾思想\citep{hazan2017efficient,aydore2019dynamic}。为避免与有限时域长度$h$混淆，记平滑宽度为$w$，平滑系数为$\rho\in(0,1]$，定义：
+\begin{equation}
+\label{eq:smoothed_gradient}
+\overline{\nabla J}_k
+=
+\frac{1}{A_k}
+\sum_{i=0}^{\min\{w-1,k-1\}}
+\rho^i
+\nabla_\theta J_{t_{k-i}}(\theta_{t_{k-i}},r_{t_{k-i}}),
+\qquad
+A_k=
+\sum_{i=0}^{\min\{w-1,k-1\}}\rho^i.
+\end{equation}
+动态局部遗憾定义为：
+\begin{equation}
+\label{eq:dynamic_local_regret}
+\mathcal{R}_{\mathrm{dyn}}(K)
+=
+\sum_{k=1}^{K}
+\left\|
+\overline{\nabla J}_k
+\right\|_2^2.
+\end{equation}
+当$\mathcal{R}_{\mathrm{dyn}}(K)/K$较小，说明策略在多数episode附近具有较小的一阶梯度。若进一步存在误差界条件，则平方梯度范数小可以推出$\theta_{t_k}$到$S_{t_k}$的距离较小。本文的核心数学问题因此写作：在动态参考点$r_t$和非平稳市场$\mathcal{P}_t$共同变化时，构造DRCPT-PG估计器和更新规则，使$\mathbb{E}[\mathcal{R}_{\mathrm{dyn}}(K)]/K$被可解释的采样误差、有限时域漂移和参考点漂移共同控制。
+
+\subsection{所遇挑战}
+
+该问题的难点主要来自三方面，每一方面都对应理论假设中的一个必要条件，也对应实验中需要报告的诊断量。
+
+第一，目标函数同时受到外生市场变化和内生参考点变化影响。市场转移机制$\mathcal{P}_t$随时间变化，导致收益轨迹分布变化；同时，收盘后观测到的客观收益$x_{t+1}$会通过式\eqref{eq:reference_update}更新$r_{t+1}$，进而改变下一期CPT目标函数。两类变化共同导致$S_t$随时间移动。本文不要求长度为$h$的有限时域内部平稳，直接把这段时间内的变化写入有限时域漂移项$\delta_{t_k}(h)$，再让该项进入动态局部遗憾上界。
+
+第二，CPT目标函数依赖收益轨迹形成的整个随机分布，不能写成单步即时奖励的简单加和。CPT-PG文献指出，CPT策略梯度需要同时估计收益分布的分位数结构和策略得分函数\citep{prashanth2016cumulative,lepel2026policygradients}。当样本有限时，分位数估计、概率权重函数端点和效用函数在零点附近的形状都会带来方差和数值稳定性问题。
+
+第三，投资组合动作位于单纯形空间。本文采用Dirichlet策略函数，使输出天然满足非负和权重和为1的投资组合结构，并通过资产因子$q_{i,t}$和参数$\theta_t$解释策略为何偏向某类资产。该设定适合投资组合问题，但Dirichlet策略的得分函数仍需要在理论中假设有界，或在实验域内通过特征裁剪、归一化更新和有限样本数值正则来控制。
+
+\section{研究方法}
+\subsection{Dirichlet策略函数}
+
+\begin{algorithm}[H]
+\caption{Dirichlet策略函数抽取投资组合}
+\label{alg:dirichlet_policy}
+\begin{algorithmic}[1]
+\STATE \textbf{输入：} 第$t$期市场状态$s_t$，当前持仓$a_{t}^*$，策略参数$\theta_t$，资产数$N$，执行方式$e\in\{\mathrm{sample},\mathrm{mean}\}$
+
+\FOR{$i=0,1,\dots,N$}
+    \STATE 根据$s_t$与当前持仓$a_t^*$得到资产项$i$的策略输入向量$q_{i,t}$，其中$i=0$表示现金项。
+    \STATE 计算资产项$i$的线性策略得分$z_{i,t}=\theta_t^\top q_{i,t}$
+    \STATE 将线性得分按指数形式映射为Dirichlet浓度参数
+    \begin{equation*}
+    \alpha^D_{i,t}
+    =
+    \exp(z_{i,t})
+    \end{equation*}
+\ENDFOR
+\STATE 记$\alpha^D_t=(\alpha^D_{0,t},\alpha^D_{1,t},\dots,\alpha^D_{N,t})^\top$
+\IF{$e=\mathrm{sample}$}
+    \STATE 从Dirichlet策略分布中抽样得到投资组合权重向量
+\begin{equation*}
+a_t
+\sim
+\pi_{\theta_t}(\cdot\mid s_t)
+=
+\operatorname{Dirichlet}(\alpha^D_t)
+\end{equation*}
+\ELSE
+    \STATE 使用Dirichlet分布均值作为执行动作
+\begin{equation*}
+\omega_{i,t}
+=
+\frac{\alpha^D_{i,t}}{\sum_{k=0}^{N}\alpha^D_{k,t}},
+\qquad
+i=0,1,\dots,N
+\end{equation*}
+\ENDIF
+\STATE 由Dirichlet分布的定义可得$\sum_{i=0}^{N}\omega_{i,t}=1$且$\omega_{i,t}\ge 0$
+\STATE \textbf{输出：} 连续投资组合权重向量$a_t=(\omega_{0,t},\omega_{1,t},\dots,\omega_{N,t})^\top$
+\end{algorithmic}
+\end{algorithm}
+
+算法\ref{alg:dirichlet_policy}的直观含义如下。假设系统在2023年1月3日开盘前观察沪深300成分股和现金项，现金记为$i=0$，股票记为$i=1,\dots,N$。对于每只股票，系统先读取其开盘前可观测因子，例如近端动量、反转、低波动、估值、成交活跃度和上一期持仓权重，并组成$q_{i,t}$。策略参数$\theta_t$表示当前策略更看重哪些因子，线性得分$z_{i,t}=\theta_t^\top q_{i,t}$越大，说明该资产在当前市场状态下越容易获得较高配置。指数映射$\alpha^D_{i,t}=\exp(z_{i,t})$把得分转成Dirichlet浓度参数。训练估计阶段使用$e=\mathrm{sample}$，系统从Dirichlet分布中随机采样多组组合权重，用于形成多条收益轨迹；真实执行阶段可使用$e=\mathrm{mean}$，即把$\alpha^D_t$归一化为一个稳定的推荐组合。这样，算法一从“股票因子和策略参数”一步步得到“现金和股票的连续权重分配”。
+
+更具体地说，如果某个交易日低波动因子和质量因子在沪深300中更有效，且当前$\theta_t$对这两个因子的分量较大，那么具有较低波动、较好流动性和较高质量得分的股票会得到较大的$z_{i,t}$。指数映射会放大这种相对差异，但不会破坏Dirichlet浓度参数为正的要求。若训练阶段采样出一组权重，现金、贵州茅台、中国平安等资产都会同时得到非负权重，且权重和为1；若执行阶段取均值，则输出的是一组更平滑的投资组合建议。这个设计使策略参数$\theta_t$具有可解释性：它学习的是因子重要性，避免把每一只股票的固定权重作为记忆对象。
+
+\subsection{动态参考点下的CPT-PG}
+
+\begin{algorithm}[H]
+\caption{基于动态参考点的CPT-PG在线优化器}
+\label{alg:drcpt_pg}
+\begin{algorithmic}[1]
+\STATE \textbf{输入：} 初始策略参数$\theta_1$，初始参考点$r_1$，有限时域长度$h$，样本数$n_t,m_t$，参数更新步长$\gamma$，CPT参数$\lambda,\alpha_g,\alpha_l,\beta_g,\beta_l$，参考点更新系数$\eta_+,\eta_-$
+\STATE 初始化$t=1$，开盘前持仓$a_1^*$为全现金组合
+\WHILE{$t\le T$}
+    \STATE 记录episode起点状态$(s_t,a_t^*,r_t,\theta_t)$，并令$\mathcal{E}_t=\{t,t+1,\ldots,\min(t+h-1,T)\}$。
+    \STATE \textbf{真实执行：}对每个$u\in\mathcal{E}_t$，用算法\ref{alg:dirichlet_policy}和$e=\mathrm{mean}$输出组合$a_{u+1}^*$；收盘后观测归一化财富$x_{u+1}$，并更新真实参考点
+    \begin{equation*}
+    r_{u+1}
+    =
+    \begin{cases}
+    r_u+\eta_+\left(x_{u+1}-r_u\right), & x_{u+1}\ge r_u,\\[4pt]
+    r_u-\eta_-\left(r_u-x_{u+1}\right), & x_{u+1}<r_u
+    \end{cases}
+    \end{equation*}
+    \STATE \textbf{CPT目标采样：}从episode起点出发，用$\pi_{\theta_t}$和$e=\mathrm{sample}$采样$n_t$条有限时域轨迹，得到$\{(\widetilde X_t^{(i)},\widetilde r_{t,h}^{(i)})\}_{i=1}^{n_t}$，并令$\widetilde Y_t^{(i)}=\widetilde X_t^{(i)}-\widetilde r_{t,h}^{(i)}$。
+    \STATE 用$\{\widetilde Y_t^{(i)}\}_{i=1}^{n_t}$估计$J_t(\theta_t,r_t)$；目标值使用$w_g,w_l$，并分别排序$\{v_g((\widetilde Y_t^{(i)})^+)\}$和$\{v_l((\widetilde Y_t^{(i)})^-)\}$。
+    \STATE \textbf{策略梯度采样：}从同一episode起点采样$m_t$条轨迹，得到$\{(Y_t^{(j)},G_t^{(j)})\}_{j=1}^{m_t}$；若采用共享采样，则令$m_t=n_t$并复用上一步轨迹。
+    \STATE 用排序分位数差分和$w_g',w_l'$计算每条梯度轨迹的CPT权重项$\psi_t^{(j)}$。
+    \STATE 计算CPT策略梯度估计
+    \begin{equation*}
+    \widehat{\nabla_\theta J_t}(\theta_{t},r_t)
+    =
+    \frac{1}{m_t}
+    \sum_{j=1}^{m_t}
+    \psi_t^{(j)}
+    G_t^{(j)}
+    \end{equation*}
+    \STATE 计算最大绝对分量归一化方向
+    \begin{equation*}
+    d_t
+    =
+    \begin{cases}
+    \widehat{\nabla_\theta J_t}(\theta_t,r_t)/\max_\ell\left|\widehat{\nabla_\theta J_t}(\theta_t,r_t)_\ell\right|, & \max_\ell\left|\widehat{\nabla_\theta J_t}(\theta_t,r_t)_\ell\right|>0,\\[4pt]
+    0, & \max_\ell\left|\widehat{\nabla_\theta J_t}(\theta_t,r_t)_\ell\right|=0.
+    \end{cases}
+    \end{equation*}
+    \STATE 更新策略参数，并进入下一个episode
+    \begin{equation*}
+    \theta_{t+h}
+    =
+    \theta_t+\gamma d_t.
+    \end{equation*}
+    \STATE 令$t\leftarrow t+h$。
+\ENDWHILE
+\STATE \textbf{输出：} 参数序列$\{\theta_t\}$、投资组合序列$\{a_t^*\}$
+\end{algorithmic}
+\end{algorithm}
+
+算法\ref{alg:drcpt_pg}对应的实际流程可以这样理解。假设账户初始资金为100万元，初始持仓为全现金，参考点$r_1=1$，表示当前心理基准等于初始财富。第一个episode长度取$h=5$个交易日。系统先用当前$\theta_1$在真实执行路径上给出第1天到第5天的组合建议，每天开盘后执行，收盘后得到剔除交易成本后的归一化财富$x_{u+1}$，并按盈利适应较快、亏损适应较慢的规则更新真实参考点。完成这5天后，系统回到该episode起点，用同一个起点市场状态、同一个起点持仓和同一个起点参考点，基于当前策略参数采样许多条5天轨迹。每条采样轨迹内部也逐日更新参考点，因此轨迹末端既有一个财富值$\widetilde X_t^{(i)}$，也有一个参考点$\widetilde r_{t,h}^{(i)}$。第一批$n_t$条轨迹用于估计这个策略在当前市场和当前参考点下形成的CPT目标值；第二批$m_t$条轨迹用于估计CPT策略梯度。随后系统用估计梯度更新$\theta$，进入下一个episode。真实账户只走一条路径，训练估计从同一episode起点生成多条可能路径，用这些路径学习下一轮更合适的因子权重。
+
+这个流程与CPT-PG文献的有限时域思想一致：CPT评价的是一组完整轨迹的结果分布，评价尺度超过单个交易日的即时收益\citep{prashanth2016cumulative,lepel2026policygradients}。本文的扩展在于，参考点在episode内部随轨迹收益递推，目标函数因此随市场状态和参考点共同变化；这正是后续理论分析中需要动态局部遗憾的原因。
+\chapter{理论分析}
+\subsection{主要结论}
+本节给出DRCPT-PG的理论结论。写作逻辑为：先说明每条假设的作用、可检验性和违反后的退路，再给出两个引理、一个主定理和一个平稳极限推论。核心结论是：在CPT策略梯度估计误差、有限时域市场漂移和参考点漂移均可控时，算法的平均动态局部遗憾有上界；若进一步满足误差界条件，则平方梯度范数小可以推出策略参数靠近当期一阶驻点集合。该结论沿用了CPT-PG文献中基于顺序统计量的Monte Carlo策略梯度思想\citep{lepel2026policygradients}，并采用非凸随机优化和非凸在线优化中常见的平方梯度范数与局部遗憾分析方式\citep{ghadimi2013stochastic,hazan2017efficient,aydore2019dynamic,hallak2021regret}。
+
+\paragraph{假设A1：收益和参考点处于有界实验域。}
+存在常数$B_x,B_r>0$，使得对任意$t$和任意有限时域轨迹，有$|x_t|\le B_x$、$|r_t|\le B_r$。此外，参考点单期漂移满足
+\begin{equation}
+\label{eq:a1_ref_drift}
+|r_{t+1}-r_t|
+\le
+B_\eta |x_{t+1}-r_t|,
+\qquad
+B_\eta=\max\{\eta_+,\eta_-\}.
+\end{equation}
+该假设的作用是把CPT目标限制在实际实验会访问到的收益域内。它可以通过实验中的财富范围、\texttt{reference\_point}和\texttt{reference\_drift}诊断。若市场冲击使财富或参考点离开有界域，理论结论仍可作为局部分析使用，但需要扩大实验域或重新估计常数。
+
+\paragraph{假设A2：有限时域非平稳漂移有界。}
+对第$k$个episode，存在非负量$\delta_{t_k}(h)$，刻画长度为$h$的有限时域内市场转移机制和收益分布的变化强度。本文不要求episode内部平稳，只要求这些变化能够被$\delta_{t_k}(h)$计入，并满足
+\begin{equation}
+\label{eq:a2_local_drift}
+V_K(h)
+=
+\sum_{k=1}^{K}\delta_{t_k}(h)
+<\infty.
+\end{equation}
+该假设的作用是把非平稳性放入遗憾上界，并在理论结论中显式保留该影响。其可检验代理包括市场阶段切换、收益分布漂移、因子均值漂移和实验记录中的\texttt{environment\_drift}。当市场突然跳变时，$\delta_{t_k}(h)$会增大，结论会自动给出更宽的跟踪邻域。
+
+\paragraph{假设A3：CPT目标函数正则性。}
+在A1给定的有界收益域内，$v_g,v_l$连续、严格递增，收益侧局部凹、损失侧局部凸；$w_g,w_l$连续非递减、端点归一化。有限样本实现中，对概率权重函数端点和相对收益零点附近做平滑或正则化，使$w_g,w_l$可微且导数Lipschitz。进一步，对任意$t_k$，目标函数$J_{t_k}(\theta,r_{t_k})$关于$\theta$为$L$-光滑函数：
+\begin{equation}
+\label{eq:smooth}
+\left\|
+\nabla_\theta J_{t_k}(\theta,r_{t_k})
+-
+\nabla_\theta J_{t_k}(\theta',r_{t_k})
+\right\|_2
+\le
+L\|\theta-\theta'\|_2.
+\end{equation}
+该假设用于把参数更新转化为目标函数局部变化和平方梯度范数控制。若直接使用原始TK概率权重函数，端点处导数可能放大，实验中需要报告端点正则化方式和梯度尖峰情况。
+
+\paragraph{假设A4：Dirichlet策略正则性。}
+策略$\pi_\theta(a\mid s_t)$关于$\theta$可微，且有限时域轨迹得分函数
+\begin{equation}
+\label{eq:score_def}
+G_t(\tau)
+=
+\sum_{u=t}^{t+h-1}
+\nabla_\theta \log \pi_\theta(a_u\mid s_u)
+\end{equation}
+满足存在常数$B_G>0$，使得$\|G_t(\tau)\|_2\le B_G$。在本文的Dirichlet策略中，$q_{i,t}$由有界因子构成，$\alpha^D_{i,t}=\exp(\theta_t^\top q_{i,t})$保持可微。该假设可以通过因子裁剪、参数规模、最小权重数值下界和梯度范数诊断。若权重长期贴近单纯形边界，Dirichlet score中的$\log\omega_i$会放大，理论上需要限制动作远离边界或把该放大纳入方差项。
+
+\paragraph{假设A5：CPT策略梯度估计误差有界。}
+第$k$个episode的真实梯度记为
+\begin{equation*}
+g_k
+=
+\nabla_\theta J_{t_k}(\theta_{t_k},r_{t_k}),
+\end{equation*}
+DRCPT-PG估计梯度记为$\widehat{\nabla_\theta J}_{t_k}$，估计误差为$\varepsilon_k=\widehat{\nabla_\theta J}_{t_k}-g_k$。存在常数$C_n,C_m,C_\delta>0$，使得
+\begin{equation}
+\label{eq:est_error}
+\mathbb{E}
+\left[
+\left\|
+\varepsilon_k
+\right\|_2^2
+\right]
+\le
+\frac{C_n}{n_{t_k}}
++
+\frac{C_m}{m_{t_k}}
++
+C_\delta \delta_{t_k}(h)^2.
+\end{equation}
+其中$n_{t_k}$控制CPT效用分位数估计误差，$m_{t_k}$控制策略得分函数Monte Carlo误差。若采用共享采样，式\eqref{eq:est_error}仍可使用，但$C_n,C_m$会吸收样本相关性带来的常数变化。
+
+\paragraph{假设A6：归一化更新方向具有弱上升性。}
+算法使用最大绝对分量归一化方向
+\begin{equation}
+\label{eq:normalized_direction}
+d_k
+=
+\begin{cases}
+\widehat{\nabla_\theta J}_{t_k}/\max_\ell|\widehat{\nabla_\theta J}_{t_k,\ell}|, &
+\max_\ell|\widehat{\nabla_\theta J}_{t_k,\ell}|>0,\\[4pt]
+0, & \max_\ell|\widehat{\nabla_\theta J}_{t_k,\ell}|=0.
+\end{cases}
+\end{equation}
+存在常数$c_d>0,c_e>0$，使得
+\begin{equation}
+\label{eq:ascent_alignment}
+\mathbb{E}
+\left[
+\langle g_k,d_k\rangle
+\mid \mathcal{F}_{t_k}
+\right]
+\ge
+c_d\|g_k\|_2^2
+-
+c_e\mathbb{E}
+\left[
+\|\varepsilon_k\|_2^2
+\mid \mathcal{F}_{t_k}
+\right].
+\end{equation}
+该假设的作用是处理当前实现中的归一化梯度更新。它要求归一化方向整体上仍与真实CPT梯度同向。可检验方式是记录更新前后同一episode分布上的CPT估计改善、梯度方向稳定性和多次采样下的梯度夹角。若该条件在某些市场突变期短暂失效，相关影响会通过估计误差和漂移项扩大跟踪邻域。
+
+\paragraph{假设A7：目标漂移可由市场和参考点漂移控制。}
+存在常数$C_J>0$，使得对任意$\theta\in\Theta$，
+\begin{equation}
+\label{eq:target_drift}
+\left|
+J_{t_{k+1}}(\theta,r_{t_{k+1}})
+-
+J_{t_k}(\theta,r_{t_k})
+\right|
+\le
+C_J
+\left(
+\delta_{t_k}(h)+|r_{t_{k+1}}-r_{t_k}|
+\right).
+\end{equation}
+该假设把市场非平稳和动态参考点统一写入目标函数漂移。其可检验代理为有限时域收益分布变化、参考点变化和统一口径离线CPT重评估变化。
+
+\paragraph{假设A8：一阶驻点集合满足误差界。}
+存在常数$\kappa>0$，使得对任意$k$，
+\begin{equation}
+\label{eq:error_bound}
+\operatorname{dist}(\theta,S_{t_k})
+\le
+\kappa
+\left\|
+\nabla_\theta J_{t_k}(\theta,r_{t_k})
+\right\|_2.
+\end{equation}
+该假设的作用是把梯度小转化为距离当期一阶驻点集合近。没有A8时，本文仍可证明平均平方梯度范数或动态局部遗憾受控；加入A8后，才能把该结论解释为跟踪一阶驻点集合。
+
+\paragraph{引理1：CPT策略梯度估计误差可控。}
+在假设A2至A5下，DRCPT-PG在第$k$个episode得到的估计梯度满足式\eqref{eq:est_error}。当$n_{t_k},m_{t_k}$增大且$\delta_{t_k}(h)$较小时，$\widehat{\nabla_\theta J}_{t_k}$在均方意义下逼近$\nabla_\theta J_{t_k}(\theta_{t_k},r_{t_k})$。
+
+\paragraph{引理2：相邻目标和一阶驻点集合漂移有界。}
+在假设A3、A7和A8下，存在常数$C_S>0$，使得
+\begin{equation}
+\label{eq:set_drift}
+d_H(S_{t_{k+1}},S_{t_k})
+\le
+C_S
+\left(
+\delta_{t_k}(h)+|r_{t_{k+1}}-r_{t_k}|
+\right),
+\end{equation}
+其中$d_H(\cdot,\cdot)$表示Hausdorff距离。该引理说明，市场和参考点漂移越小，一阶驻点集合的移动越缓。
+
+\paragraph{定理1：DRCPT-PG的动态局部遗憾上界。}
+设假设A1至A8成立，算法\ref{alg:drcpt_pg}采用固定步长$\gamma>0$和归一化方向$d_k$更新：
+\begin{equation}
+\label{eq:theta_update_theory}
+\theta_{t_{k+1}}
+=
+\theta_{t_k}
++
+\gamma d_k.
+\end{equation}
+则存在常数$C_0,C_1,C_2,C_3,C_4>0$，使得
+\begin{equation}
+\label{eq:main_bound}
+\frac{1}{K}
+\mathbb{E}
+\left[
+\mathcal{R}_{\mathrm{dyn}}(K)
+\right]
+\le
+\frac{C_0}{K\gamma}
++
+C_1\gamma
++
+\frac{C_2}{K}
+\sum_{k=1}^{K}
+\left(
+\frac{1}{n_{t_k}}
++
+\frac{1}{m_{t_k}}
+\right)
++
+\frac{C_3}{K}
+\sum_{k=1}^{K}
+\delta_{t_k}(h)^2
++
+\frac{C_4}{K}
+\sum_{k=1}^{K}
+\left(
+\delta_{t_k}(h)+|r_{t_{k+1}}-r_{t_k}|
+\right).
+\end{equation}
+该定理的含义是：DRCPT-PG的平均动态局部遗憾由五类因素共同决定，分别是初始优化差距、固定步长带来的局部近似误差、有限样本CPT估计误差、有限时域非平稳误差、参考点和市场共同造成的目标漂移。固定步长和固定采样数下，算法进入一个可解释的跟踪邻域；若$\gamma$随时间减小、$n_{t_k},m_{t_k}$随时间增大，且漂移预算满足次线性增长，则平均动态局部遗憾可以进一步趋近于零。
+
+\paragraph{推论1：平稳静态参考点极限。}
+若$\mathcal{P}_t$不随$t$变化，$r_t\equiv r$，且$n_{t_k},m_{t_k}\to\infty$，则式\eqref{eq:main_bound}中的漂移项和采样误差项消失。此时DRCPT-PG退化为静态参考点CPT-PG，并有
+\begin{equation}
+\label{eq:stationary_corollary}
+\limsup_{K\to\infty}
+\frac{1}{K}
+\sum_{k=1}^{K}
+\mathbb{E}
+\left[
+\left\|
+\nabla_\theta J(\theta_{t_k},r)
+\right\|_2^2
+\right]
+\le
+C_1\gamma.
+\end{equation}
+当进一步令$\gamma\to0$时，策略参数在平均意义下逼近静态CPT目标的一阶驻点集合。这与静态CPT-PG文献中的一阶驻点结论相一致\citep{lepel2026policygradients}。
+
+\paragraph{推论2：跟踪一阶驻点集合的邻域。}
+在A8下，由式\eqref{eq:error_bound}可得
+\begin{equation}
+\label{eq:distance_bound}
+\frac{1}{K}
+\sum_{k=1}^{K}
+\mathbb{E}
+\left[
+\operatorname{dist}^2(\theta_{t_k},S_{t_k})
+\right]
+\le
+\kappa^2
+\frac{1}{K}
+\sum_{k=1}^{K}
+\mathbb{E}
+\left[
+\left\|
+\nabla_\theta J_{t_k}(\theta_{t_k},r_{t_k})
+\right\|_2^2
+\right].
+\end{equation}
+因此，平均平方梯度范数受控时，策略参数也在平均意义下停留在当期一阶驻点集合的可控邻域内。
+
+\subsection{边界说明}
+
+上述结论有明确边界。第一，本文分析的是一阶局部稳定性和动态跟踪能力，目标是让$\theta_t$靠近随时间移动的$S_t$。CPT目标函数一般非凸，且概率权重函数和价值函数使收益分布排序进入目标函数，因此本文不承诺求得全局最优投资组合。
+
+第二，本文不承诺每个episode的CPT估计值单调上升。相邻episode面对的$J_t$、$r_t$和收益轨迹分布都可能不同，逐期\texttt{objective\_estimate}不能直接当作同一个固定目标函数的训练损失曲线。更合适的稳定性指标是$\mathcal{R}_{\mathrm{dyn}}(K)$、平均平方梯度范数、参考点漂移和有限时域漂移。
+
+第三，固定步长和固定采样数对应的是进入可控邻域的结论。实验采用固定采样数和固定步长，主要是为了控制运行时间和做多方法对照；若论文需要严格渐近收敛表述，应同时讨论递减步长、递增采样数和次线性漂移预算。
+
+第四，Dirichlet指数参数化保证浓度参数为正，且输出动作天然位于单纯形内，但有界score function仍依赖实验域控制。如果资产数量极大、权重长期接近0或参数无限增长，则A4可能被破坏。因此实验需要报告$\theta$规模、梯度范数、现金权重、换手率和持仓分布。
+
+\subsection{定理证明}
+
+\paragraph{引理1证明。}
+CPT-PG的关键在于分开处理收益分布估计和策略得分函数估计。第$k$个episode中，$n_{t_k}$条轨迹用于估计CPT收益分布的效用分位数，$m_{t_k}$条轨迹用于估计策略得分函数。根据CPT-PG的顺序统计量估计思想，经验效用分位数会随着样本数增加而逼近真实分位数；在A3的端点正则化和Lipschitz条件下，该误差传入CPT权重$\psi_t^{(j)}$后仍可控。另一方面，A4给出有界score function，因此Monte Carlo均值的方差由$m_{t_k}$控制。由于本文允许有限时域内部非平稳，A2额外给出$\delta_{t_k}(h)^2$误差项。三类误差相加，即得到式\eqref{eq:est_error}。
+
+\paragraph{引理2证明。}
+由A7可知，相邻episode目标函数差异由$\delta_{t_k}(h)$和$|r_{t_{k+1}}-r_{t_k}|$控制。再由A3的光滑性，目标函数扰动会传导到梯度扰动。对任意$\theta\in S_{t_k}$，有$\nabla_\theta J_{t_k}(\theta,r_{t_k})=0$，因此存在常数$C>0$，使得
+\begin{equation*}
+\left\|
+\nabla_\theta J_{t_{k+1}}(\theta,r_{t_{k+1}})
+\right\|_2
+\le
+C
+\left(
+\delta_{t_k}(h)+|r_{t_{k+1}}-r_{t_k}|
+\right).
+\end{equation*}
+由A8的误差界，$\theta$到$S_{t_{k+1}}$的距离被上式控制。交换$t_k$和$t_{k+1}$的角色并取两侧上确界，即得到Hausdorff距离形式\eqref{eq:set_drift}。
+
+\paragraph{定理1证明。}
+记$g_k=\nabla_\theta J_{t_k}(\theta_{t_k},r_{t_k})$，$\varepsilon_k=\widehat{\nabla_\theta J}_{t_k}-g_k$。由A3的$L$-光滑性和更新式\eqref{eq:theta_update_theory}，有
+\begin{equation}
+\label{eq:descent_step}
+J_{t_k}(\theta_{t_{k+1}},r_{t_k})
+\ge
+J_{t_k}(\theta_{t_k},r_{t_k})
++
+\gamma\langle g_k,d_k\rangle
+-
+\frac{L\gamma^2}{2}\|d_k\|_2^2.
+\end{equation}
+由于$d_k$经过最大绝对分量归一化，在有限参数维度$d_\theta$下有$\|d_k\|_2^2\le d_\theta$。再由A6，
+\begin{equation}
+\label{eq:gradient_control}
+c_d\gamma
+\mathbb{E}\|g_k\|_2^2
+\le
+\mathbb{E}
+\left[
+J_{t_k}(\theta_{t_{k+1}},r_{t_k})
+-
+J_{t_k}(\theta_{t_k},r_{t_k})
+\right]
++
+C\gamma^2
++
+C\gamma
+\mathbb{E}\|\varepsilon_k\|_2^2.
+\end{equation}
+式\eqref{eq:gradient_control}说明，一次更新能够控制当期真实CPT梯度的平方范数，误差来源为步长二阶项和估计误差项。
+
+由于目标函数随episode变化，固定目标函数的望远镜求和不能直接使用。由A7，
+\begin{equation}
+\label{eq:drift_bridge}
+J_{t_{k+1}}(\theta_{t_{k+1}},r_{t_{k+1}})
+\ge
+J_{t_k}(\theta_{t_{k+1}},r_{t_k})
+-
+C_J
+\left(
+\delta_{t_k}(h)+|r_{t_{k+1}}-r_{t_k}|
+\right).
+\end{equation}
+把式\eqref{eq:drift_bridge}代入式\eqref{eq:gradient_control}，再对$k=1,\dots,K$求和。由于A1和A3使CPT目标在实验域内有界，目标函数差项可以被一个常数$C_0$控制，得到
+\begin{equation}
+\label{eq:cumulative_gradient_bound}
+\sum_{k=1}^{K}
+\mathbb{E}\|g_k\|_2^2
+\le
+\frac{C_0}{\gamma}
++
+C_1\gamma K
++
+C_2
+\sum_{k=1}^{K}
+\mathbb{E}\|\varepsilon_k\|_2^2
++
+C_3
+\sum_{k=1}^{K}
+\left(
+\delta_{t_k}(h)+|r_{t_{k+1}}-r_{t_k}|
+\right).
+\end{equation}
+将引理1中的式\eqref{eq:est_error}代入式\eqref{eq:cumulative_gradient_bound}，即可得到累计平方梯度范数上界。
+
+最后，由式\eqref{eq:smoothed_gradient}和Jensen不等式，
+\begin{equation}
+\label{eq:smooth_jensen}
+\|\overline{\nabla J}_k\|_2^2
+\le
+\frac{1}{A_k}
+\sum_{i=0}^{\min\{w-1,k-1\}}
+\rho^i
+\left\|
+g_{k-i}
+\right\|_2^2.
+\end{equation}
+对$k$求和后，$\mathcal{R}_{\mathrm{dyn}}(K)$被累计平方梯度范数的常数倍控制。两边除以$K$，并吸收常数，即得到式\eqref{eq:main_bound}。
+
+\paragraph{推论1证明。}
+在平稳静态参考点极限下，$\delta_{t_k}(h)=0$且$|r_{t_{k+1}}-r_{t_k}|=0$。若$n_{t_k},m_{t_k}\to\infty$，式\eqref{eq:main_bound}中的采样误差也消失，剩余项为$C_0/(K\gamma)+C_1\gamma$。令$K\to\infty$得到式\eqref{eq:stationary_corollary}。若进一步令$\gamma\to0$，平均平方梯度范数趋近于零。该结论退化为静态参考点CPT-PG的一阶驻点收敛结论。
+
+\paragraph{推论2证明。}
+由A8直接有
+\begin{equation*}
+\operatorname{dist}^2(\theta_{t_k},S_{t_k})
+\le
+\kappa^2
+\left\|
+\nabla_\theta J_{t_k}(\theta_{t_k},r_{t_k})
+\right\|_2^2.
+\end{equation*}
+对$k=1,\dots,K$求和并取期望，即得到式\eqref{eq:distance_bound}。这说明主定理中的平方梯度控制可以进一步解释为对移动一阶驻点集合的平均跟踪控制。

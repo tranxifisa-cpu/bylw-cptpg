@@ -5,7 +5,6 @@ import json
 import sys
 import time
 from dataclasses import replace
-from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -20,16 +19,18 @@ from mvp_cpt_pg.market_data import MarketDatasetBuilder, TushareDataClient
 from mvp_cpt_pg.progress import progress
 
 
-PREWARM_WINDOW = DateWindow(start="20250414", end="20250514")
-EVAL_WINDOW = DateWindow(start="20250515", end="20260512")
+DEFAULT_START_DATE = "20230101"
+DEFAULT_END_DATE = "20260531"
 DAILY_BASIC_FIELDS = (
     "ts_code,trade_date,turnover_rate,turnover_rate_f,volume_ratio,pe,pb,ps,dv_ratio,total_mv,circ_mv"
 )
 DEFAULT_STATUS_PATH = ROOT / "artifacts" / "inputs" / "prefetch_market_cache_status.csv"
 DEFAULT_MARKET_CONTEXT_PATH = ROOT / "artifacts" / "inputs" / "market_context_20250515_20260512.csv"
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Prefetch MVP market raw cache for the fixed prewarm and evaluation windows")
-    parser.add_argument("--sleep-seconds", type=float, default=0.35, help="Sleep between Tushare daily and daily_basic requests")
+    parser = argparse.ArgumentParser(description="Prefetch MVP market raw cache for a Tushare date window")
+    parser.add_argument("--start-date", default=DEFAULT_START_DATE, help="Start date in YYYYMMDD format")
+    parser.add_argument("--end-date", default=DEFAULT_END_DATE, help="End date in YYYYMMDD format")
+    parser.add_argument("--sleep-seconds", type=float, default=0.8, help="Sleep between Tushare daily and daily_basic requests")
     parser.add_argument("--status-path", type=Path, default=DEFAULT_STATUS_PATH, help="Output CSV path for cache status")
     parser.add_argument(
         "--market-context-path",
@@ -37,22 +38,25 @@ def main() -> None:
         default=DEFAULT_MARKET_CONTEXT_PATH,
         help="Output CSV path for daily market context",
     )
+    parser.add_argument(
+        "--skip-market-context",
+        action="store_true",
+        help="Only prefetch raw Tushare cache and skip the 240-day market context file",
+    )
     args = parser.parse_args()
 
     config = replace(
         ExperimentConfig(),
-        prewarm=PREWARM_WINDOW,
-        evaluation=EVAL_WINDOW,
+        prewarm=DateWindow(start=args.start_date, end=args.start_date),
+        evaluation=DateWindow(start=args.start_date, end=args.end_date),
     )
     builder = MarketDatasetBuilder(config)
     status_rows: list[dict[str, Any]] = []
 
-    full_start = (pd.Timestamp(config.prewarm.start) - timedelta(days=120)).strftime("%Y%m%d")
-    full_end = config.evaluation.end
     trade_dates = prefetch_trade_calendar(
         builder.tushare,
-        start_date=full_start,
-        end_date=full_end,
+        start_date=args.start_date,
+        end_date=args.end_date,
         status_rows=status_rows,
     )
     stock_basic = prefetch_stock_basic(builder.tushare, status_rows)
@@ -62,14 +66,17 @@ def main() -> None:
 
     prefetch_daily_series(builder.tushare, trade_dates, args.sleep_seconds, status_rows)
     prefetch_daily_basic_series(builder.tushare, trade_dates, args.sleep_seconds, status_rows)
-    market_context = build_market_context(builder, config, trade_dates, universe_codes)
+    market_context = pd.DataFrame()
+    if not args.skip_market_context:
+        market_context = build_market_context(builder, config, trade_dates, universe_codes)
 
     status_path = args.status_path.resolve()
     status_path.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(status_rows).to_csv(status_path, index=False, encoding="utf-8-sig")
     market_context_path = args.market_context_path.resolve()
-    market_context_path.parent.mkdir(parents=True, exist_ok=True)
-    market_context.to_csv(market_context_path, index=False, encoding="utf-8-sig")
+    if not args.skip_market_context:
+        market_context_path.parent.mkdir(parents=True, exist_ok=True)
+        market_context.to_csv(market_context_path, index=False, encoding="utf-8-sig")
 
     daily_basic_empty_dates = [
         row["key"]
@@ -79,7 +86,10 @@ def main() -> None:
     print(f"trade_dates={len(trade_dates)}")
     print(f"daily_basic_empty_dates={len(daily_basic_empty_dates)}")
     print(f"status_csv={status_path}")
-    print(f"market_context_csv={market_context_path}")
+    if args.skip_market_context:
+        print("market_context_csv=skipped")
+    else:
+        print(f"market_context_csv={market_context_path}")
 
 
 def prefetch_trade_calendar(
@@ -320,11 +330,7 @@ def maybe_sleep(*, index: int, total: int, sleep_seconds: float) -> None:
 
 
 def window_label(trade_date: str) -> str:
-    if PREWARM_WINDOW.start <= trade_date <= PREWARM_WINDOW.end:
-        return "prewarm_20"
-    if EVAL_WINDOW.start <= trade_date <= EVAL_WINDOW.end:
-        return "eval_240"
-    return "outside_fixed_windows"
+    return "requested_window"
 
 
 if __name__ == "__main__":

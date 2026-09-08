@@ -1,0 +1,240 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">基于动态参考点的CPT-PG在线策略优化：研究框架图</title>
+  <desc id="desc">研究框架图，包含研究背景、研究问题、理论基础、算法设计、理论分析、仿真实验与预期贡献七个模块。</desc>
+  <defs>
+    <linearGradient id="blueHead" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0b3f8a"/>
+      <stop offset="1" stop-color="#075ba8"/>
+    </linearGradient>
+    <linearGradient id="navyArrow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#083477"/>
+      <stop offset="1" stop-color="#0755a0"/>
+    </linearGradient>
+    <linearGradient id="tealHead" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0a8e8d"/>
+      <stop offset="1" stop-color="#0c7774"/>
+    </linearGradient>
+    <linearGradient id="orangeHead" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff7b00"/>
+      <stop offset="1" stop-color="#ee6500"/>
+    </linearGradient>
+    <linearGradient id="panelFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f8fbff"/>
+    </linearGradient>
+    <linearGradient id="tealFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f2ffff"/>
+    </linearGradient>
+    <linearGradient id="orangeFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#fff8f1"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-15%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0b2656" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrowBlue" markerWidth="18" markerHeight="18" refX="15" refY="9" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L18,9 L0,18 Z" fill="#07539c"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="18" markerHeight="18" refX="15" refY="9" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L18,9 L0,18 Z" fill="#f06a00"/>
+    </marker>
+    <style>
+      .font { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", Arial, sans-serif; }
+      .main-title { font-size: 46px; font-weight: 900; fill: #06245a; letter-spacing: 1px; }
+      .head { font-size: 27px; font-weight: 800; fill: #ffffff; }
+      .headSmall { font-size: 25px; font-weight: 800; fill: #ffffff; }
+      .body { font-size: 20px; font-weight: 500; fill: #111111; }
+      .bodySmall { font-size: 18px; font-weight: 500; fill: #111111; }
+      .bodyBold { font-size: 20px; font-weight: 800; fill: #09285e; }
+      .tealBold { font-size: 21px; font-weight: 800; fill: #08706f; }
+      .orangeBold { font-size: 22px; font-weight: 800; fill: #f06a00; }
+      .panel { fill: url(#panelFill); stroke: #0a3f8d; stroke-width: 2.3; }
+      .tealPanel { fill: url(#tealFill); stroke: #0a8786; stroke-width: 2.3; }
+      .orangePanel { fill: url(#orangeFill); stroke: #f06a00; stroke-width: 2.3; }
+      .innerBlue { fill: #ffffff; stroke: #0c61b5; stroke-width: 1.8; }
+      .innerTeal { fill: #ffffff; stroke: #0a8786; stroke-width: 1.7; }
+      .innerOrange { fill: #fffdf9; stroke: #f06a00; stroke-width: 1.6; }
+      .dashTeal { fill: #ffffff; stroke: #0a8786; stroke-width: 1.7; stroke-dasharray: 8 5; }
+      .dashOrange { fill: #fffdf9; stroke: #f06a00; stroke-width: 1.5; stroke-dasharray: 7 5; }
+      .arrow { fill: none; stroke: url(#navyArrow); stroke-width: 13; stroke-linecap: square; stroke-linejoin: miter; marker-end: url(#arrowBlue); }
+      .arrowThin { fill: none; stroke: url(#navyArrow); stroke-width: 10; stroke-linecap: square; stroke-linejoin: miter; marker-end: url(#arrowBlue); }
+      .arrowOrange { fill: none; stroke: #f06a00; stroke-width: 12; stroke-linecap: square; stroke-linejoin: miter; marker-end: url(#arrowOrange); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#ffffff"/>
+  <text x="800" y="50" text-anchor="middle" class="font main-title">基于动态参考点的CPT-PG在线策略优化：研究框架图</text>
+
+  <!-- 1. Background -->
+  <g id="module-1">
+    <rect x="22" y="68" width="581" height="181" rx="5" class="panel" filter="url(#shadow)"/>
+    <rect x="22" y="68" width="581" height="41" rx="5" fill="url(#blueHead)"/>
+    <path d="M22 98 H603 V109 H22 Z" fill="url(#blueHead)"/>
+    <text x="313" y="98" text-anchor="middle" class="font headSmall">1. 研究背景与问题提出</text>
+    <text x="40" y="137" class="font body">
+      <tspan x="40" dy="0">• 强化学习常以期望效用最大化为目标</tspan>
+      <tspan x="40" dy="32">• 人类风险决策具有参考点依赖、损失厌恶、概率权重扭曲</tspan>
+      <tspan x="40" dy="32">• 现有CPT-RL多假设静态参考点与平稳环境</tspan>
+      <tspan x="40" dy="32">• 本文核心问题：动态参考点下，策略能否在线跟踪时变CPT目标</tspan>
+    </text>
+  </g>
+
+  <!-- 2. Questions -->
+  <g id="module-2">
+    <rect x="718" y="68" width="858" height="178" rx="5" class="panel" filter="url(#shadow)"/>
+    <rect x="718" y="68" width="858" height="41" rx="5" fill="url(#blueHead)"/>
+    <path d="M718 98 H1576 V109 H718 Z" fill="url(#blueHead)"/>
+    <text x="1147" y="98" text-anchor="middle" class="font headSmall">2. 研究问题</text>
+    <rect x="743" y="124" width="247" height="109" rx="5" class="innerBlue"/>
+    <text x="866" y="157" text-anchor="middle" class="font bodyBold">
+      <tspan x="866" dy="0">（1）追踪稳定性</tspan>
+      <tspan x="866" dy="31" class="body">动态局部遗憾是否有界，</tspan>
+      <tspan x="866" dy="28" class="body">能否跟踪移动驻点集合</tspan>
+    </text>
+    <rect x="1016" y="124" width="254" height="109" rx="5" class="innerBlue"/>
+    <text x="1143" y="157" text-anchor="middle" class="font bodyBold">
+      <tspan x="1143" dy="0">（2）行为有效性</tspan>
+      <tspan x="1143" dy="31" class="body">能否复现路径依赖、</tspan>
+      <tspan x="1143" dy="28" class="body">处置效应等行为现象</tspan>
+    </text>
+    <rect x="1301" y="124" width="250" height="109" rx="5" class="innerBlue"/>
+    <text x="1426" y="157" text-anchor="middle" class="font bodyBold">
+      <tspan x="1426" dy="0">（3）人类心理对齐</tspan>
+      <tspan x="1426" dy="31" class="body">是否更容易被散户Agent</tspan>
+      <tspan x="1426" dy="28" class="body">采纳并获得更高满意度</tspan>
+    </text>
+  </g>
+
+  <!-- 3. Foundation -->
+  <g id="module-3">
+    <rect x="22" y="275" width="675" height="174" rx="5" class="tealPanel" filter="url(#shadow)"/>
+    <rect x="22" y="275" width="675" height="40" rx="5" fill="url(#tealHead)"/>
+    <path d="M22 304 H697 V315 H22 Z" fill="url(#tealHead)"/>
+    <text x="360" y="306" text-anchor="middle" class="font headSmall">3. 理论基础与问题建模</text>
+    <rect x="40" y="331" width="130" height="59" rx="4" class="innerTeal"/>
+    <text x="105" y="367" text-anchor="middle" class="font body">非平稳MDP</text>
+    <rect x="197" y="331" width="143" height="59" rx="4" class="innerTeal"/>
+    <text x="268" y="355" text-anchor="middle" class="font body">
+      <tspan x="268" dy="0">累积前景理论</tspan>
+      <tspan x="268" dy="26">CPT</tspan>
+    </text>
+    <rect x="366" y="331" width="146" height="59" rx="4" class="innerTeal"/>
+    <text x="439" y="367" text-anchor="middle" class="font body">动态参考点更新</text>
+    <rect x="537" y="331" width="147" height="59" rx="4" class="innerTeal"/>
+    <text x="610" y="367" text-anchor="middle" class="font body">投资组合决策场景</text>
+    <path d="M170 360 H197" class="arrowThin"/>
+    <path d="M340 360 H366" class="arrowThin"/>
+    <path d="M512 360 H537" class="arrowThin"/>
+    <text x="360" y="431" text-anchor="middle" class="font bodyBold">
+      <tspan x="360" dy="0">建立时变CPT目标函数，并以动态局部遗憾刻画在线优化性能</tspan>
+    </text>
+  </g>
+
+  <!-- 4. Algorithm -->
+  <g id="module-4">
+    <rect x="756" y="275" width="820" height="214" rx="5" class="tealPanel" filter="url(#shadow)"/>
+    <rect x="756" y="275" width="820" height="40" rx="5" fill="url(#tealHead)"/>
+    <path d="M756 304 H1576 V315 H756 Z" fill="url(#tealHead)"/>
+    <text x="1166" y="306" text-anchor="middle" class="font headSmall">4. 算法设计</text>
+    <rect x="773" y="324" width="358" height="99" rx="4" class="innerTeal"/>
+    <text x="952" y="352" text-anchor="middle" class="font tealBold">
+      <tspan x="952" dy="0">算法一：Dirichlet策略函数</tspan>
+      <tspan x="952" dy="29" class="bodySmall">输入：市场状态、财富、参考点、策略参数</tspan>
+      <tspan x="952" dy="29" class="bodySmall">输出：投资组合权重</tspan>
+    </text>
+    <rect x="1175" y="324" width="374" height="99" rx="4" class="innerTeal"/>
+    <text x="1362" y="352" text-anchor="middle" class="font tealBold">
+      <tspan x="1362" dy="0">算法二：DRCPT-PG</tspan>
+      <tspan x="1362" dy="29" class="bodySmall">CPT估计 + 策略梯度估计</tspan>
+      <tspan x="1362" dy="29" class="bodySmall">归一化梯度更新策略参数</tspan>
+    </text>
+    <rect x="769" y="434" width="774" height="47" rx="4" class="dashTeal"/>
+    <text x="1156" y="465" text-anchor="middle" class="font body">
+      <tspan x="1156" dy="0">参数流：状态/财富/参考点/参数 → 投资组合 → 财富轨迹 → CPT估计与梯度 → 参数更新</tspan>
+    </text>
+  </g>
+
+  <!-- 5. Theory -->
+  <g id="module-5">
+    <rect x="22" y="486" width="675" height="131" rx="5" class="panel" filter="url(#shadow)"/>
+    <rect x="22" y="486" width="675" height="40" rx="5" fill="url(#blueHead)"/>
+    <path d="M22 515 H697 V526 H22 Z" fill="url(#blueHead)"/>
+    <text x="360" y="518" text-anchor="middle" class="font headSmall">5. 理论分析</text>
+    <rect x="38" y="533" width="134" height="75" rx="4" class="innerBlue"/>
+    <text x="105" y="559" text-anchor="middle" class="font bodyBold">
+      <tspan x="105" dy="0">引理1：</tspan>
+      <tspan x="105" dy="27" class="body">CPT策略梯度</tspan>
+      <tspan x="105" dy="24" class="body">估计误差可控</tspan>
+    </text>
+    <rect x="193" y="533" width="180" height="75" rx="4" class="innerBlue"/>
+    <text x="283" y="559" text-anchor="middle" class="font bodyBold">
+      <tspan x="283" dy="0">引理2：</tspan>
+      <tspan x="283" dy="27" class="body">动态参考点下一阶</tspan>
+      <tspan x="283" dy="24" class="body">驻点集合漂移稳定性</tspan>
+    </text>
+    <rect x="391" y="533" width="148" height="75" rx="4" class="innerBlue"/>
+    <text x="465" y="559" text-anchor="middle" class="font bodyBold">
+      <tspan x="465" dy="0">定理1：</tspan>
+      <tspan x="465" dy="27" class="body">DRCPT-PG动态</tspan>
+      <tspan x="465" dy="24" class="body">局部遗憾上界</tspan>
+    </text>
+    <rect x="557" y="533" width="125" height="75" rx="4" class="innerBlue"/>
+    <text x="620" y="559" text-anchor="middle" class="font bodyBold">
+      <tspan x="620" dy="0">推论1：</tspan>
+      <tspan x="620" dy="27" class="body">平稳极限下的</tspan>
+      <tspan x="620" dy="24" class="body">收敛性</tspan>
+    </text>
+  </g>
+
+  <!-- 6. Experiments -->
+  <g id="module-6">
+    <rect x="22" y="638" width="997" height="239" rx="6" class="orangePanel" filter="url(#shadow)"/>
+    <rect x="22" y="638" width="997" height="40" rx="6" fill="url(#orangeHead)"/>
+    <path d="M22 667 H1019 V678 H22 Z" fill="url(#orangeHead)"/>
+    <text x="520" y="670" text-anchor="middle" class="font headSmall">6. 仿真实验与实证评估</text>
+    <rect x="35" y="680" width="454" height="174" rx="5" class="dashOrange"/>
+    <text x="262" y="706" text-anchor="middle" class="font orangeBold">半合成非平稳市场实验</text>
+    <text x="58" y="741" class="font bodySmall">
+      <tspan x="58" dy="0">• 定理验证与跟踪能力检验</tspan>
+      <tspan x="58" dy="25">• 基线比较：期望效用PG、指数效用PG等</tspan>
+      <tspan x="58" dy="25">• 消融实验：动态/静态、对称/非对称参考点</tspan>
+      <tspan x="58" dy="25">• 敏感性分析：窗口长度、步长、适应速度</tspan>
+      <tspan x="58" dy="25">• 行为检验：路径依赖、处置效应</tspan>
+      <tspan x="58" dy="25">• 真实A股时序回测：收益、Sharpe、最大回撤等</tspan>
+    </text>
+    <rect x="523" y="680" width="478" height="174" rx="5" class="dashOrange"/>
+    <text x="762" y="706" text-anchor="middle" class="font orangeBold">异质散户多智能体交互评估</text>
+    <text x="558" y="766" class="font bodySmall">
+      <tspan x="558" dy="0">• 基于雪球开源行为数据模拟散户Agent</tspan>
+      <tspan x="558" dy="25">• 五类投资顾问Agent输出建议</tspan>
+      <tspan x="558" dy="25">• 散户Agent打分并选择建议</tspan>
+      <tspan x="558" dy="25">• 指标：采纳率、满意度评分等</tspan>
+    </text>
+  </g>
+
+  <!-- 7. Contributions -->
+  <g id="module-7">
+    <rect x="1128" y="628" width="448" height="249" rx="6" class="orangePanel" filter="url(#shadow)"/>
+    <rect x="1128" y="628" width="448" height="40" rx="6" fill="url(#orangeHead)"/>
+    <path d="M1128 657 H1576 V668 H1128 Z" fill="url(#orangeHead)"/>
+    <text x="1352" y="660" text-anchor="middle" class="font headSmall">7. 预期结论与研究贡献</text>
+    <rect x="1142" y="685" width="414" height="47" rx="4" class="innerOrange"/>
+    <text x="1160" y="716" class="font bodySmall">• 将CPT-RL从静态参考点推广至动态参考点</text>
+    <rect x="1142" y="748" width="414" height="47" rx="4" class="innerOrange"/>
+    <text x="1160" y="779" class="font bodySmall">• 在非平稳环境下实现更稳定的在线策略优化</text>
+    <rect x="1142" y="811" width="414" height="47" rx="4" class="innerOrange"/>
+    <text x="1160" y="842" class="font bodySmall">• 为更贴近散户心理的智能投顾提供方法参考</text>
+  </g>
+
+  <!-- Flow arrows -->
+  <path d="M616 148 H700" class="arrow"/>
+  <path d="M1130 246 V272" class="arrowThin"/>
+  <path d="M697 362 H744" class="arrow"/>
+  <path d="M352 449 V474" class="arrowThin"/>
+  <path d="M488 617 V634" class="arrowThin"/>
+  <path d="M711 556 H1148 V489" class="arrowThin"/>
+  <path d="M1019 728 H1115" class="arrowOrange"/>
+  <path d="M1019 781 H1115" class="arrowOrange"/>
+  <path d="M342 877 V887 H633 V868" class="arrowOrange"/>
+</svg>
