@@ -1,0 +1,59 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=24mm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,longtable,xcolor,hyperref}
+\definecolor{fatal}{HTML}{B42318}
+\definecolor{warn}{HTML}{B54708}
+\definecolor{ok}{HTML}{067647}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
+\title{Mathematical Audit of the DRCPT-PG Draft}
+\author{Independent proof audit and Lean verification}
+\date{9 September 2026}
+\begin{document}
+\maketitle
+
+\section*{Verdict}
+\textcolor{fatal}{\textbf{FAIL in the current form.}}
+The model is coherent, and several local arguments are valid under explicit regularity conditions. The projected-ascent lemma is false as stated. Consequently, the dynamic-local-regret theorem and its downstream corollaries are not established. The minimax proof also lacks a CPT-realizable lower-bound construction.
+
+\section*{Framework}
+Episode $k$ starts from state, wealth $X$, reference $r$, previous portfolio $\omega$, and factor parameter $\theta$. Bounded asset features are mapped to Dirichlet concentrations. The execution layer uses the policy mean; stochastic learning trajectories produce terminal relative wealth $Y_k=X_k-r_{k,h}$. The distribution of $Y_k$ defines $J_k(\theta,r_k)$. A score identity represents $\nabla J_k$ as an expected CPT multiplier times a trajectory score. A proposed multilevel estimator drives a normalized projected update. Market and reference drift move the stationary set.
+
+\section*{Result Audit}
+\begin{longtable}{p{0.28\linewidth}p{0.18\linewidth}p{0.46\linewidth}}
+\toprule
+Claim & Status & Reason \\
+\midrule
+Path dependence & \textcolor{ok}{Verified} & Algebra checked in Lean. \\
+CPT score-gradient identity & \textcolor{warn}{Conditional} & Requires DQM, domination, and adequate score moments. \\
+Plug-in bias $O(n^{-1})$ & \textcolor{warn}{Incomplete} & The Taylor remainder needs stronger smoothness. \\
+Multilevel unbiasedness & \textcolor{warn}{Conditional} & Telescoping is valid after the coupled statistic is fully defined. \\
+Variance and CLT & \textcolor{warn}{Conditional} & Need base-level moments and consistent conditioning. \\
+Stationary-set drift & \textcolor{ok}{Valid with clarification} & Requires a symmetric uniform gradient-drift statement. \\
+Projected ascent & \textcolor{fatal}{False} & Boundary projection can remove a first-order ascent step. \\
+Dynamic local regret & \textcolor{fatal}{Not established} & Relies on the false projected-ascent lemma. \\
+Stationary-set tracking & \textcolor{warn}{Partial} & Error-bound inequality is valid; raw-gradient control is missing. \\
+Minimax CPT rate & \textcolor{fatal}{Not established} & Abstract product laws are not embedded in the CPT trajectory model. \\
+\bottomrule
+\end{longtable}
+
+\section*{Decisive Counterexamples}
+For $\Theta=[0,1]$, $J(\theta)=\theta$, $\theta=1$, $d=1$, and $\gamma>0$, projection gives $\Pi_\Theta(1+\gamma)=1$. Thus the objective increment is zero, while the claimed lower bound contains a positive first-order term $\gamma$ and only a quadratic deduction.
+
+For a two-period equal-weight smoothing window with gradients $g_1=1$ and $g_2=-1$, the smoothed gradient is zero while $g_1^2+g_2^2=2$. Dynamic local regret based on smoothed gradients therefore cannot by itself control every raw gradient or distance to every current stationary set.
+
+\section*{Required Repairs}
+\begin{enumerate}
+\item Use an unprojected bounded-domain analysis, or replace the update analysis with a projected-gradient-mapping theorem.
+\item Replace the almost-sure bounded Dirichlet score by uniform moment assumptions, or change the policy support.
+\item Fully define cross-fitting, shared scores, nested level coupling, and base-level moments.
+\item Separate market drift, simulation mismatch, and within-episode drift.
+\item Prove raw-gradient control separately from smoothed dynamic local regret.
+\item Normalize the endpoint-regularized probability weights and specify the zero-region smoothing function.
+\item Add a fixed-objective condition to the static corollary.
+\item Construct a CPT-realizable minimax submodel or narrow the lower-bound claim.
+\end{enumerate}
+
+\section*{Formal Verification}
+The companion Lean 4.33.1 project builds successfully with \texttt{lake build}. It contains no \texttt{sorry}, \texttt{admit}, or undeclared axioms. Its scope is finite-dimensional rational algebra and executable counterexamples; measure-theoretic and asymptotic claims remain subject to the paper audit.
+
+\end{document}

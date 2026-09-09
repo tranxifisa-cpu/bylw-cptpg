@@ -1,0 +1,6 @@
+name = "DRCPTProofs"
+version = "0.1.0"
+defaultTargets = ["DRCPTProofs"]
+
+[[lean_lib]]
+name = "DRCPTProofs"

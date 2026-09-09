@@ -21,7 +21,7 @@ refine-logs/
 #output_paper/
 
 reference_paper/
-*.pdf
+#*.pdf
 
 .vscode/
 .idea/

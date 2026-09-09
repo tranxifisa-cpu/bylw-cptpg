@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DRCPT-PG 数学框架与证明审计</title>
+<style>
+:root{--ink:#16233a;--muted:#607089;--paper:#f7f8f3;--card:#fff;--blue:#0077b6;--cyan:#00a6a6;--gold:#f2a900;--red:#d33f49;--green:#16835b;--line:#d8dee8;--shadow:0 14px 38px rgba(32,49,77,.10)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 10% 0,#dff5f2 0,transparent 32%),radial-gradient(circle at 90% 5%,#e7efff 0,transparent 30%),var(--paper);color:var(--ink);font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;line-height:1.65}
+.shell{max-width:1460px;margin:auto;padding:28px}.hero{padding:34px 38px;background:linear-gradient(120deg,#10284c,#075b75 62%,#008b80);color:#fff;border-radius:24px;box-shadow:var(--shadow)}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.75}.hero h1{font-family:"Noto Serif SC","Songti SC",serif;font-size:clamp(30px,4vw,54px);line-height:1.12;margin:8px 0}.hero p{max-width:900px;margin:8px 0 18px;color:#e7f5f7}.status{display:flex;gap:10px;flex-wrap:wrap}.pill{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;font-size:13px;font-weight:700;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.24)}.dot{width:8px;height:8px;border-radius:50%;background:#ffce56}.dot.bad{background:#ff6b6b}.dot.good{background:#63e6be}
+.tabs{position:sticky;top:0;z-index:10;display:flex;gap:8px;overflow:auto;padding:14px 0;background:linear-gradient(var(--paper) 75%,transparent)}button{font:inherit}.tab{border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}.tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.panel{display:none}.panel.active{display:block}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}.card{background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 8px 22px rgba(32,49,77,.05)}.span4{grid-column:span 4}.span6{grid-column:span 6}.span8{grid-column:span 8}.span12{grid-column:span 12}.card h2,.card h3{font-family:"Noto Serif SC","Songti SC",serif;margin:0 0 10px}.metric{font-size:34px;font-weight:800;line-height:1}.fatal{color:var(--red)}.good{color:var(--green)}.warn{color:#a46300}.small{font-size:13px;color:var(--muted)}
+.flow-wrap{display:grid;grid-template-columns:minmax(0,3fr) minmax(280px,1fr);gap:18px}.diagram{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:auto;box-shadow:var(--shadow)}svg{min-width:980px;width:100%;height:auto;display:block}.node{cursor:pointer;transition:.18s}.node:hover rect,.node.active rect{stroke-width:3;filter:drop-shadow(0 5px 6px rgba(0,60,100,.16))}.node text{pointer-events:none}.arrow{stroke:#8190a7;stroke-width:2;fill:none;marker-end:url(#arrow)}.dependency{stroke:#d2a20b;stroke-dasharray:6 5}.side{position:sticky;top:72px;align-self:start}.symbol{font-family:Cambria,"Times New Roman",serif;background:#edf4fb;padding:2px 6px;border-radius:6px}.assumptions{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.assumption{border-top:5px solid var(--blue)}.assumption[data-status="fail"]{border-top-color:var(--red)}.assumption[data-status="warn"]{border-top-color:var(--gold)}
+.chain{display:flex;gap:12px;overflow:auto;padding-bottom:10px}.theorem{min-width:220px;position:relative;border-left:5px solid var(--green)}.theorem.conditional{border-color:var(--gold)}.theorem.failed{border-color:var(--red)}.theorem:not(:last-child)::after{content:"→";position:absolute;right:-13px;top:42%;font-weight:800;color:#8190a7}.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800;background:#e7f6ef;color:var(--green)}.badge.warn{background:#fff3cf;color:#8b5a00}.badge.fail{background:#ffe7e7;color:var(--red)}
+.finding{display:grid;grid-template-columns:80px 110px 1fr;gap:12px;align-items:start;border-bottom:1px solid var(--line);padding:14px 0}.sev{text-transform:uppercase;font-size:11px;font-weight:900;letter-spacing:.08em}.filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.filter button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer}.filter button.active{background:#eaf1fa;border-color:var(--blue)}
+.plain-step{display:grid;grid-template-columns:50px 1fr;gap:12px;margin:14px 0}.num{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--ink);color:#fff;font-weight:800}.callout{border-left:5px solid var(--red);background:#fff0f0;padding:14px 16px;border-radius:0 12px 12px 0}.source{font-size:12px;color:var(--muted);border-top:1px solid var(--line);margin-top:20px;padding-top:12px}code{background:#edf2f7;padding:2px 5px;border-radius:5px}.footer{padding:26px 4px;color:var(--muted);font-size:12px}
+@media(max-width:900px){.shell{padding:14px}.hero{padding:26px}.span4,.span6,.span8{grid-column:span 12}.flow-wrap{grid-template-columns:1fr}.side{position:static}.assumptions{grid-template-columns:1fr}.finding{grid-template-columns:60px 1fr}.finding>div:last-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="hero">
+  <div class="eyebrow">Advisor Draft · Mathematical Proof Audit · 2026-09-09</div>
+  <h1>DRCPT-PG 数学框架与证明审计</h1>
+  <p>从非平稳投资组合状态出发，沿动态参考点、轨迹级 CPT、Dirichlet 策略、梯度估计、在线更新和动态局部遗憾逐层追踪符号。页面同时标出每一步所依赖的假设与当前证明状态。</p>
+  <div class="status"><span class="pill"><span class="dot bad"></span>总体验收：FAIL</span><span class="pill"><span class="dot good"></span>Lean build：PASS</span><span class="pill"><span class="dot"></span>原稿：未修改</span></div>
+</header>
+
+<nav class="tabs" aria-label="页面导航">
+  <button class="tab active" data-tab="overview">总览</button><button class="tab" data-tab="flow">符号流</button><button class="tab" data-tab="assumptions">假设</button><button class="tab" data-tab="results">结论链</button><button class="tab" data-tab="findings">审计问题</button><button class="tab" data-tab="plain">大白话</button>
+</nav>
+
+<section id="overview" class="panel active">
+ <div class="grid">
+  <article class="card span4"><div class="metric fatal">1</div><h3>致命错误</h3><p>投影后的一步上升不等式在边界处失效，它是动态遗憾证明的起点。</p></article>
+  <article class="card span4"><div class="metric warn">5</div><h3>关键缺口</h3><p>Dirichlet 得分有界、MLMC 构造、平滑梯度反推、漂移口径、minimax 嵌入。</p></article>
+  <article class="card span4"><div class="metric good">5</div><h3>机械验证项</h3><p>参考点代数、两类更新、误差界平方推论，以及两个反例。</p></article>
+  <article class="card span8"><h2>一句话结论</h2><p>英文初稿给出了连贯的研究问题和有潜力的理论分解，但目前还不能把动态局部遗憾上界、驻点跟踪和 CPT minimax 最优性作为已经证明的结论。需要先修复更新分析和估计器定义，再迁移为中文论文的权威数学框架。</p><div class="callout"><strong>最先要决定：</strong>保留参数投影并改用 projected gradient mapping，或者采用无投影更新并对迭代区域作局部有界假设。</div></article>
+  <article class="card span4"><h2>审计边界</h2><p>Lean 验证有限维代数和反例。测度论、经验过程、条件 CLT 和 minimax 下界由严格人工证明审计完成。</p><p class="small">Source SHA-256: F77A…16D6</p></article>
+ </div>
+</section>
+
+<section id="flow" class="panel">
+ <div class="flow-wrap">
+  <div class="diagram">
+   <svg viewBox="0 0 1180 780" role="img" aria-label="DRCPT-PG 符号流程图">
+    <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8190a7"/></marker></defs>
+    <rect width="1180" height="780" fill="#fbfcfa"/>
+    <text x="40" y="45" font-size="18" font-weight="800" fill="#16233a">输入</text><text x="405" y="45" font-size="18" font-weight="800" fill="#16233a">策略与轨迹</text><text x="760" y="45" font-size="18" font-weight="800" fill="#16233a">估计与更新</text>
+    <g class="node" data-key="input"><rect x="35" y="70" width="290" height="115" rx="15" fill="#eaf4ff" stroke="#0077b6"/><text x="55" y="101" font-size="16" font-weight="700">时期 k 的已知信息</text><text x="55" y="129" font-size="14">sₜₖ, Xₜₖ, rₖ, ωₜₖ₋₁, θₖ</text><text x="55" y="155" font-size="13" fill="#607089">市场因子 · 财富 · 参考点 · 旧仓位</text></g>
+    <g class="node" data-key="policy"><rect x="395" y="70" width="315" height="115" rx="15" fill="#e8fbf6" stroke="#00a681"/><text x="415" y="101" font-size="16" font-weight="700">Dirichlet 因子策略</text><text x="415" y="129" font-size="14">qᵢ,u → zᵢ,u=θᵀqᵢ,u → aᵢ,u=eᶻ</text><text x="415" y="155" font-size="13" fill="#607089">输出单纯形上的权重分布 πθ</text></g>
+    <g class="node" data-key="execution"><rect x="395" y="230" width="315" height="110" rx="15" fill="#fff7db" stroke="#e4a400"/><text x="415" y="260" font-size="16" font-weight="700">真实执行层</text><text x="415" y="288" font-size="14">使用策略均值 ω̄，运行 h 天</text><text x="415" y="315" font-size="13" fill="#607089">财富 X 与真实参考点 r 逐日更新</text></g>
+    <g class="node" data-key="learning"><rect x="395" y="390" width="315" height="120" rx="15" fill="#f1edff" stroke="#7058b5"/><text x="415" y="420" font-size="16" font-weight="700">随机学习层</text><text x="415" y="448" font-size="14">同一期初状态重复采样 h 步轨迹</text><text x="415" y="475" font-size="14">Yₖ(τ)=Xₖ(τ)−rₖ,h(τ)</text><text x="415" y="498" font-size="13" fill="#607089">得到相对终值的随机分布</text></g>
+    <g class="node" data-key="objective"><rect x="765" y="70" width="365" height="115" rx="15" fill="#eaf4ff" stroke="#0077b6"/><text x="785" y="101" font-size="16" font-weight="700">时期目标 Jₖ(θ,rₖ)</text><text x="785" y="129" font-size="14">收益侧积分 − 损失侧积分</text><text x="785" y="155" font-size="13" fill="#607089">依赖 Yₖ 的完整分布与概率权重 w</text></g>
+    <g class="node" data-key="gradient"><rect x="765" y="230" width="365" height="110" rx="15" fill="#e8fbf6" stroke="#00a681"/><text x="785" y="260" font-size="16" font-weight="700">CPT 得分梯度</text><text x="785" y="288" font-size="14">gₖ = E[ ψₖ(τ) Gₖ,θ(τ) ]</text><text x="785" y="315" font-size="13" fill="#607089">心理边际价值 × 策略分布敏感度</text></g>
+    <g class="node" data-key="estimator"><rect x="765" y="390" width="365" height="120" rx="15" fill="#fff0f0" stroke="#d33f49"/><text x="785" y="420" font-size="16" font-weight="700">拟议的多层去偏估计</text><text x="785" y="448" font-size="14">Mₖ 个 Zₖ,bᵈᵇ 求均值</text><text x="785" y="475" font-size="13" fill="#607089">当前构造与耦合尚未定义完整</text><text x="785" y="498" font-size="12" fill="#d33f49">审计状态：关键缺口</text></g>
+    <g class="node" data-key="update"><rect x="765" y="570" width="365" height="110" rx="15" fill="#fff0f0" stroke="#d33f49"/><text x="785" y="600" font-size="16" font-weight="700">参数更新</text><text x="785" y="628" font-size="14">θₖ₊₁ = ΠΘ(θₖ + γdₖ)</text><text x="785" y="655" font-size="13" fill="#d33f49">投影上升引理失效，主证明在此中断</text></g>
+    <g class="node" data-key="output"><rect x="35" y="570" width="290" height="110" rx="15" fill="#e8fbf6" stroke="#00a681"/><text x="55" y="600" font-size="16" font-weight="700">输出并进入下一时期</text><text x="55" y="628" font-size="14">θₖ₊₁, X 路径, rₖ₊₁, ω 路径</text><text x="55" y="655" font-size="13" fill="#607089">同时记录梯度、漂移和遗憾诊断</text></g>
+    <path class="arrow" d="M325 125 H395"/><path class="arrow" d="M552 185 V230"/><path class="arrow" d="M552 340 V390"/><path class="arrow" d="M710 125 H765"/><path class="arrow" d="M710 450 H765"/><path class="arrow" d="M947 185 V230"/><path class="arrow" d="M947 340 V390"/><path class="arrow" d="M947 510 V570"/><path class="arrow" d="M765 625 H325"/><path class="arrow" d="M180 570 V185"/>
+    <path class="arrow dependency" d="M710 450 C745 450 730 285 765 285"/><text x="690" y="370" font-size="12" fill="#9a7200">轨迹同时决定 ψ 与 G</text>
+    <text x="40" y="735" font-size="14" font-weight="700" fill="#16233a">跟踪对象：</text><text x="140" y="735" font-size="14" fill="#607089">移动目标 Jₖ 的一阶驻点集合 Sₖ；观测指标为折扣窗口梯度的平方累计。</text>
+   </svg>
+  </div>
+  <aside class="card side" id="node-detail"><h2>点击流程节点</h2><p>这里会显示该节点的输入、处理、输出、依赖假设和审计状态。</p></aside>
+ </div>
+</section>
+
+<section id="assumptions" class="panel"><div class="assumptions">
+ <article class="card assumption" data-status="fail"><h3>A1 局部有界域</h3><p><span class="symbol">X,r,v,G</span> 有界。</p><p><strong>问题：</strong>普通 Dirichlet 的样本得分含 <span class="symbol">log ωᵢ</span>，靠近边界时无界。</p><span class="badge fail">需改为矩条件</span></article>
+ <article class="card assumption" data-status="warn"><h3>A2 平滑 CPT</h3><p>概率权重二阶连续可微，目标光滑。</p><p><strong>问题：</strong>偏差余项需要更强的二阶导 Lipschitz 条件；端点平移失去归一化。</p><span class="badge warn">需补条件</span></article>
+ <article class="card assumption" data-status="warn"><h3>A3 市场与参考点漂移</h3><p>相邻目标的梯度和值变化受漂移预算控制。</p><p><strong>问题：</strong>同一 <span class="symbol">δₖ</span> 混合了三类不同误差。</p><span class="badge warn">需拆分</span></article>
+ <article class="card assumption" data-status="fail"><h3>A4 多层正则性</h3><p>层偏差按 <span class="symbol">2⁻ˡ</span>，耦合差方差按 <span class="symbol">2⁻²ˡ</span> 衰减。</p><p><strong>问题：</strong>关键速率直接假设，统计量与共享随机性没有完整定义。</p><span class="badge fail">构造不完整</span></article>
+ <article class="card assumption" data-status="warn"><h3>A5 更新方向对齐</h3><p>归一化估计方向在期望上与真梯度正相关。</p><p><strong>问题：</strong>它无法修复边界处投影消除一阶步长的问题。</p><span class="badge warn">不足以支撑投影</span></article>
+ <article class="card assumption"><h3>A6 驻点误差界</h3><p><span class="symbol">dist(θ,Sₖ) ≤ κ||∇Jₖ||</span>。</p><p>该假设可把原始梯度小转成驻点距离小，平方形式已由 Lean 验证。</p><span class="badge">逻辑有效</span></article>
+</div></section>
+
+<section id="results" class="panel">
+ <div class="chain">
+  <article class="card theorem"><span class="badge">VERIFIED</span><h3>路径依赖</h3><p>相同终值可产生不同终端参考点。</p></article>
+  <article class="card theorem conditional"><span class="badge warn">CONDITIONAL</span><h3>梯度恒等式</h3><p>目标梯度写成 CPT 乘子与策略得分的期望。</p></article>
+  <article class="card theorem conditional"><span class="badge warn">INCOMPLETE</span><h3>去偏估计</h3><p>随机伸缩求和成立，具体 MLMC 耦合待定义。</p></article>
+  <article class="card theorem failed"><span class="badge fail">FALSE</span><h3>投影上升</h3><p>边界反例直接否定当前陈述。</p></article>
+  <article class="card theorem failed"><span class="badge fail">UNPROVED</span><h3>动态局部遗憾</h3><p>证明依赖前一个错误引理。</p></article>
+  <article class="card theorem failed"><span class="badge fail">PARTIAL</span><h3>驻点跟踪</h3><p>误差界有效，原始梯度控制缺失。</p></article>
+ </div>
+ <div class="grid">
+  <article class="card span6"><h2>原稿希望证明什么</h2><p>平均动态局部遗憾由五项预算控制：初始优化误差、更新步长、梯度估计方差、市场漂移、参考点漂移。若这些项足够小，算法近期梯度的平滑平均保持较小。</p></article>
+  <article class="card span6"><h2>目前能可靠说什么</h2><p>参考点确实制造路径依赖。CPT 梯度可在合适正则条件下写成得分函数期望。驻点集合漂移可由目标梯度漂移和误差界控制。完整在线跟踪上界仍需修复。</p></article>
+ </div>
+</section>
+
+<section id="findings" class="panel">
+ <div class="card"><div class="filter"><button class="active" data-filter="all">全部</button><button data-filter="fatal">致命</button><button data-filter="critical">关键</button><button data-filter="major">主要</button></div>
+  <div class="finding" data-severity="fatal"><div class="sev fatal">P01</div><div><span class="badge fail">FATAL</span></div><div><strong>投影上升引理为假。</strong>边界投影可完全消除一个向外的一阶步长，目标增量为零。来源：main.tex 772–787。</div></div>
+  <div class="finding" data-severity="critical"><div class="sev fatal">P02</div><div><span class="badge fail">CRITICAL</span></div><div><strong>Dirichlet 得分无法逐样本有界。</strong>需要统一高阶矩条件或改变动作分布支持。来源：240–246, 297–311。</div></div>
+  <div class="finding" data-severity="critical"><div class="sev fatal">P03</div><div><span class="badge fail">CRITICAL</span></div><div><strong>minimax 子模型缺少 CPT 可实现性。</strong>当前 Assouad 构造仅覆盖抽象向量均值估计。来源：503–519, 850–872。</div></div>
+  <div class="finding" data-severity="critical"><div class="sev fatal">P04</div><div><span class="badge fail">CRITICAL</span></div><div><strong>多层估计器定义不足。</strong>交叉拟合、固定 score、副样本耦合都要写到随机变量索引层。来源：266–274, 351–363。</div></div>
+  <div class="finding" data-severity="critical"><div class="sev fatal">P05</div><div><span class="badge fail">CRITICAL</span></div><div><strong>平滑梯度可能抵消。</strong>动态局部遗憾小无法直接推出各期原始梯度小。来源：224–234, 494–500。</div></div>
+  <div class="finding" data-severity="major"><div class="sev warn">P06</div><div><span class="badge warn">MAJOR</span></div><div><strong>偏差证明正则性不足。</strong>统一二阶 Taylor 余项需要更强光滑条件。来源：249–252, 682–689。</div></div>
+  <div class="finding" data-severity="critical"><div class="sev fatal">P07</div><div><span class="badge fail">CRITICAL</span></div><div><strong>漂移口径混合。</strong>市场变化、模拟偏差和期内变化需要分别定义。来源：254–264, 407–410, 816。</div></div>
+  <div class="finding" data-severity="major"><div class="sev warn">P08</div><div><span class="badge warn">MAJOR</span></div><div><strong>步长和常数依赖被隐藏。</strong>应明确 γ、h、w、ρ、d、ε 和归一化阈值。来源：468–480。</div></div>
+  <div class="finding" data-severity="major"><div class="sev warn">P09</div><div><span class="badge warn">MAJOR</span></div><div><strong>静态极限缺少固定目标条件。</strong>期初财富和旧仓位仍会改变时期目标。来源：486–492。</div></div>
+  <div class="finding" data-severity="major"><div class="sev warn">P10</div><div><span class="badge warn">MAJOR</span></div><div><strong>端点正则化失去 0/1 归一化。</strong>需要归一化变换或显式分析目标平移。来源：194–210。</div></div>
+ </div>
+</section>
+
+<section id="plain" class="panel"><div class="grid">
+ <article class="card span8"><h2>从头到尾的大白话</h2>
+  <div class="plain-step"><div class="num">1</div><div><strong>先看当前情况。</strong>系统读入市场因子、当前财富、心理参考点、上一期仓位和一组可学习因子系数。</div></div>
+  <div class="plain-step"><div class="num">2</div><div><strong>形成投资组合策略。</strong>每只资产的因子乘上系数得到分数，指数映射把分数变成 Dirichlet 浓度。它天然生成非负且总和为一的现金加股票权重。</div></div>
+  <div class="plain-step"><div class="num">3</div><div><strong>区分真实执行和训练模拟。</strong>真实路径使用分布均值降低换手；训练从同一期初状态采样许多随机组合路径，观察不同参数可能产生的结果分布。</div></div>
+  <div class="plain-step"><div class="num">4</div><div><strong>按投资者心理评价整条路径。</strong>每条轨迹末端财富减去该轨迹自己更新出来的参考点。所有轨迹共同构成随机分布，CPT 对损失、收益和概率分别做非线性评价。</div></div>
+  <div class="plain-step"><div class="num">5</div><div><strong>判断参数该往哪里走。</strong>CPT 乘子描述一条轨迹对心理效用的边际贡献，策略得分描述该轨迹的发生概率对参数有多敏感。两者相乘并求平均，得到 CPT 策略梯度。</div></div>
+  <div class="plain-step"><div class="num">6</div><div><strong>更新并跟踪移动目标。</strong>市场与参考点使每一期目标改变。算法更新参数，下一期继续。理论试图证明近期梯度的折扣平均保持较小，从而跟随移动的局部稳定区域。</div></div>
+ </article>
+ <aside class="card span4"><h2>证明到底在做什么</h2><p>第一层证明参考点确实带来路径差异。</p><p>第二层把 CPT 目标对参数的导数转成可采样的期望。</p><p>第三层处理分位数估计偏差和 Monte Carlo 方差。</p><p>第四层把每一步的目标增量累加，得到在线跟踪界。</p><p>第五层借助误差界，把梯度小转换成离驻点集合近。</p><div class="callout">当前第四层在投影边界处断裂，因此第五层的最终结论尚未闭合。</div></aside>
+</div></section>
+
+<footer class="footer">依据本地英文稿 main.tex、独立审稿代理和 Lean 4.33.1 验证生成。详细证据见 PROOF_AUDIT.md 与 formal/DRCPTProofs/Basic.lean。</footer>
+</main>
+<script>
+const tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')];
+tabs.forEach(b=>b.addEventListener('click',()=>{tabs.forEach(x=>x.classList.remove('active'));panels.forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active')}));
+const details={
+ input:['时期输入','输入：sₜₖ、Xₜₖ、rₖ、ωₜₖ₋₁、θₖ。','处理：固定当前时期开始时可见的信息。','依赖：A1 局部有界，A3 漂移定义。','状态：建模清楚；需说明条件信息集。'],
+ policy:['Dirichlet 策略','输入：资产特征 q 与参数 θ。','处理：线性打分后指数映射为浓度。','输出：单纯形分布 πθ。','依赖：A1。当前逐样本得分有界假设不成立。'],
+ execution:['执行层','输入：策略均值、市场回报、旧权重。','处理：含交易成本的财富递推与非对称参考更新。','输出：真实 X 路径与 rₖ₊₁。','状态：参考点代数通过 Lean。'],
+ learning:['学习层','输入：同一期初状态和随机策略。','处理：生成多条有限时域轨迹，每条轨迹内参考点逐日更新。','输出：Yₖ 的经验分布。','依赖：A1、A3。'],
+ objective:['CPT 目标','输入：收益侧与损失侧效用的生存函数。','处理：用 w 本身进行两侧 Choquet 型积分。','输出：Jₖ(θ,rₖ)。','依赖：A2。端点正则化需重新归一化。'],
+ gradient:['CPT 策略梯度','输入：CPT 乘子 ψ 与轨迹 score G。','处理：E[ψG]。ψ 使用概率权重的一阶导数。','输出：真梯度 gₖ。','状态：在 DQM、支配条件和矩条件下成立。'],
+ estimator:['去偏估计','输入：经验 ranks、score 轨迹、随机层级。','处理：交叉拟合与随机伸缩求和。','输出：拟议的无偏 Zᵈᵇ。','状态：抽象伸缩逻辑成立，具体耦合及速率待证明。'],
+ update:['参数更新','输入：Mₖ 个梯度复制的均值。','处理：归一化、步长、投影。','输出：θₖ₊₁。','状态：原稿投影上升引理被 Lean 反例否定。'],
+ output:['时期输出','输出：参数、财富、参考点、组合及诊断。','随后：市场和参考点共同移动下一期目标 Jₖ₊₁ 与驻点集合 Sₖ₊₁。','依赖：A3、A6。']
+};
+const box=document.getElementById('node-detail');document.querySelectorAll('.node').forEach(n=>n.addEventListener('click',()=>{document.querySelectorAll('.node').forEach(x=>x.classList.remove('active'));n.classList.add('active');const d=details[n.dataset.key];box.innerHTML=`<h2>${d[0]}</h2>${d.slice(1).map(x=>`<p>${x}</p>`).join('')}`}));
+document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.finding').forEach(x=>x.style.display=b.dataset.filter==='all'||x.dataset.severity===b.dataset.filter?'grid':'none')}));
+</script>
+</body>
+</html>

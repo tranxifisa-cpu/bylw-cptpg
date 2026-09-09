@@ -1,0 +1,21 @@
+{
+  "status": "complete_with_failed_gate",
+  "verdict": "FAIL",
+  "acceptance_gate": {
+    "zero_fatal": false,
+    "zero_critical": false,
+    "lean_build_passed": true,
+    "source_unchanged": true
+  },
+  "source_sha256": "F77A224B17BB22EC0CFDFFC56B1E7CF6E198E130FADC4A026A451256C7F216D6",
+  "artifacts": [
+    "PROOF_SKELETON.md",
+    "PROOF_AUDIT.md",
+    "PROOF_AUDIT.json",
+    "proof_audit_report.tex",
+    "proof_audit_report.pdf",
+    "PROOF_FRAMEWORK.html",
+    "formal/DRCPTProofs/Basic.lean"
+  ],
+  "next_required_decision": "Choose unprojected analysis or projected-gradient-mapping analysis before revising main.tex."
+}

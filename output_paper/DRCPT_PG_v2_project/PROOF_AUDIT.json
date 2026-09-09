@@ -1,0 +1,54 @@
+{
+  "source": {
+    "file": "main.tex",
+    "sha256": "F77A224B17BB22EC0CFDFFC56B1E7CF6E198E130FADC4A026A451256C7F216D6",
+    "modified": false
+  },
+  "audit_date": "2026-09-09",
+  "verdict": "FAIL",
+  "summary": "The model is coherent, but the projected-ascent lemma is false and the headline regret, tracking, and minimax claims are not fully established.",
+  "counts": {
+    "fatal": 1,
+    "critical": 5,
+    "major": 7,
+    "minor": 0
+  },
+  "findings": [
+    {"id":"P01","severity":"fatal","lines":"772-827","title":"False projected-ascent lemma","status":"lean_counterexample"},
+    {"id":"P02","severity":"critical","lines":"240-246,297-311","title":"Dirichlet score is not samplewise bounded","status":"counterexample"},
+    {"id":"P03","severity":"critical","lines":"503-519,850-872","title":"Minimax subclass not embedded in CPT model","status":"missing_argument"},
+    {"id":"P04","severity":"critical","lines":"266-274,351-363,682-725","title":"Multilevel statistic and coupling incomplete","status":"under_specified"},
+    {"id":"P05","severity":"critical","lines":"224-234,494-500","title":"Smoothed regret cannot control raw gradients","status":"lean_counterexample"},
+    {"id":"P06","severity":"major","lines":"249-252,682-689","title":"Taylor remainder needs stronger smoothness","status":"missing_assumption"},
+    {"id":"P07","severity":"critical","lines":"254-264,407-410,816","title":"One drift symbol conflates distinct errors","status":"ambiguous"},
+    {"id":"P08","severity":"major","lines":"468-480,789-827","title":"Step-size and constant dependence hidden","status":"incomplete_bound"},
+    {"id":"P09","severity":"major","lines":"486-492,830-837","title":"Static limit lacks fixed objective condition","status":"missing_assumption"},
+    {"id":"P10","severity":"major","lines":"194-210","title":"Endpoint regularization loses normalization","status":"definition_issue"},
+    {"id":"P11","severity":"major","lines":"491,836","title":"Decreasing-step claim is unproved","status":"unsupported_claim"},
+    {"id":"P12","severity":"major","lines":"426-443,503-519","title":"Variance and minimax budgets differ","status":"comparison_gap"},
+    {"id":"P13","severity":"major","lines":"426-443","title":"Base-level moment and conditional notation incomplete","status":"missing_assumption"}
+  ],
+  "theorems": [
+    {"name":"Path dependence","status":"verified"},
+    {"name":"CPT score-gradient identity","status":"conditional"},
+    {"name":"Plug-in bias","status":"incomplete"},
+    {"name":"Debiased estimator","status":"conditional_incomplete_construction"},
+    {"name":"Variance bound","status":"conditional"},
+    {"name":"Conditional CLT","status":"conditional"},
+    {"name":"Stationary-set drift","status":"valid_with_clarification"},
+    {"name":"Projected ascent","status":"false"},
+    {"name":"Dynamic local regret","status":"not_established"},
+    {"name":"Static limit","status":"not_established"},
+    {"name":"Stationary-set tracking","status":"partial"},
+    {"name":"Minimax lower bound","status":"not_established_for_cpt"}
+  ],
+  "formal_verification": {
+    "toolchain": "Lean 4.33.1",
+    "command": "lake build",
+    "status": "passed",
+    "sorry": 0,
+    "admit": 0,
+    "scope": ["reference algebra","reference recursions","squared error-bound implication","projected-ascent counterexample","smoothed-gradient cancellation counterexample"]
+  },
+  "independent_reviewer": "01a08679-a962-7621-b959-2370b2e80647"
+}
