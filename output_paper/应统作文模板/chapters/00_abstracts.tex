@@ -1,0 +1,25 @@
+\begin{abstractCN}
+投资者对随机结果的评价受到历史盈利、亏损及回撤经历的影响。累积前景理论通过参考依赖、价值变换与概率权重刻画这种评价，但当参考点沿投资路径适应、市场规律与期初状态持续变化时，策略需要面对一系列时变的非凸目标。本文研究动态参考点下的累积前景策略梯度方法，建立从轨迹结果定义、梯度估计到在线一阶残差控制的分析框架。
+
+本文构造包含股票、现金和交易成本的非平稳有限时域投资模型，以固定初始财富为单位记录账户价值。策略参数在每个时期内保持不变，各候选轨迹沿自身财富路径递推非对称参考点，终端财富与该轨迹终端参考点之差形成 CPT 评价的随机结果。模型允许市场转移规律在时期内部与时期之间变化；梯度计算则固定期初信息与当期拟合的模拟模型。策略采用指数 Dirichlet 因子参数化，随机采样用于学习，分布均值用于账户执行。
+
+针对经验生存概率代入非线性权重导数时产生的偏差，本文构造内外层独立的多层去偏梯度估计器。完整内层样本及其两个半样本共享同一条外层轨迹与得分，以抵消一阶近似误差。在有界特征、紧参数域及固定正则化条件下，本文推导 Dirichlet 得分矩与似然支配条件，建立 CPT 梯度恒等式和目标光滑性，进而证明未截断的随机层估计器对冻结模拟梯度无偏，且具有有限方差与有限期望轨迹成本。有限截断、重复抽样与模拟偏差分别进入均方误差界；固定时期的独立重复还满足相应的中心极限定理。
+
+在线算法采用带正阈值的梯度归一化及参数投影。通过单步上升不等式和跨期目标的望远镜展开，本文将平均投影残差平方控制在由初始目标范围、累计目标变化与平均梯度估计均方误差共同决定的上界内，并得到窗口残差形式的动态局部遗憾界。参考点隔离耦合进一步给出显式的参考点变化项；在附加统一误差界下，残差控制可转换为到移动一阶驻点集合的平均距离界。另在固定维度、精确轨迹观测与期望调用预算下，本文证明梯度估计具有预算倒数阶的匹配极小极大界。
+
+受控数值实验检验了路径依赖、层间误差抵消及完整在线更新。8192 次截断估计器输出的分组结果显示，完整重复数从 1 增至 64 时，经验均方误差由 $9.572\times10^{-2}$ 降至 $1.824\times10^{-3}$。在此基础上，本文设计半合成市场、真实数据回放及行为对照实验，比较参考机制与风险目标对策略响应和投资结果的影响。研究为动态参考依赖的策略学习提供了明确的统计误差分解与在线分析依据。
+\end{abstractCN}
+\keywordsCN{\textbf{动态参考点；累积前景理论；策略梯度；去偏估计；非平稳在线优化}}
+
+\begin{abstractEN}
+Investors evaluate uncertain outcomes in light of earlier gains, losses, and drawdowns. Cumulative prospect theory (CPT) captures reference-dependent evaluation, but adaptive references and changing market conditions lead to a sequence of nonconvex policy objectives. This thesis develops dynamic-reference CPT policy gradients through a joint analysis of trajectory outcomes, gradient estimation, and online first-order residuals.
+
+The finite-horizon portfolio model includes stocks, cash, and transaction costs. Wealth is normalized by the fixed initial account value. Each candidate trajectory updates its own asymmetric reference and contributes terminal wealth minus its terminal reference to the CPT outcome distribution. Market kernels may vary within and between episodes. Differentiation fixes the initial context and the fitted simulation model. An exponential Dirichlet factor policy uses random allocations for learning and mean allocations for execution.
+
+To address bias from empirical survival probabilities inside nonlinear weight derivatives, an antithetic multilevel estimator couples a full inner sample with its two halves using the same independent outer trajectory and score. Bounded features and compact parameter domains yield the score moments and likelihood domination needed for the CPT gradient identity and smoothness. Randomized precision levels give an estimator that is unbiased for the frozen simulation gradient, with finite variance and finite expected trajectory cost. Replication variance, finite-level truncation, and simulation error enter separate mean squared error terms. Independent replications at a fixed episode admit a central limit theorem.
+
+Thresholded gradient normalization and parameter projection yield an average constrained-residual bound governed by objective variation and direction error. The bound also controls a windowed dynamic local regret. Reference-isolated coupling identifies an explicit reference component of variation, while an additional uniform error bound converts residual control into average distance to moving stationary sets. A separate exact-oracle analysis establishes a matching inverse-budget minimax rate for gradient estimation at fixed dimension.
+
+Controlled computations examine path dependence, multilevel error cancellation, and a complete online replay. Grouping 8192 truncated outputs into averages of 1 to 64 replications reduces empirical mean squared error from $9.572\times10^{-2}$ to $1.824\times10^{-3}$. Further experiments are planned to evaluate policy responses and investment outcomes in semi-synthetic markets, historical replay, and behavioral comparisons. The framework provides explicit statistical and online foundations for learning with adaptive reference-dependent objectives.
+\end{abstractEN}
+\keywordsEN{\textbf{Dynamic reference points; Cumulative prospect theory; Policy gradients; Debiased estimation; Nonstationary online optimization}}

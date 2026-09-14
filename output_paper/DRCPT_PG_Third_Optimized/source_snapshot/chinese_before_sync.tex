@@ -1,0 +1,558 @@
+% !Mode:: "TeX:UTF-8"
+%!TEX program = xelatex
+
+\documentclass{sufethesismas}
+\usepackage{algorithmic}
+\bibliographystyle{bib/gbt7714-numerical.bst}
+
+%\theoremstyle{plain}
+% \newtheorem{assumption}{假设}[section]
+% \newtheorem{lemma}{引理}[chapter]
+% \newtheorem{theorem}{定理}[chapter]
+% \newtheorem{corollary}{推论}[chapter]
+% \newtheorem{remark}{注}[chapter]
+%\theoremstyle{remark}
+%\newtheorem{remark}[assumption]{注}
+\newcommand{\zhiheng}[1]{{\color{red}{\bf\sf [ZH: #1]}}}
+
+
+\makeatletter
+
+
+
+\makeatother
+
+\begin{document}
+\classification{}
+\confidential{}
+\UDC{}
+\serialnumber{}
+\title{基于动态参考点的CPT-PG在线策略优化}
+\englishtitle{English  }
+\author{董祉含}
+\advisor{张智恒}%或 副教授、讲师、助理研究员
+\major{应用统计硕士专业学位论文}
+\completedate{2026年6月}
+\department{统计与数据科学学院}
+\school{上海财经大学}
+\studentidnumber{2025213357} %学号
+
+
+\maketitle
+
+\frontmatter
+\begin{abstractCN}
+本文主要介绍了上海财经大学研究生学位论文写作规范\LaTeX 和模板的使用方法。本模板根据上海财经大学硕士论文要求以及李涛老师的本科论文\LaTeX 模板修改制作而成，在此表示感谢。本模板仅供内部使用，谢谢配合。
+
+摘要是论文内容不加注释和评论的简单陈述。摘要应概括地反映出本论文的主要内容，包括工作目的、研究方法、研究成果和结论，要突出本论文的创造性成果。摘要中不可出现图片、图表、表格或其他插图材料。摘要是一篇完整的短文，可以独立使用。
+
+中文摘要的字数，硕士学位论文应在1500字左右，博士学位论文应在3000字左右。用外文撰写的学位论文，其中文摘要的字数，博士学位论文应不少于5000汉字，硕士学位论文应不少于3000汉字。
+
+关键词是为了便于做文献索引和检索工作而从论文中选取出来用以表示全文主题内容信息的单词或术语，一般为3～5个。
+
+英文摘要和关键词的内容与中文摘要和关键词相对应。
+\end{abstractCN}
+
+\keywordsCN{\textbf{毕业论文；上海财经大学；\textbf{\LaTeX}；}}
+\begin{abstractEN}
+The english abstract.
+\end{abstractEN}
+
+\keywordsEN{\textbf{Thesis; SUFE; \textbf{\LaTeX}; }}
+
+\tableofcontents{}
+
+\mainmatter
+
+
+\chapter{引言}
+\section{研究背景}
+强化学习（Reinforcement Learning, RL）为序贯决策问题提供了一套通用的优化框架：智能体（Agent）通过与环境交互收集反馈信号，逐步调整策略以最大化累积奖励的期望值。在标准RL范式中，目标函数为期望效用——即Agent以决策结果的客观期望值作为行为评价的唯一准则。这一假设在工程控制、游戏博弈等领域已取得显著成功，然而，当Agent的决策需要与人类交互、为人类提供建议或模拟人类行为时，期望效用假设便暴露出根本性的局限。
+
+根据行为经济学，人类在不确定性条件下的决策系统性地偏离期望效用理论。Kahneman和Tversky于1992年提出由前景理论扩展的累积前景理论（Cumulative Prospect Theory, CPT），系统地刻画了人类风险决策的三个心理特征\citep{kahneman1979prospect,tversky1992advances}。其一为参考点依赖：决策者并非评估结果的绝对水平，而是评估结果相对于某个心理参考点的变化量——高于参考点的部分被视为收益，低于参考点的部分被视为亏损。其二为损失厌恶：相同程度的亏损和盈利下，亏损带来的心理痛苦约为盈利带来心理满足的2.25倍。其三为概率权重扭曲：决策者倾向于高估小概率事件的发生概率、低估中高概率事件的发生概率，即主观概率并非客观概率的线性映射。CPT通过S形的效用函数，在盈利区呈凹函数（风险厌恶），在亏损区呈凸函数（风险寻求）和逆S形的概率权重函数，将上述三个特征统一于一个数学框架之中。
+
+近年来，CPT开始被引入RL框架。Prashanth首次在ICML上提出了CPT-RL的预测与控制算法，指出CPT评估的是财富轨迹形成的随机结果分布，不能简化为单步即时奖励\citep{prashanth2016cumulative}。Lepel和Barakat进一步推导了CPT目标下的策略梯度估计形式，并证明策略参数可以收敛到CPT的一阶驻点集合\citep{lepel2026policygradients}。Ramasubramanian论证了在需要与人类偏好对齐的智能体系统中仅优化期望效用不足以模拟人类风险态度，说明引入CPT的必要性\citep{ramasubramanian2021reinforcement}。Lalmohammed则将CPT拓展至多智能体场景，发现CPT-MADDPG能自发复现过度竞价等人类行为现象\citep{lalmohammed2025modeling}。
+
+然而，上述CPT-RL研究均建立在一个共同假设之上：平稳环境，心理参考点保持固定。通常将参考点设为零或固定常数。但行为经济学实验证据表明，在真实的非平稳市场环境中，参考点会随经历而动态演化。Arkes等于2008年通过实验直接度量了参考点适应幅度，并发现盈利方向适应幅度显著大于亏损方向\citep{arkes2008reference}。这一非对称性在涵盖美国、中国、韩国被试者的跨文化样本中均得到重复验证，具有稳健性\citep{ARKES201099}。
+
+He和Yang证明当参考点的盈利方向适应系数大于亏损方向时，投资者将自发表现出更强的处置效应，即过早卖出盈利股票，过久持有亏损股票\citep{he2019realization}。Qin等进一步将参考点建模为路径依赖的，即参考点不仅取决于当前状态，还取决于收益路径的全部历史。证明不同历史路径即使到达同一财富终点也会产生截然不同的决策\citep{qin2022realization}。
+
+考虑一个现实场景示例：某投资者初始财富1000元。路径A（先涨后跌）：财富升至1400元后回落至1200元——参考点在1400元高位已被推升，1200元被感知为亏损。路径B（先跌后涨）：财富跌至800元后回升至1200元——参考点仍在低位，1200元被感知为显著盈利。同一起点和终点却导致了截然不同的心理评价，这使得CPT-RL相关研究里，固定参考点的假设和人类行为对齐之间存在错位。
+
+综上所述，现有研究在理论和实践上各自存在着不足：CPT-RL研究未考虑心理参考点其随决策经历而内生演化的动态特征。而考虑参考点变化的理论与实证研究未与强化学习的策略优化框架相结合，缺乏关于"参考点在变，策略如何学，智能体如何行动"的研究。并且CPT函数经过效用函数和概率权重函数的扭曲后，导致为非凸函数，而若考虑参考点的动态变化，那么每个时期的CPT函数都在发生变化，这引入了内生性挑战。因此，动态参考点下的CPT-RL的在线策略优化问题仍待解决。
+
+\section{文献综述}
+\subsection{累积前景理论与强化学习}
+在CPT-RL研究里，Prashanth等较早将CPT引入强化学习，研究CPT目标下的预测和控制问题，指出CPT目标估计需要掌握价值函数的整个分布，并据此设计经验分布估计和SPSA控制算法\citep{prashanth2016cumulative}。该研究得出结论：CPT不能被简单视为单步即时奖励，因为CPT评价的是财富轨迹形成的随机结果分布。这说明CPT进入强化学习后，关键难点会从普通奖励最大化转向CPT目标估计和策略学习的稳定性。而Lepel和Barakat进一步推导了CPT目标下的策略梯度形式，并提出基于顺序统计量的Monte Carlo估计方法\citep{lepel2026policygradients}。其基本思想是先采样若干条轨迹估计收益分布和CPT权重项，再采样轨迹估计策略得分函数，最后形成CPT策略梯度估计。该研究为CPT-PG提供了直接理论支撑，该文献证明在平稳环境下，可以通过策略梯度方法优化CPT目标，使得策略参数收敛到目标函数一阶驻点集合。本文与该文献联系最紧密，受其启发，本文同样把CPT作为策略优化目标，并通过采样财富轨迹估计CPT策略梯度。
+
+而更近期的研究开始把CPT引入多智能体强化学习和博弈场景。Ramasubramanian强调在需要与人类偏好对齐的自主系统中，仅优化期望效用不足以模拟人类风险态度，把CPT用于智能体行为学习，目标是让智能体行为更接近具有特定风险偏好的人类用户\citep{ramasubramanian2021reinforcement}。它说明CPT-RL可以拓展于多个场景，比如金融投资、导航、控制等序贯决策问题。Lalmohammed等提出CPT-MADDPG，将CPT的价值变换函数和概率权重函数嵌入多智能体的actor和critic更新中，用于竞争追逐、协作覆盖和一价拍卖等任务。并在拍卖场景中发现CPT策略还可以复现过度竞价这一人类行为现象\citep{lalmohammed2025modeling}。该方向说明CPT能够作为强化学习智能体的建模工具，用于模拟人类的风险态度和行为偏好。
+
+但是，上述已有的CPT-RL研究的假设往往基于平稳MDP环境，并将心理参考点设为0或者某个固定成本，随着交互不发生改变。可是在真实场景下，比如股票市场，用户在经历盈利、亏损、回撤后，其心理参考点和偏好表达都会发生变化。这样就导致了在平稳环境中得到的研究结论还是不够贴合真实人类的心理。
+
+\subsection{参考点适应性变化}
+参考点并非固定不变，它会随决策者的经历而移动。这一认识在行为经济学中有着坚实的实证基础。Arkes等人于2008年发布首个度量参考点适应幅度和方向的实验研究，他们通过一系列递进的实验设计系统刻画了股票交易场景中的参考点适应行为\citep{arkes2008reference}。一支以30美元买入的股票涨至36美元后，被试认为需要涨到40.24美元才能获得同等满足，参考点向上适应了4.24美元；而当股票跌至24美元后，被试认为需要跌到21.49美元才能产生同等痛苦，参考点仅向下适应了2.51美元，并验证这种现象在投资组合中也存在。在后续的跨文化研究中，Arkes将同样的实验范式扩展至美国、中国和韩国的被试样本，发现非对称适应模式在三个文化背景下均得到重复验证，表明参考点的非对称适应是一种稳健的、跨文化的人类决策特征，而非特定实验设计或文化背景的产物\citep{ARKES201099}。
+
+He和Yang基于Arkes的研究，将上述非对称适应规律形式化为一个随机最优控制问题\citep{he2019realization}。在他们的框架中，参考点由最近一次买入价与当期财富的线性插值所确定，将买入价和当期财富比较判断盈亏。当买入价低于当期财富即为收益，高于当期财富即为亏损，参考点因此产生适应性变化，并且损失和亏损时的适应强度参数不同，范围都为[0,1]，即适应强度=0时，参考点固定在买入价不变，适应强度为1时，参考点会直接适应到当期财富。他们证明，当盈利方向的适应快于亏损方向时，盈利时参考点快速上调，稍微降低卖出盈利股票的意愿，亏损时参考点却只是微弱下调，会大幅度降低卖出亏损股票的意愿，这种非对称性拉大了“盈利股票卖出比例”和“亏损股票卖出比例”的差距，导致总体上的处置效应增强。这一结论将处置效应的成因从传统上单一归因于效用函数的S形，拓展为参考点和效用函数的交互作用。
+
+当前研究中，Qin、Kong和Yue于2022年提出参考点是具有路径依赖的，而非仅依赖于最近一次购买价格，并将参考点建模为基于整个收益路径的泛函\citep{qin2022realization}。路径依赖参考点使模型能够区分两条虽然终点财富相同但历史路径不同的轨迹。他们的理论分析表明，在路径依赖参考点下，最优交易策略具有历史记忆的特征，投资者在经历过不同的收益路径后，即使面对完全相同的当前市场价格和持仓状态，也会做出不同的买卖决策。这一结论为本文的路径依赖实验设计提供了直接的文献支撑，如果路径依赖在理论上被预测为最优策略的特征，那么在CPT-RL中智能体的策略也应该能够观察并度量这一效应。
+
+\section{研究框架}
+本文聚焦于这一核心问题：在非平稳环境下，心理参考点动态变化时，在强化学习框架下能否有一种在线优化方法使得策略可以稳定跟踪时变的CPT目标函数。该核心问题可分解为以下三个逐层递进的子问题。
+
+第一，追踪稳定性问题。在何种条件下，算法能够长期跟踪时变CPT目标的一阶驻点集合？如何分析动态局部遗憾上界？当环境发生结构性突变后，算法能否重新跟踪？
+
+第二，行为有效性问题。动态参考点是否使智能体产生了符合行为经济学理论预测的行为模式？具体而言：（1）在终点财富相同但历史路径不同的条件下，智能体的决策是会因参考点的路径依赖而产生变化？（2）参考点的非对称适应是否导致智能体产生了更强的处置效应，从而验证前人的研究结论？
+
+第三，人类心理对齐问题。考虑了动态参考点的CPT-RL算法能否让由真实交易行为数据模拟的散户Agent更满意，输出的建议更容易被采纳。
+
+为了解决上述三个子问题，本文提出了DRCPT-PG算法，将动态参考点下的CPT和策略梯度结合，改用平滑梯度范数更新策略参数，并选择Dirichlet参数化策略函数；证明DRCPT-PG具有动态局部遗憾上界，并给出上界组成部分的理论分析；最后选用投资组合决策这一场景来验证。
+\begin{figure}[H]
+\centering
+	\includegraphics[scale=0.4]{figures/研究框架图.png}
+	\caption{研究框架图}
+\end{figure}
+\section{研究贡献}
+本文的研究贡献从理论意义和实用价值两方面体现。
+
+从理论意义上看：首先，拓展CPT-RL的理论边界。从静态参考点推广至动态参考点，在非平稳环境下给出动态参考点的CPT-PG的动态局部遗憾上界。其次，在仿真实验中通过半合成的非平稳市场环境，进行路径依赖、市场突变和处置效应等实验，使得行为经济学的参考点非对称适应理论在强化学习中得到验证。最后，本文选用Dirichlet策略函数进行参数化，股票因子作为策略参数，从而避免直接学习高维度股票的独立权重，并用归一化的梯度更新策略，提高算法稳定性，和投资场景下的可解释性。
+
+从实用价值上看：其一，为风险敏感的智能体提供可解释的参数化框架，比如参考点适应速度、损失厌恶系数等，使智能体的策略输出表现出可配置的人类行为模式，便于设定约束和监管。其二，将心理学的定性描述转化为优化算法中可计算的目标函数和更新规则。从参考点适应的实证规律，到将参考点更新的数学公式引入CPT目标函数，并结合策略梯度优化，导致智能体的在线行为调整。本文和基于人类反馈的强化学习微调（RLHF）不同，不试图从数据中端到端地学习人类的偏好函数，而是将行为经济学文献中已经过实证检验的函数形式和参数值嵌入优化框架——这使得智能体的行为具有先验保证，而非完全依赖可能稀疏或有偏的交互数据。其三，采用开源的真实散户交易行为数据模拟散户智能体，并用多个算法作为投资顾问智能体输出投资建议，验证哪类算法更能使散户智能体满意。对真实的智能投顾系统评估提供了一种可参考的思路。
+\section{结构安排}
+本文的其余章节安排如下：
+
+第二章先给出非平稳MDP元组、累积前景理论函数形式，从而引出数学问题：当期策略参数和目标函数一阶驻点集合的距离，定义动态局部遗憾，基于该问题设计DRCPT-PG算法。
+
+第三章先给出引理、定理、推论的分析；给出不承诺求全局最优解、每期都使CPT目标函数单调上升的边界说明；最后是对结论的证明过程。
+
+第四章为半合成仿真实验，引入23-26年的真实A股股票数据，计算各股票因子，自行设计市场冲击，并合成股票收益。首先验证定理，其次检验算法在强市场冲击下是否能自适应，最后行为识别实验验证处置效应、路径依赖现象，以及敏感性分析和回测验证。
+
+第五章为异质散户的多智能体交互评估实验，为了评估DRCPT-PG在智能投顾场景中的行为对齐能力是否能符合散户心理，并用真实行为数据模拟的散户替代真实用户给予反馈。
+
+第六章论述本文的研究结论与贡献，并探讨局限性和未来可行的研究方向。
+
+\zhiheng{第一章：现实场景和严格的数学问题，参考飞书写作指南}
+
+\zhiheng{第二章：将prospect theory观点融入bandit/online learning等之后，建立基础的数学结论，可以参考Cumulative
+prospect theory meets reinforcement learning: Prediction and control, Risk-Averse Biased Human Policies in Assistive Multi-Armed
+Bandit Settings， }
+
+\zhiheng{第三章：仿真实验}
+\chapter{理论框架与问题设定}
+
+\section{非平稳MDP、累积前景理论与符号表示}
+设有限离散时间点$t=1,\dots,T$下，第$t$天市场开盘前，非平稳马尔可夫决策元组（Non-Stationary MDP）为：
+\begin{equation*}
+\mathcal{M}_t=(\mathcal{S},\mathcal{A},\mathcal{P}_t,\{x_t\}_{t=1}^{t},h,r_t,s_t,a^*_{t})
+\end{equation*}
+
+其中 $\mathcal{S}$ 为市场状态空间，$s_t\in \mathcal{S}$ 表示第 $t$ 日开盘前可观测状态，包含各资产行情因子（开盘价、收盘价、最高价、最低价、成交量等）、公司财务因子等信息；$\mathcal{A}$ 为动作空间，$a_{t}^* \in \mathcal{A}$为当天开盘前已有的投资组合，即前一天输出的投资组合，$\mathcal{P}_t$ 为第 $t$ 天市场状态转移机制，$r_t$ 为第 $t$ 天开盘前已经形成的心理参考点。而$h$为时期的长度，由于CPT的估计依赖结果分布，所以策略需要运行$h$天收集够足够的财富轨迹后才能更新一次。
+
+在非平稳MDP中，常用局部变化预算来近似当前环境分布，且局部变化预算包含转移机制的局部变化预算和奖励函数的局部变化预算\citep{feng2023nonstationary}。而在本文的研究设定中，对于$\mathcal{P}_t$视为未知，不显式用模型的方式估计；奖励则是每天输出的投资组合$a_{t+1}^*$收盘后的客观收益$x_{t+1}$，定义为剔除交易成本后当前账户财富与初始财富之比，示例：$x_t=1.2$表示账户财富已经变为初始财富的1.2倍。因此，本文用$\delta_t(h)$来统一表示长度为$h$的时期内的非平稳变化。为了避免前视偏差，$x_{t+1}$只能在第$t$天收盘后观测到，因此元组里包含的奖励是$x_{t}$及之前的历史值。
+
+投资组合动作记为：$a_t=(\omega_{0,t},\omega_{1,t},\ldots,\omega_{N,t})^\top\in \mathcal{A}$，其中$i=0$表示现金项，$i=1,\dots,N$表示风险资产。
+其中，动作空间符合单纯性约束。
+\begin{equation*}
+\mathcal{A}=\left\{a\in \mathbb{R}^{N+1} \mid \sum_{i=0}^N \omega_i=1,\; \omega_i\ge 0\right\}.
+\end{equation*}
+
+策略写作：$\pi_\theta(a\mid s_t)$
+其中，$\theta\in\Theta$，$\Theta$为策略参数空间。
+
+第 $t$ 天策略 $\pi_{\theta_t}$ 在长度为$h$的时期内采样生成多条财富轨迹，一条轨迹记为：
+\begin{equation*}
+\tau_t=(s_{t,1},a_{t,1},x_{t,1},\ldots,s_{t,h},a_{t,h},x_{t,h})
+\end{equation*}
+而在时期内部，每一天收盘后观测到新组合的客观收益都会更新参考点。
+
+本文建立非对称适应参考点模型如下：
+\begin{equation}
+\label{eq:reference_update_ch7}
+r_{t+1}
+=
+\begin{cases}
+r_t+\eta_+\left(x_{t+1}-r_t\right), & x_{t+1}\ge r_t\\[4pt]
+r_t-\eta_-\left(r_t-x_{t+1}\right), & x_{t+1}<r_t
+\end{cases}
+\end{equation}
+其中，$\eta_+,\eta_-\in[0,1]$，且$\eta_+ >\eta_-$。
+
+一时期结束时观测到每条轨迹的最终财富：
+\begin{equation}
+X_t(\tau_t)=x_{t+h}(\tau_t)
+\end{equation}
+
+因此，给定起点参考点$r_t$，沿轨迹$\tau_t$逐日使用式\eqref{eq:reference_update_ch7}更新得到时期结束时的参考点，记为$r_{t,h}(\tau_t)$。
+
+基于动态参考点的相对收益为：
+\begin{equation}
+Y_t(\tau_t)=X_t(\tau_t)-r_{t,h}(\tau_t).
+\end{equation}
+当参考点固定时，有$r_{t,h}(\tau_t)=r_t$。
+
+由于本文聚焦研究动态参考点对CPT的影响，因此所用的CPT的效用函数和概率权重函数均为KT模型，其余相关的参数在后续实验时均为前人计算得出的固定值。\citep{kahneman1979prospect}。
+
+收益侧效用函数与损失侧效用函数分别为：
+\begin{equation}
+v_g(Y)
+=(Y^+)^{\alpha_g},
+\qquad
+Y^+\ge 0
+\end{equation}
+\begin{equation}
+v_l(Y)
+=\lambda (-Y^-)^{\alpha_l},  
+\qquad
+Y^-<0
+\end{equation}
+
+其中，$\lambda>1$ 为损失厌恶系数，刻画了人相比于收益更不愿意亏损的心理；$\alpha_g,\alpha_l\in(0,1]$ 分别为收益侧与损失侧的敏感度，表示收益或亏损幅度变大时，边际感知强度逐步降低。
+
+收益侧和损失侧概率权重函数为：
+\begin{equation}
+ w_g(p)=\frac{p^{\beta_g}}{\left(p^{\beta_g}+(1-p)^{\beta_g}\right)^{1/\beta_g}},\qquad p\in[0,1],
+\end{equation}
+\begin{equation}
+ w_l(p)=\frac{p^{\beta_l}}{\left(p^{\beta_l}+(1-p)^{\beta_l}\right)^{1/\beta_l}},\qquad p\in[0,1].
+\end{equation}
+
+其中 $\beta_g,\beta_l>0$ 刻画概率扭曲强度，表示人类常会放大小概率事件、缩小大概率事件的心理。
+
+因此，目标函数定义为：策略$\pi_{\theta}$运行$h$天的财富轨迹组成的相对收益随机变量对应的CPT效用：
+\begin{equation}
+\label{eq:cpt_objective_ch7}
+\begin{aligned}
+J_t(\theta,r_t)
+:=&\int_0^\infty w_g\!\left(\mathbb{P}_{t,\theta}\left(v_g(Y_t^+)>\xi\right)\right)\,d\xi \\
+&-\int_0^\infty  w_l\!\left(\mathbb{P}_{t,\theta}\left(v_l(Y_t^-)>\xi\right)\right)\,d\xi,
+\end{aligned}
+\end{equation}
+其中，概率 $\mathbb{P}_{t,\theta}$ 用来计算$Y_t$中盈利和亏损超过阈值$\xi$的尾概率。
+\section{问题设定}
+\subsection{问题建模}
+为了便于后续描述，将第$k$个时期的起点记为$t_k$，其中$t_{k+1}=t_k+h$。总共有$T/h$个时期，策略$\pi_{\theta_{t_k}}$运行$h$天得到相对收益随机变量$Y_{t_k}$。当期优化目标是最大化该随机变量的CPT效用，即$J_{t_k}(\theta,r_{t_k})$。
+
+一阶驻点集合定义为：
+\begin{equation}
+\label{eq:stationary_set_ch7}
+S_{t_k}
+=
+\left\{
+\theta\in\Theta:
+\nabla_\theta J_{t_k}(\theta,r_{t_k})=0
+\right\}.
+\end{equation}
+式\eqref{eq:stationary_set_ch7}中的$\nabla_\theta J_{t_k}$是当期CPT目标函数对策略参数的梯度。
+
+为了度量策略是否能够跟踪移动的一阶驻点集合，本文受非凸时变在线优化研究的启发\citep{hazan2017efficient,aydore2019dynamic}。常见的动态遗憾是衡量策略参数和每一期最优解的距离，而对于非凸优化，可以用梯度范数衡量和驻点的距离。并且，在非平稳环境中，不能单看某一时期的梯度，而是看算法在最近一段时间内跟踪的稳定能力；越近期的梯度越反馈策略是否有效跟踪了当前市场状态下的局部最优策略。因此，本文对于最近$K$个时期的梯度进行平滑，近期的梯度被赋予较高的权重。平滑系数为$\rho\in(0,1]$，每一时期的平滑梯度范数：
+\begin{equation}
+\label{eq:smoothed_gradient_ch7}
+\overline{\nabla J}_K
+=\frac{1}{K}
+\sum_{i=0}^{K-1}
+\rho^i
+\nabla_\theta J_{t_{k-i}}(\theta_{t_{k-i}},r_{t_{k-i}}),
+\qquad
+K=
+\sum_{i=0}^{K-1}\rho^i
+\end{equation}
+动态局部遗憾为所有时期的平滑梯度范数累积平方和：
+\begin{equation}
+\label{eq:dynamic_local_regret_ch7}
+DLRegret(T/h)
+=
+\sum_{k=1}^{T/h}
+\left\|
+\overline{\nabla J}_{t_k}
+\right\|^2
+\end{equation}
+因此，本文的数学问题是：在动态参考点$r_t$和非平稳市场$\mathcal{P}_t$共同变化时，构建DRCPT-PG算法，使得$DLRegret(T/h)$具有可解释、可被控制的上界。
+\subsection{所遇挑战}
+
+第一，外生非平稳和内生非平稳。在非平稳MDP下，奖励函数和转移核随时间变化，局部最优策略也在持续漂移；策略影响收益，收益影响参考点，参考点改变CPT目标函数，这也导致了局部最优策略的漂移。因此，策略参数不能简单地收敛至固定的局部最优策略，而必须追踪移动的局部最优。如何在这种外生和内生的双重非平稳性下保证算法持续追踪局部最优的能力，即动态局部遗憾有上界，是理论分析和算法设计的核心难点。
+
+第二，CPT目标函数的非凸性与梯度估计的方差控制。CPT的效用函数是S形的，盈利区凹、亏损区凸，概率权重函数进一步扭曲了收益分布的分位数权重，导致CPT函数形状非凸非线性。并且，想要无偏估计CPT需要足够样本的收益分布，因此不能作为每一轮的即时奖励给出。最后，当参考点接近当前财富时，相对收益接近零，效用函数的导数在该处趋于无穷；且概率权重导数在0和1的端点趋于无穷；这为CPT策略梯度估计带来了方差和数值稳定性的挑战。
+
+\section{研究方法}
+\begin{algorithm}[H]
+\caption{Dirichlet策略函数抽取投资组合}
+\label{alg:dirichlet_policy_ch2}
+\begin{algorithmic}[1]
+\STATE \textbf{输入：} 第$t_k$期市场状态$s_t$，当前持仓$a_{t}^*$，策略参数$\theta_t$，资产数$N$，执行方式$e\in\{\mathrm{sample},\mathrm{mean}\}$
+
+\FOR{$i=0,1,\dots,N$}
+    \STATE 根据$s_t$与当前持仓$a_t^*$得到资产项$i$的因子向量$q_{i,t}$，其中$i=0$表示现金项。
+    \STATE 计算资产项$i$的线性策略得分$z_{i,t}=\theta_t^\top q_{i,t}$
+    \STATE 将线性得分按指数形式映射为Dirichlet浓度参数
+    \begin{equation*}
+    \alpha^D_{i,t}
+    =
+    \exp(z_{i,t})
+    \end{equation*}
+\ENDFOR
+\STATE 记$\alpha^D_t=(\alpha^D_{0,t},\alpha^D_{1,t},\dots,\alpha^D_{N,t})^\top$
+\IF{$e=\mathrm{sample}$}
+    \STATE 从Dirichlet策略分布中抽样得到投资组合权重向量
+\begin{equation*}
+a_t
+\sim
+\pi_{\theta_t}(\cdot\mid s_t)
+=
+\operatorname{Dirichlet}(\alpha^D_t)
+\end{equation*}
+\ELSE
+    \STATE 使用Dirichlet分布均值作为执行动作
+\begin{equation*}
+\omega_{i,t}
+=
+\frac{\alpha^D_{i,t}}{\sum_{k=0}^{N}\alpha^D_{k,t}},
+\qquad
+i=0,1,\dots,N
+\end{equation*}
+\ENDIF
+\STATE 由Dirichlet分布的定义可得$\sum_{i=0}^{N}\omega_{i,t}=1$且$\omega_{i,t}\ge 0$
+\STATE \textbf{输出：} 连续投资组合权重向量$a_t=(\omega_{0,t},\omega_{1,t},\dots,\omega_{N,t})^\top$
+\end{algorithmic}
+\end{algorithm}
+
+以沪深300为例，开盘前观察市场特征和上一期投资组合，现金记为$i=0$，股票记为$i=1,\dots,N$。对于每只股票，系统先读取其开盘前可观测因子，例如波动、反转、动量等，并组成$q_{i,t}$。策略参数$\theta_{t_k}$表示当前策略更看重哪些因子，如果一个因子重要性较高，那么该因子值较高的股票就会得到更高的得分。线性得分$z_{i,t}=\theta_t^\top q_{i,t}$越大，说明该股票在当前市场状态下越容易获得较高权重。指数映射$\alpha^D_{i,t}=\exp(z_{i,t})$把得分转成Dirichlet浓度参数。训练估计阶段使用$e=\mathrm{sample}$，系统从Dirichlet分布中随机采样多组组合权重，持续交互形成多条财富轨迹，用于梯度估计和参数更新；而在真实执行阶段可使用$e=\mathrm{mean}$，即将$\alpha^D_t$归一化得到平均意义上最好的推荐组合，用于观测真实收益和更新用户的心理参考点。这样做的意义是更符合真实投资顾问场景，推荐的投资组合换手更稳定，但也保证了随机探索的能力。
+
+\begin{algorithm}[H]
+\caption{基于动态参考点的CPT-PG在线优化器}
+\label{alg:drcpt_pg_ch2}
+\begin{algorithmic}[1]
+\STATE \textbf{输入：} 初始策略参数$\theta_1$，初始参考点$r_1$，时期长度$h$，样本数$n_t,m_t$，参数更新步长$\gamma$，CPT参数$\lambda,\alpha_g,\alpha_l,\beta_g,\beta_l$，参考点更新系数$\eta_+,\eta_-$
+\STATE 初始化$t=1$，开盘前持仓$a_1^*$为全现金组合
+\WHILE{$t\le T$}
+    \STATE 记录时期起点状态$(s_t,a_t^*,r_t,\theta_t)$，并令$\mathcal{E}_t=\{t,t+1,\ldots,\min(t+h-1,T)\}$。
+    \STATE \textbf{真实执行：}对每个$u\in\mathcal{E}_t$，用算法\ref{alg:dirichlet_policy}和$e=\mathrm{mean}$输出组合$a_{u+1}^*$；收盘后观测归一化财富$x_{u+1}$，并更新真实参考点
+    \begin{equation*}
+    r_{u+1}
+    =
+    \begin{cases}
+    r_u+\eta_+\left(x_{u+1}-r_u\right), & x_{u+1}\ge r_u,\\[4pt]
+    r_u-\eta_-\left(r_u-x_{u+1}\right), & x_{u+1}<r_u
+    \end{cases}
+    \end{equation*}
+    \STATE \textbf{CPT分位数采样：}从时期起点出发，调用算法\ref{alg:dirichlet_policy}，使用$\pi_{\theta_t}$和$e=\mathrm{sample}$采样$n_t$条财富轨迹，得到$\{(\widetilde X_t^{(i)},\widetilde r_{t,h}^{(i)})\}_{i=1}^{n_t}$，并令$\widetilde Y_t^{(i)}=\widetilde X_t^{(i)}-\widetilde r_{t,h}^{(i)}$。
+    \STATE 用$\{\widetilde Y_t^{(i)}\}_{i=1}^{n_t}$估计$J_t(\theta_t,r_t)$；并分别排序$\{v_g((\widetilde Y_t^{(i)})^+)\}$和$\{v_l((\widetilde Y_t^{(i)})^-)\}$。
+    \STATE \textbf{策略梯度采样：}从同一时期起点,同样调用\ref{alg:dirichlet_policy}，采样$m_t$条轨迹，得到梯度轨迹的相对收益和得分函数$\{(Y_t^{(j)},G_t^{(j)})\}_{j=1}^{m_t}$；
+    \STATE 用排序分位数差分和$w_g',w_l'$计算每条梯度轨迹的CPT权重项$\psi_t^{(j)}$。
+    \STATE 计算CPT策略梯度估计
+    \begin{equation*}
+    \widehat{\nabla_\theta J_t}(\theta_{t},r_t)
+    =
+    \frac{1}{m_t}
+    \sum_{j=1}^{m_t}
+    \psi_t^{(j)}
+    G_t^{(j)}
+    \end{equation*}
+    \STATE 计算归一化梯度$d_t$
+    \STATE 更新策略参数，并进入下一个时期
+    \begin{equation*}
+    \theta_{t+h}
+    =
+    \theta_t+\gamma d_t
+    \end{equation*}
+    \STATE 令$t\leftarrow t+h$
+\ENDWHILE
+\STATE \textbf{输出：} 参数序列$\{\theta_t\}$、投资组合序列$\{a_t^*\}$
+\end{algorithmic}
+\end{algorithm}
+
+算法\ref{alg:drcpt_pg}对应的实际场景如下：账户初始资金为100万元，初始持仓为全现金，参考点$r_1=1$，表示当前心理基准等于初始财富。时期长度取$h=5$个交易日。系统先用当前$\theta_1$在真实执行路径上给出第1天到第5天的组合建议，每天开盘后执行，收盘后得到剔除交易成本后的归一化财富$x_{u+1}$，并按盈利适应较快、亏损适应较慢的规则更新真实参考点。完成这5天后，系统回到该episode起点，用同一个起点市场状态、同一个起点持仓和同一个起点参考点，基于当前策略参数采样许多条5天轨迹。每条采样轨迹内部也逐日更新参考点，因此轨迹末端既有一个财富值$\widetilde X_t^{(i)}$，也有一个参考点$\widetilde r_{t,h}^{(i)}$。第一批$n_t$条轨迹用于估计这个策略在当前市场和当前参考点下形成的CPT目标值；第二批$m_t$条轨迹用于估计CPT策略梯度。随后系统用估计梯度更新$\theta$，进入下一个episode。真实账户只走一条路径，训练估计从同一episode起点生成多条可能路径，用这些路径学习下一轮更合适的因子权重。
+
+这个流程与CPT-PG文献的有限时域思想一致：CPT评价的是一组完整轨迹的结果分布，评价尺度超过单个交易日的即时收益\citep{prashanth2016cumulative,lepel2026policygradients}。本文的扩展在于，参考点在episode内部随轨迹收益递推，目标函数因此随市场状态和参考点共同变化；这正是后续理论分析中需要动态局部遗憾的原因。
+\chapter{理论分析}
+\subsection{主要结论}
+假设：
+1.动态参考点漂移有上界
+4.CPT效用和权重函数Lipschitz连续，目标函数L-Lipschitz对应的CPT策略梯度L-Lipschitz
+5.策略关于策略参数可微且(score function有界）。
+这两条推出CPT策略梯度有界
+6.策略参数更新步长是固定的、采样数也是固定的但可以趋于无穷时用于证明结论。
+
+结论：
+引理1：CPT策略梯度估计误差可控:
+
+CPT目标函数由收益侧价值函数、损失侧价值函数和概率权重函数共同构成，直接求精确梯度较困难，因此本文采用有限条轨迹进行蒙特卡洛估计。先用一组轨迹估计CPT分位数，再用另一组轨迹估计策略得分函数，并把二者组合成CPT策略梯度估计量。在效用函数连续、概率权重函数经过端点正则化且策略得分函数有界的条件下，分位数估计误差和策略得分函数采样方差都可以被样本数控制。因此，当CPT估计样本数和梯度估计样本数增大时，估计梯度与真实CPT策略梯度之间的误差会下降，从而得到CPT策略梯度估计误差可控。
+
+引理2：动态参考点漂移导致的每期目标函数的一阶驻点集合漂移是有上界的:
+
+动态参考点会改变CPT目标函数，因此每一期的一阶驻点集合也会随市场状态和参考点一起移动。本文假设参考点更新速度有界，市场阶段变化不会无限剧烈，同时CPT目标函数关于策略参数和参考点具有局部光滑性。在这些条件下，参考点的小幅变化只会引起目标函数梯度的小幅变化，进而使一阶驻点集合的移动幅度受到控制。只要参考点适应速度和市场漂移速度有限，当前局部最优策略不会在相邻时期发生不可控跳变，算法才有可能持续追踪移动的一阶驻点集合。
+
+定理1：动态参考点下DRCPT-PG具有动态局部遗憾上界
+
+定理的证明从一次策略参数更新出发。由于目标函数是非凸的，不能要求每一步目标值单调上升，因此使用平方梯度范数衡量策略是否接近当期一阶驻点。先利用目标函数的光滑性，把一次更新带来的改进写成真实梯度、估计误差和步长项的组合；再将引理1中的估计误差界代入，把有限样本误差、有限时域环境漂移和参考点漂移分别写进上界；最后对所有时期求和，得到动态局部遗憾的上界。该上界说明，DRCPT-PG的长期跟踪误差由步长、采样样本数、市场变化幅度和参考点变化幅度共同决定。
+
+推论1：平稳极限下，参考点静态，退化为静态CPT-PG，收敛到一阶驻点集合。
+
+平稳极限可以看作主定理的特殊情形。也就是CPT-PG文献的结论。若市场转移机制不再随时间变化，参考点固定或变化趋于零，并且采样数足够大，则动态局部遗憾上界中的市场漂移项、参考点漂移项和采样误差项都会消失或趋近于零。此时DRCPT-PG退化为静态环境下的CPT-PG算法，剩余误差主要由步长控制。若进一步采用逐渐衰减且满足常见随机近似条件的步长，平均平方梯度范数会趋近于零，从而得到平稳极限下收敛到CPT目标函数一阶驻点集合的结论。
+
+\subsection{边界说明}
+
+
+\subsection{定理证明}
+
+
+
+
+
+
+
+\chapter{仿真实验}
+\section{多方法比较}
+在合成的非平稳市场环境中，多seed
+1.动态vs对称适应参考点vs静态
+动态参考点CPT-PG一阶驻点集合表现更好、模型性能更强。用平方梯度范数作为动态遗憾的代理指标.累积平方梯度范数随时间次线性增长，平均平方梯度范数随时间减小。是多seed后中位数25-75\%的区间表现
+2.动态CPT-PG和其他PG比较（期望效用、指数效用PG）
+3.识别出行为模式，路径依赖，处置效应
+\section{敏感性分析}
+1.不同参考点适应速度对算法稳定性的影响
+参考点适应$\eta_-$、$\eta_+$；参考点不能适应过快也不能过慢，否则跟不上市场变化
+2.不同滑动窗口长度$h$对窗口近似误差的影响
+不能过大也不能过小 
+\chapter{异质散户的多智能体交互评估实验}
+\chapter{结论与展望}
+\section{研究结论与贡献}
+\section{局限性探讨}
+\section{未来研究方向}
+\zhiheng{第三章：仿真实验}
+
+
+\chapter{使用方法}
+
+
+\section{基本使用方法}
+
+对于\LaTeX{}用户，请使用根目录下的Thesis\_main.tex相应修改即可，并使用xelatex命令进行编译。对于用户，修改Thesis\_main.lyx即可。
+
+
+本研究的难点是：
+\begin{enumerate}
+	\item AAA；
+	\item BBB；
+	\item CCC。
+\end{enumerate}
+
+拟采用解决方法：
+\begin{itemize}
+	\item AAA；
+	\item BBB；
+	\item CCC。
+\end{itemize}
+
+
+\section{公式录入}
+
+公式输入与\LaTeX{}及使用方法一致，如$y=x'\beta+\epsilon$，以及：
+\[
+\hat{\beta}=\left(X'X\right)^{-1}X'Y
+\]
+此外公式可以进行编号：
+\begin{equation}
+\hat{\beta}_{iv}=\left[X'Z\left(Z'Z\right)^{-1}Z'X\right]^{-1}\left[X'Z\left(Z'Z\right)^{-1}Z'Y\right]
+\end{equation}
+公式编号自动按照章进行分组。
+
+
+\section{定理声明}
+
+可以声明定理等，如：
+\begin{theorem}
+OLS估计为最优无偏线性估计量（BLUE），且$\hat{\beta}\overset{p}{\rightarrow}\beta$。\end{theorem}
+\begin{proof}
+略。
+\end{proof}
+
+
+\section{图片、表格插入}
+
+图片和表格编号实例：
+
+\begin{table}
+	\centering
+\caption{表格示例}
+\begin{tabular}{ccc}
+\hline 
+ & (1) & (2)\tabularnewline
+\hline 
+labor & $\underset{(0.2)}{0.7}${*}{*} & $\underset{(0.2)}{0.7}${*}{*}\tabularnewline
+capital & $\underset{(0.1)}{0.3}${*}{*} & $\underset{(0.1)}{0.3}${*}{*}\tabularnewline
+Constant & $\underset{(0.5)}{1.5}${*}{*} & $\underset{(0.5)}{1.5}${*}{*}\tabularnewline
+\hline 
+\multicolumn{3}{l}{{\small{}注：仅为示意性展示}}\tabularnewline
+\hline 
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+	\includegraphics[scale=0.4]{figures/1}
+	\caption{图示例}
+\end{figure}
+
+\lstinputlisting[caption={test.m}\label{aaa}]{codes/test.m}
+\phantomsection\label{lt1}
+
+	
+\lstinputlisting[caption={test.m}\label{lt2}]{codes/test.m}
+
+\ref*{lt1} \ref{lt2}
+
+\section{参考文献例子}
+
+参考文献。\ref{aaa}\cite{jls2003}\cite{Grisvard1985} 
+
+{\bf 参考文献请务必用bibtex生成！！！}\cite{Agnelli2017,Ammari2007}
+
+
+\chapter{结论}
+
+Enjoy it.
+\newline%%紧跟正文最后一个字符的不要删除！
+
+
+
+%%%参考文献请务必用bibtex生成！！！
+\bibliography{bib/ref.bib}	
+
+
+
+\chapterx{致谢}
+
+谢谢。本模板仅供内部使用，谢谢配合。
+
+
+
+%\chapterx{个人简历}
+%
+%
+\begin{resume}
+
+\begin{resumesection}{基本情况}
+某某某, 男/女, 某某省某某市/县人, 199？/200？ 年~？ 月出生.
+\end{resumesection}
+
+\begin{resumelist}{教育状况}
+20XX 年~9 月至~20XX 年~7 月, 某某学校某某学院, 本科, 专业: XXXX。
+
+20XX 年~9 月至~201XX年~7 月, 上海财经大学统计与管理学院, 硕士研究生, 专业: XXX。
+\end{resumelist}
+%
+%\begin{resumelist}{工作经历}
+
+%\end{resumelist}
+
+\begin{resumesection}{研究兴趣}
+XXXXX。
+\end{resumesection}
+
+\begin{resumesection}{联系方式}
+E-mail: XXXXX@mail.shufe.edu.cn.
+\end{resumesection}
+%
+\end{resume}
+
+
+
+
+\end{document}

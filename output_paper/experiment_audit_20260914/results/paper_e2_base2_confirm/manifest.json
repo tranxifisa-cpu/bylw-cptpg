@@ -1,0 +1,172 @@
+{
+  "experiment": 2,
+  "status": "complete",
+  "config": {
+    "horizon": 5,
+    "gamma": 0.05,
+    "a0": 1,
+    "theta_radius": 2,
+    "eta_gain": 0.2,
+    "eta_loss": 0.05,
+    "cost": 0.001,
+    "m": 64,
+    "n": 64,
+    "cap": 5,
+    "base": 2,
+    "exponent": 1.5,
+    "evaluation_n": 2048,
+    "evaluation_m": 1024,
+    "window": 5,
+    "rho": 0.9,
+    "dimension": 10,
+    "exponential_risk": 2.0,
+    "outer_batch": 8,
+    "trajectory_budget": 0
+  },
+  "args": {
+    "prepare_panel": false,
+    "cache": "D:\\project\\bylw\\artifacts\\cache\\raw\\tushare",
+    "panel": "artifacts\\inputs\\paper_hs300.csv",
+    "start_date": "20230301",
+    "end_date": "20260529",
+    "assets": 30,
+    "pool_seed": 2022,
+    "allow_suspension_carry": false,
+    "experiment": 2,
+    "output": "artifacts\\results\\paper_e2_base2_confirm",
+    "plot_only": false,
+    "seeds": [
+      29,
+      147,
+      3141,
+      42,
+      3407,
+      592,
+      7,
+      101,
+      2024,
+      2025
+    ],
+    "methods": [
+      "dynamic",
+      "symmetric",
+      "static",
+      "expected",
+      "exponential",
+      "equal_weight"
+    ],
+    "steps": 500,
+    "horizon": 5,
+    "gamma": 0.05,
+    "a0": 1,
+    "theta_radius": 2,
+    "eta_gain": 0.2,
+    "eta_loss": 0.05,
+    "cost": 0.001,
+    "m": 64,
+    "n": 64,
+    "cap": 5,
+    "base": 2,
+    "layer_exponent": 1.5,
+    "estimator": "multilevel",
+    "outer_batch": 8,
+    "trajectory_budget": 0,
+    "estimator_diagnostics": true,
+    "diagnostic_days": [
+      0,
+      150,
+      290,
+      350
+    ],
+    "budget_grid": [
+      512,
+      2048
+    ],
+    "compare_estimators": [
+      "plugin",
+      "multilevel",
+      "multilevel_outer",
+      "split_base"
+    ],
+    "estimator_comparison": false,
+    "evaluation_n": 2048,
+    "evaluation_m": 1024,
+    "diagnostic_window": 5,
+    "rho": 0.9,
+    "factor_strength": 2.5,
+    "replications": 500,
+    "n_grid": [
+      16,
+      32,
+      64,
+      128
+    ],
+    "m_grid": [
+      8,
+      16,
+      32,
+      64,
+      128
+    ],
+    "dimensions": [
+      2,
+      4,
+      8,
+      10
+    ],
+    "reference_batches": 8,
+    "reference_n": 16384,
+    "reference_m": 8192,
+    "eta_grid": [
+      0,
+      0.05,
+      0.1,
+      0.2,
+      0.4
+    ],
+    "horizon_grid": [
+      2,
+      5,
+      10,
+      25
+    ],
+    "gamma_grid": [
+      0.01,
+      0.025,
+      0.05,
+      0.1
+    ],
+    "selected_config": null,
+    "test_start": "20250102",
+    "total_return_panel": null,
+    "allow_reference_price_proxy": false
+  },
+  "source_sha256": {
+    "scripts\\run_paper_experiments.py": "dbab36aa5316a94ffb2f3ee268eb7312bb07d6167a3be0d75fd806a8f2afd1cf",
+    "mvp_cpt_pg\\paper_market.py": "e71ca07b85b10d2d7dd920954c31b7bee8b472bb0b75424047be807607895e95",
+    "mvp_cpt_pg\\paper_experiments.py": "9208dda15d2257530a16e61826602c6e66a01dcb9ddabee3f1f0ad5a563c5152",
+    "mvp_cpt_pg\\paper_figures.py": "76206aecce4df00d173146eab31f85840e3baf3500b7e610cfd6e487da306b86",
+    "mvp_cpt_pg\\controlled_cpt.py": "9693dd15d77c8e5def33241f4cb51e5bb69e1d2e110b206b79d74144e018fbf3",
+    "mvp_cpt_pg\\synthetic_env.py": "267ea5ee565be5fa2b71948560d3366cc9616b3e22e3c40242b685bcf13b3d48",
+    "mvp_cpt_pg\\paper_estimator_diagnostics.py": "4255367f22880102dc2a33ba2da516b6372213649268bc50ef561173a7eb5fb0"
+  },
+  "started_utc": "2026-09-13T14:51:33.757987+00:00",
+  "panel_sha256": "d8b9ba67b6bf6fd43c2b83cfc5010c16e904302e9533c22d249166108020525e",
+  "cost_model": "paper: X_next=X*(1+w.R-c*L1(w-w_previous_target)); cash included",
+  "execution": "mean; update after each episode; training trajectories sample",
+  "diagnostic": "independent finite-sample plug-in Q, not exact population residual or certified set distance",
+  "simulator": "prescribed exogenous factor path + conditional synthetic returns",
+  "real_timing": "t-2 close information; preannounced t-1 closing-auction target; t close-to-close relative",
+  "return_basis": "conditional synthetic returns",
+  "total_return_sha256": null,
+  "estimator_notes": "finite capped multilevel has residual bias; QQ is standardized finite-cap data; no minimax lower bound inferred",
+  "comparison_estimators": [
+    "plugin",
+    "multilevel",
+    "multilevel_outer",
+    "split_base"
+  ],
+  "budget_basis": "Full trajectories; repeats=floor(budget/expected_cost); actual costs saved",
+  "finite_target": "n=base*2**cap; all compared estimators have the same finite-level expectation",
+  "elapsed_seconds": 524.4373443000077
+}

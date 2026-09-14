@@ -1,0 +1,16 @@
+{
+  "advisor_source_url": "https://github.com/tranxifisa-cpu/bylw-cptpg/blob/main/output_paper/DRCPT_PG_v2_project/main.tex",
+  "advisor_source_last_modified": "2026-09-08T14:31:03Z",
+  "retrieved_via": "GitHub connector",
+  "revision_date": "2026-09-11",
+  "base": "03_Full_Audit_With_Minimax",
+  "advisor_sha256": "28727ee4d7dcc0987d6c82a1afb8119f193c60783635ec99f9bd92dbaaa59835",
+  "base_sha256": "740c762ec88a3a1b618bf08ef193b87f1a43331e0b401756ca50f7146b59a362",
+  "optimized_tex_sha256": "af2e82c28ed85785f933b4e7e295c02a3085d814458f74b8d1f320a474433e4d",
+  "pdf_sha256": "223b752c7ec35f923051b07d8d7f4fc97cbdae04c1b8dd5e27d1623fe8d79ca4",
+  "code_sha256": "912f7336b9eb8164eaacbc0f50007e63570dcd4a4f64f072649e71467a6d065c",
+  "experiment_scope": "Controlled smooth-value numerical verification; no real A-share or human data",
+  "minimax_scope": "Fixed dimension, fixed theta_0, exact-trajectory oracle, expected raw-call budget; Theta(1/B)",
+  "Lean_status": "NOT_FORMALIZED_IN_LEAN",
+  "latest_revision": "Appendix A: concise advisor-style notation table, with residual dynamic local regret restored."
+}

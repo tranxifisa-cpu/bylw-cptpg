@@ -1,0 +1,90 @@
+\section{极小极大下界的证明}\label{app:minimax-proof}
+
+\subsection{\texorpdfstring{\Cref{thm:minimax}}{极小极大定理}的证明}
+\begin{proof}
+首先明确统计检验不等式所作用的投资组合轨迹实验，使后续信息界、两点检验和预算上界都对应同一个可实现的观测模型。
+
+\paragraph{步骤一：构造可实现子模型。}
+考虑一只股票和现金，取 $h=1$、$c_{\rm tc}=0$、$X_{\rm start}=r_{\rm start}=1$，并固定 $\eta_+\in(0,1)$；同时固定任意 $\eta_-\in[0,1]$。令 $q_{\rm risky}=e_1$、$q_{\rm cash}=0$，其中 $e_1$ 是 $\R^d$ 中的第一个坐标向量。这里，$\theta^{[1]}$ 表示 $\theta$ 的第一个坐标，而全文其他位置的 $\theta_1$ 表示在线过程的第一个迭代点。于是，风险资产权重满足 $U\sim\operatorname{Beta}(a_{\rm risky},1)$，其中 $a_{\rm risky}=e^{\theta^{[1]}}$，其余参数不影响该分布。令股票收益率为 $R=r_*\xi$，其中 $\xi\sim\operatorname{Bernoulli}(p)$ 与 $U$ 独立，$r_*>0$ 固定且足够小，从而满足已声明的界。一次完整的预言机轨迹同时记录动作和收益率，因此可以观测到 $\xi$。
+
+参考点更新始终处于收益或相等分支：
+\[
+ X_{\rm end}=1+r_*U\xi,\qquad
+ r_{\rm end}=1+\eta_+r_*U\xi,\qquad
+ Y=cU\xi,\quad c=(1-\eta_+)r_*>0.
+\]
+这与正文中的财富和参考点递推完全一致。状态与价值均有界，特征映射有界，紧参数域则给出\Cref{lem:dirichlet-moments}中的统一似然界。将 $p$ 限制在固定紧区间 $I\subset(0,1)$ 内，不会改变这些界。按照假设~\ref{ass:oracle}的要求，可选择共同的模型类常数，使其控制该子模型对应的常数。损失效用在此子模型中为零。整个构造直接来自投资组合轨迹，因此无需另行假设抽象梯度向量的分布。
+
+\paragraph{步骤二：分离真实的 CPT 梯度。}
+令 $v=v_+$ 为固定的光滑收益价值函数，并对 $t\in[0,1]$ 定义 $m(t)=c\,v'(ct)$。对 $t>0$ 有 $m(t)>0$，且 $m$ 有界。在 CPT 生存积分中作变量代换 $z=v(ct)$，得到
+\begin{equation}\label{eq:submodel-cpt}
+ J_p(\theta)=\int_0^1 m(t)w_+^\eps\{p(1-t^{e^{\theta^{[1]}}})\}\,dt.
+\end{equation}
+具体地，对 $0<t<1$，有 $\Pp\{v(Y)>v(ct)\}=p\Pp(U>t)=p(1-t^{e^{\theta^{[1]}}})$。当阈值高于 $v(c)$ 时，生存概率为零，且 $w_+^\eps(0)=0$。在 $\theta_0=0$ 处对上述有界可积表达式求导，得到
+\begin{equation}\label{eq:submodel-gradient}
+ \nabla J_p(0)=\mathfrak g(p)e_1,\qquad
+ \mathfrak g(p)=p\int_0^1m(t)(w_+^\eps)'(p(1-t))(-t\log t)\,dt.
+\end{equation}
+在 $a_{\rm risky}$ 的任一紧正区间上，函数 $t^{a_{\rm risky}}|\log t|$ 都具有统一的可积上界，因此交换微分与积分是合法的。令
+\[
+ A_v=\int_0^1m(t)(-t\log t)\,dt>0,
+ \qquad w_0=(w_+^\eps)'(0)>0.
+\]
+利用 $|(w_+^\eps)''|\le C_2$，再对 $p$ 求一次导数：
+\begin{align*}
+ \mathfrak g'(p)&=\int_0^1m(t)(-t\log t)
+ [(w_+^\eps)'(p(1-t))+p(1-t)(w_+^\eps)''(p(1-t))]dt\\
+ &\ge (w_0-2C_2p)A_v.
+\end{align*}
+选取 $p_{\max}\in(0,1/4]$，使 $2C_2p_{\max}\le w_0/2$；当 $C_2=0$ 时同样可以完成这一选择。定义 $p_*=p_{\max}/2$、$I=[p_*/2,3p_*/2]$ 以及 $m_*=w_0 A_v/2>0$。于是，在整个区间 $I$ 上均有 $\mathfrak g'(p)\ge m_*$。该导数严格为正，直接证明了梯度泛函的局部可识别性，所需结论来自梯度对 $p$ 的分离程度。
+
+\paragraph{步骤三：停止自适应实验中的信息量。}
+对 $B\ge1$，取 $p_\pm=p_*\pm\delta$，其中 $\delta=c_*/\sqrt B$，固定常数 $c_*>0$ 将在后文取得足够小。令 $c_*\le p_*/2$，即可保证 $p_\pm\in I$。单次调用所对应的 Bernoulli 相对熵满足
+\[
+ \operatorname{kl}(p_+\Vert p_-)
+ \le\frac{(p_+-p_-)^2}{p_-(1-p_-)}
+ \le C_I\delta^2,
+ \qquad C_I=\frac{4}{(p_*/2)(1-3p_*/2)}.
+\]
+第一个不等式是在两个 Bernoulli 似然项上分别使用 $\log x\le x-1$ 得到的。在任意策略查询点，$p_+$ 和 $p_-$ 下的条件动作分布相同，只有 Bernoulli 收益核不同。因此，即使当前查询依赖此前观测，每条新轨迹贡献的相对熵仍恰好等于上述 Bernoulli 相对熵。
+
+为完整处理算法内部随机性，将所有相互独立的算法随机量都纳入观测记录，并以 $N_{\rm call}$ 表示停止时的调用次数。在两个模型下，条件查询规则和停止规则都是观测历史的同一函数。对一条长度为 $n$ 的已观测停止历史，其似然比为
+\[
+ \prod_{j=1}^n
+ \left(\frac{p_+}{p_-}\right)^{\xi_j}
+ \left(\frac{1-p_+}{1-p_-}\right)^{1-\xi_j}.
+\]
+先在每个事件 $\{N_{\rm call}=n\}$ 上逐项相乘条件核即可得到该式，因为共同的动作、算法随机量和停止因子会相互约去。两个模型下的 $N_{\rm call}$ 均有有限期望，所以 $N_{\rm call}<\infty$ 几乎处处成立，事件 $\{N_{\rm call}=n\}$ 穷尽整个停止实验。又因为 $p_\pm$ 位于固定内部区间 $I$，似然增量有界，其停止绝对和的期望至多为某个有限常数乘以 $\E_+N_{\rm call}$，从而可以交换级数与期望。事件 $\{N_{\rm call}\ge j\}$ 在第 $j$ 个新收益率出现之前可测，因此
+\begin{align}
+ \operatorname{KL}(\mathbb P_+^{\rm tr}\Vert\mathbb P_-^{\rm tr})
+ &=\sum_{j\ge1}\E_+\left[\1\{N_{\rm call}\ge j\}
+ \log\frac{p_+^{\xi_j}(1-p_+)^{1-\xi_j}}
+ {p_-^{\xi_j}(1-p_-)^{1-\xi_j}}\right]\notag\\
+ &=\E_+N_{\rm call}\,\operatorname{kl}(p_+\Vert p_-)
+ \le BC_I\delta^2=C_Ic_*^2.\label{eq:stopped-kl}
+\end{align}
+该推导证明了期望预算和自适应停止条件下的信息界，也涵盖确定样本量这一特殊情形。进一步减小 $c_*$，使 $C_Ic_*^2\le1/8$。由 Pinsker 不等式，总变差距离至多为 $1/4$。
+
+\paragraph{步骤四：从估计归约到检验。}
+由中值定理，两个欧氏目标之间的距离满足
+\[
+ D_B=\norm{\mathfrak g(p_+)e_1-\mathfrak g(p_-)e_1}_2
+ \ge 2m_*\delta.
+\]
+给定任意估计器，可构造一个检验，选择与估计值距离更近的目标。发生检验错误时，由三角不等式，估计值到真实目标的距离至少为 $D_B/2$。两个检验错误概率之和至少等于一减总变差距离。具体而言，对任意判决事件 $A$，该概率和为 $\mathbb P_+(A^c)+\mathbb P_-(A)=1-[\mathbb P_+(A)-\mathbb P_-(A)]$。因此
+\begin{align*}
+ \max_{s\in\{+,-\}}\E_s\norm{\widehat g-\mathfrak g(p_s)e_1}_2^2
+ &\ge\frac{D_B^2}{8}
+ [1-\operatorname{TV}(\mathbb P_+^{\rm tr},\mathbb P_-^{\rm tr})]\\
+ &\ge\frac{3m_*^2c_*^2}{8B}.
+\end{align*}
+任何满足模型类统一期望预算的过程，在这个两点子模型上也满足相同预算。对所有这类过程取下确界，得到模型类下界，其中 $c_{\rm lb}=3m_*^2c_*^2/8>0$。所用检验不等式是经典结果\citep{tsybakov2009introduction}；上述模型嵌入和停止信息量计算给出了这些不等式在本文问题中所需的输入。
+
+\paragraph{步骤五：匹配的成本校准上界。}
+对每个 $P\in\mathfrak C$，共同的原始量界给出统一的 $C_{\db}$，并给出\Cref{prop:debias}中的同一个 $C_{\rm cost}$。在 $\theta_0$ 处运行 $M=\lfloor B/C_{\rm cost}\rfloor$ 次完整、相互独立且未截断的重复模拟。当层级和完成当前重复模拟所需的剩余抽样次数都作为算法状态的一部分时，总轨迹数构成一个允许的停止时刻。其期望成本满足 $MC_{\rm cost}\le B$。由精确抽样和\Cref{thm:variance}，
+\[
+ \sup_{P\in\mathfrak C}\E_P\norm{\widehat g-g_P}_2^2
+ \le C_{\db}/M\le 2C_{\db}C_{\rm cost}/B
+\]
+对所有 $B\ge2C_{\rm cost}$ 成立。至此，在同一模型类上、针对同一目标与损失、使用同一预言机和期望原始轨迹预算，定理的上下界均已得到证明。
+\end{proof}

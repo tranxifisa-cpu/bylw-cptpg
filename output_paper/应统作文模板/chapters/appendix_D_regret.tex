@@ -1,0 +1,111 @@
+\section{驻点集合漂移与动态局部遗憾的证明}\label{app:regret-proofs}
+
+\subsection{\texorpdfstring{\Cref{lem:set-drift}}{驻点集漂移引理}的证明}
+\begin{proof}
+映射 $\mathsf d(g)$ 是 $g/a_0$ 在闭单位球上的欧氏投影。欧氏投影的非扩张性给出
+\begin{equation}\label{eq:normalization-lipschitz}
+ \norm{\mathsf d(g)-\mathsf d(g')}_2\le a_0^{-1}\norm{g-g'}_2.
+\end{equation}
+再利用 $\Pi_\Theta$ 的非扩张性以及相邻时期采用相同的步长，可得
+\[
+ \sup_{\theta\in\Theta}\norm{Q_{k+1}(\theta)-Q_k(\theta)}_2
+ \le \delta_k^{g}/a_0.
+\]
+对任意 $\theta\in\Sta_k$，由驻点集的定义有 $Q_k(\theta)=0$。因此，新时期的误差界将上述残差扰动转换为集合距离界，得到
+$\dist(\theta,\Sta_{k+1})\le\kappa \delta_k^{g}/a_0$。
+对旧驻点集中的 $\theta$ 取上确界，即得到一个方向上的有向 Hausdorff 距离界。交换两个时期，并使用同一个统一常数 $\kappa$，即可得到反方向的有向 Hausdorff 距离界。两个驻点集都是 $\Theta$ 的非空紧子集，故其 Hausdorff 距离有定义，并满足引理所述上界。
+\end{proof}
+
+\subsection{投影上升不等式}
+% LEAN_TARGET: normalized_projected_one_step
+\begin{lemma}[单步归一化投影上升]\label{lem:projected-ascent}
+设 $J$ 在非空闭凸集 $\Theta$ 上是 $L$ 光滑的，$x\in\Theta$，$g=\nabla J(x)$，且 $\norm g_2\le B_g$。对任意有限向量 $\widehat g$，定义
+\[
+ x^+=\Pi_\Theta(x+\gamma \mathsf d(\widehat g)),\qquad
+ Q(x)=\gamma^{-1}\{\Pi_\Theta(x+\gamma \mathsf d(g))-x\}.
+\]
+若 $a_0,\gamma>0$、$\gamma L\le a_0$，并令 $C_g=\max(B_g,a_0)$，则
+\begin{equation}\label{eq:projected-ascent}
+ J(x^+)-J(x)
+ \ge\frac{a_0\gamma}{8}\norm{Q(x)}_2^2
+ -\frac{5C_g\gamma}{4a_0^2}\norm{\widehat g-g}_2^2.
+\end{equation}
+\end{lemma}
+% PROOF_DEPENDENCIES: Only the deterministic smoothness and projection conditions in the statement. No unbiasedness, bounded sample score, alignment condition, or stationary-set error bound is needed.
+\begin{proof}
+记 $s=x^+-x$、$c_g=\max(\norm g_2,a_0)$，并令 $\delta=\mathsf d(\widehat g)-\mathsf d(g)$。将可行点 $x$ 代入投影变分不等式，得到
+\[
+ \ip{\mathsf d(\widehat g),s}\ge\norm s_2^2/\gamma.
+\]
+由于 $g=c_g\,\mathsf d(g)$，结合 $L$ 光滑函数的下界，可逐行得到
+\begin{align}
+ J(x+s)-J(x)
+ &\ge\ip{g,s}-\tfrac L2\norm s_2^2\notag\\
+ &\ge(c_g/\gamma-L/2)\norm s_2^2-c_g\norm\delta_2\norm s_2\notag\\
+ &\ge(3c_g/(4\gamma)-L/2)\norm s_2^2-c_g\gamma\norm\delta_2^2\notag\\
+ &\ge\frac{c_g}{4\gamma}\norm s_2^2-c_g\gamma\norm\delta_2^2.
+ \label{eq:actual-displacement-bound}
+\end{align}
+第一行来自光滑性下界。第二行将 $g=c_g\mathsf d(g)$ 代入，并把 $\mathsf d(g)$ 写成 $\mathsf d(\widehat g)-\delta$，随后使用投影变分不等式控制主项。第三行使用
+$c_g u v\le c_g u^2/(4\gamma)+c_g\gamma v^2$，其中 $u=\norm s_2$、$v=\norm\delta_2$；第四行使用 $\gamma L\le a_0\le c_g$。这些步骤分别保留了实际位移的正贡献和方向误差的二次代价。
+
+令 $t=\Pi_\Theta(x+\gamma \mathsf d(g))-x=\gamma Q(x)$。投影的非扩张性给出 $\norm{s-t}_2\le\gamma\norm\delta_2$，进而有
+\[
+ \norm s_2^2\ge\tfrac12\norm t_2^2-\gamma^2\norm\delta_2^2.
+\]
+将该不等式代入式~\eqref{eq:actual-displacement-bound}，得到
+\[
+ J(x^+)-J(x)\ge\frac{c_g\gamma}{8}\norm{Q(x)}_2^2
+ -\frac{5c_g\gamma}{4}\norm\delta_2^2.
+\]
+最后，由 $a_0\le c_g\le C_g$ 以及式~\eqref{eq:normalization-lipschitz}，可得式~\eqref{eq:projected-ascent}。即使投影消除了整个可行步长，该不等式仍然成立。
+\end{proof}
+
+\subsection{\texorpdfstring{\Cref{thm:dynamic-regret}}{在线残差定理}的证明}
+\begin{proof}
+逐期应用\Cref{lem:projected-ascent}，先对 $\cF_k$ 条件化，再取全期望。记 $\Delta J_k=J_k(\theta_{k+1},r_{k})-J_k(\theta_k,r_{k})$，则
+\begin{equation}\label{eq:one-step}
+ \frac{a_0\gamma}{8}\E\norm{Q_k(\theta_k)}_2^2
+ \le\E\Delta J_k+\frac{5C_g\gamma}{4a_0^2}\E e_k^2.
+\end{equation}
+这里，左侧衡量第 $k$ 期真实投影残差的平方，右侧由同一期目标的改进量和方向估计误差构成。
+
+对任意已经实现的目标函数序列和迭代点序列，都有以下逐路径恒等式与上界：
+\begin{align}
+ \sum_{k=1}^K\Delta J_k
+ ={}&J_K(\theta_{K+1},r_{K})-J_1(\theta_1,r_{1})\notag\\
+ &+\sum_{k=1}^{K-1}
+ [J_k(\theta_{k+1},r_{k})-J_{k+1}(\theta_{k+1},r_{k+1})]
+ \le2B_J+V_K.
+ \label{eq:pathwise-telescope}
+\end{align}
+第一项由目标值的统一界控制，求和中的每一项则在同一参数 $\theta_{k+1}$ 处比较相邻时期目标，并由变化预算 $V_K$ 控制。该恒等式完全来自代数上的望远镜展开；即使下一期情境由当前过程内生生成，恒等式仍然成立。对式~\eqref{eq:one-step} 从 $k=1$ 到 $K$ 求和，使用式~\eqref{eq:pathwise-telescope}，再除以 $a_0\gamma K/8$，即可证明式~\eqref{eq:main-bound}。其中常数 $8$ 和 $10$ 正是由该除法得到。对本文实现的估计器，\Cref{thm:variance}进一步给出式~\eqref{eq:algorithm-mse-substitution}中的均方误差代换。
+
+下面证明窗口结论。令 $\alpha_{k,j}=\rho^j/A_k$。由于这些系数非负且和为一，Jensen 不等式给出
+\[
+ \norm{\overline Q_k}_2^2
+ \le\sum_{j=0}^{\min(w-1,k-1)}\alpha_{k,j}
+ \norm{Q_{k-j}(\theta_{k-j})}_2^2.
+\]
+每个逐期残差最多出现在 $w$ 个窗口中，并且每个系数至多为一。因此，对 $k$ 求和可得 $\Reg_{\rho,w}^Q(K)\le w\sum_k\norm{Q_k(\theta_k)}_2^2$。当窗口长度随时间增长时，因同一残差可能被多个窗口重复计入，因子 $w$ 必须保留。
+
+最后，在中间目标 $J(P_{k+1},z_{k+1},r_k;\theta)$ 处拆分相邻目标之差。由三角不等式和式~\eqref{eq:reference-value-sensitivity}，得到
+\[
+ \delta_k^{J}\le \delta_k^{\rm nr}+C_1D_h(|r_{k+1}-r_k|).
+\]
+对该逐路径不等式求和，即得到式~\eqref{eq:reference-budget}。$\delta_k^{\rm nr}$ 保留了市场变化、起始财富、上一期持仓以及市场初始状态的影响。证明中没有假定有界 Lipschitz 距离能够控制无界得分核。
+\end{proof}
+
+\subsection{\texorpdfstring{\Cref{cor:static}}{固定目标极限推论}的证明}
+\begin{proof}
+当 $J_k\equiv J$ 时，$V_K=0$。对固定的正数 $a_0$ 和 $\gamma$，式~\eqref{eq:main-bound}的第一项趋于零；由平均均方误差条件，第二项也趋于零。对于时变目标，附加条件 $\E V_K=o(K)$ 可得到同样结论。
+
+在精确且未截断的模拟中，可以取 $e_k^2=C_{\db}/M_k$。若 $M_k\to\infty$ 几乎处处成立，则 $1/M_k\to0$ 也几乎处处成立，且 $0\le1/M_k\le1$。由控制收敛定理，$\E[1/M_k]\to0$，其 Ces\`aro 平均也趋于零。上述结论针对期望残差平方的平均值，不推出迭代点逐点收敛或几乎处处收敛。
+\end{proof}
+
+\subsection{\texorpdfstring{\Cref{cor:set-tracking}}{集合跟踪推论}的证明}
+\begin{proof}
+对每一个纳入分析的迭代点，可选误差界给出
+$\dist^2(\theta_k,\Sta_k)\le\kappa^2\norm{Q_k(\theta_k)}_2^2$。
+两边取期望后再对时期求平均，将式~\eqref{eq:main-bound}代入即可证明有限时间结论；极限结论由\Cref{cor:static}推出。该证明没有使用 Jensen 不等式的逆命题，也没有使用驻点集漂移引理。
+\end{proof}

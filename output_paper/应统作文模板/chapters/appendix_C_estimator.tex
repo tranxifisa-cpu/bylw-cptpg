@@ -1,0 +1,243 @@
+\section{CPT 梯度与估计量的证明}\label{app:estimator-proofs}
+
+\subsection{\texorpdfstring{\Cref{thm:gradient-identity}}{CPT 梯度恒等式}的证明}
+\begin{lemma}[Dirichlet 似然矩与支配条件]\label{lem:dirichlet-moments}
+在假设~\ref{ass:bounded} 的紧参数域与参数无关转移核等基础条件下，对每个有界且不显含参数的轨迹泛函，轨迹似然都可以在积分号下求两次导数。对任意固定实数 $p\ge1$，存在有限的一致常数 $C_{G,p}$，使得
+\[
+ \E_\theta\norm{G}_2^p\le C_{G,p},\qquad
+ \E_\theta\norm{H_{\rm lik}}_{\op}\le C_H<\infty,
+ \qquad H_{\rm lik}=\nabla_\theta^2\log p_\theta(\tau).
+\]
+这些常数可以依赖 $p,d,N,h,Q_f$ 以及参数的紧邻域。上述界约束得分的固定阶矩，得分自身仍可因极小权重而任意增大。
+\end{lemma}
+
+\begin{proof}
+选取 $\Theta$ 的一个有界开邻域 $O$，使其闭包包含在允许的参数域内，并令
+$B_\theta=\sup_{\theta\in\overline O}\norm\theta_2$。对所有状态和
+$\theta\in O$，一致地有
+\[
+ \underline a=e^{-B_\theta Q_f}\le a_i\le e^{B_\theta Q_f}=\overline a,
+ \qquad (N+1)\underline a\le a_\Sigma\le(N+1)\overline a.
+\]
+这些不等式由 $\theta^\top q_i$ 上的柯西施瓦茨不等式得到。令
+$t=\underline a/2$。给定采取动作前的状态，Dirichlet 边缘分布的负矩为
+\begin{equation}\label{eq:dirichlet-negative-moment}
+ \E[\omega_i^{-t}\mid s]
+ =\frac{\Gamma(a_\Sigma)\Gamma(a_i-t)}{\Gamma(a_i)\Gamma(a_\Sigma-t)}.
+\end{equation}
+所有 Gamma 函数自变量都落在 $(0,\infty)$ 的紧子集上，因此该比值具有有限的一致上界。该公式可以直接对 Dirichlet 密度积分得到：把指数
+$a_i-1$ 替换为 $a_i-t-1$，再取两个归一化常数之比。对
+$x\in(0,1]$，令 $z=-\log x\ge0$。由于 $z^p e^{-tz}$ 在
+$[0,\infty)$ 上有界，故
+$|\log x|^p\le C_{p,t}x^{-t}$。因此，式~\eqref{eq:dirichlet-negative-moment} 控制了每个固定阶数的条件对数矩。
+
+单次动作对应的得分贡献为
+\[
+ G_u=\sum_i a_iq_i \Lambda_i,\qquad
+ \Lambda_i=\log\omega_i-\psi_0(a_i)+\psi_0(a_\Sigma).
+\]
+在浓度参数域内，除对数项外的所有系数与双伽马函数项均一致有界。结合不等式
+$\norm{\sum_{j=1}^m x_j}_2^p\le m^{p-1}\sum_{j=1}^m\norm{x_j}_2^p$、条件期望以及对资产和日期的有限求和，可得到一致常数 $C_{G,p}$。后续状态依赖先前动作，并不要求各期得分贡献相互独立；逐期条件矩界已经足够。
+
+以 $\psi_1$ 表示三伽马函数，并令 $q_\Sigma=\sum_i a_iq_i$。在固定轨迹上求导时，每个 $q_i$ 均视为固定量，从而得到
+\begin{equation}\label{eq:dirichlet-hessian}
+ H_{{\rm lik},u}=\sum_i a_iq_iq_i^\top \Lambda_i
+ +\psi_1(a_\Sigma)q_\Sigma q_\Sigma^\top
+ -\sum_i\psi_1(a_i)a_i^2q_iq_i^\top.
+\end{equation}
+系数有界及条件一阶对数矩有界共同推出
+$\E\norm{H_{{\rm lik},u}}_{\op}$ 的一致上界。对 $h$ 个日期求和便得到 $C_H$。
+
+为了证明可以在轨迹积分号下求导，定义参考概率律 $\nu$。该概率律采用相同的市场转移核与初始状态，并对每项资产使用与状态无关的 Dirichlet 动作浓度
+$b_*:=\underline a/2$。给定一条完整轨迹，其似然比是有限时域内下列因子的乘积：
+\[
+ \frac{\Gamma(a_\Sigma)}{\prod_i\Gamma(a_i)}
+ \frac{\Gamma(b_*)^{N+1}}{\Gamma((N+1)b_*)}
+ \prod_i\omega_i^{a_i-b_*}.
+\]
+归一化因子及其关于参数的一阶、二阶导数均一致有界。每个指数
+$a_i-b_*$ 至少为 $\underline a/2>0$。乘积的一阶与二阶导数只会引入有界系数，以及至多两个对数项的乘积。对每个这样的幂次，
+$x^{\underline a/2}|\log x|^j$ 在 $(0,1]$ 上有界。因此，似然比及其前两阶导数相对于概率测度 $\nu$ 都存在有限的常数包络。该论证也覆盖不同日期之间的交叉项。
+
+由此，支配微分适用于每个有界轨迹泛函。特别地，
+\begin{equation}\label{eq:second-likelihood-interface}
+ \nabla_\theta^2\E_\theta F
+ =\E_\theta[F(H_{\rm lik}+GG^\top)].
+\end{equation}
+条件市场转移核不直接依赖参数，所以它们在似然比中相消。该论证不要求收益规律相对于 Lebesgue 测度具有密度。对每个冻结模拟器，同样的证明成立，并且共同参数域给出一致常数。
+\end{proof}
+
+下面证明定理~\ref{thm:gradient-identity} 中的梯度恒等式与光滑性结论。
+\begin{proof}
+固定真实模型或模拟模型的条件轨迹分布以及一个参数值。由似然条件，对任意有界可测且不显含参数的轨迹泛函 $F$，有
+\begin{equation}\label{eq:likelihood-interface}
+ \nabla_\theta\E_\theta F=\E_\theta[FG].
+\end{equation}
+特别地，$\E G=\nabla 1=0$；对每个阈值 $z$，
+\[
+ \nabla S_\pm(z)=\E[\1\{v_\pm(Y)>z\}G]
+ =\E[(\1\{v_\pm(Y)>z\}-S_\pm(z))G].
+\]
+由于 $\norm{\nabla S_\pm(z)}_2\le\sqrt{C_{G,2}}$ 且
+$|(w_\pm^\eps)'|\le C_1$，导数的被积函数在有限区间
+$[0,B_v]$ 上存在可积上界。应用链式法则并在积分号下求导，即得式~\eqref{eq:gradient-identity}。又因为
+$|\psi|\le2B_vC_1$ 且 $\E\norm{G}_2<\infty$，Fubini 定理适用，并同时给出式~\eqref{eq:gradient-bound}。这里将路径递推整体视为固定的可测轨迹泛函，不对历史期初状态求导。
+
+为完整证明梯度的 Lipschitz 连续性，使用引理~\ref{lem:dirichlet-moments} 中的二阶支配似然微分，得到
+\[
+ \nabla^2 S_\pm(z)=\E[\1\{v_\pm(Y)>z\}(H_{\rm lik}+GG^\top)].
+\]
+因此，$\norm{\nabla^2S_\pm(z)}_{\op}\le C_H+C_{G,2}$，且上述一阶导数满足
+$\norm{\nabla S_\pm(z)}_2\le\sqrt{C_{G,2}}$。对任一概率权重函数应用 Hessian 链式法则，得到
+\[
+ \nabla^2 w_\pm^\eps(S_\pm)
+ =(w_\pm^\eps)''(S_\pm)\nabla S_\pm\nabla S_\pm^\top
+ +(w_\pm^\eps)'(S_\pm)\nabla^2S_\pm.
+\]
+在每个阈值处，该 Hessian 的算子范数至多为
+$C_2C_{G,2}+C_1(C_{G,2}+C_H)$。对两个长度均为 $B_v$ 的区间积分，得到式~\eqref{eq:derived-smoothness} 的上界。对
+$\theta,\theta'\in\Theta$，二者之间的线段包含于 $\Theta$；沿该线段对 Hessian 积分，得到
+$\norm{\nabla J(\theta')-\nabla J(\theta)}_2\le L\norm{\theta'-\theta}_2$。
+参考点递推以及 $Y$ 中可能存在的原子都不会妨碍该论证，因为每个阈值指示变量都是有界且不显含参数的轨迹泛函。
+\end{proof}
+
+\subsection{\texorpdfstring{\Cref{prop:debias}}{耦合估计量命题}的证明}
+\begin{proof}
+固定时期初始条件、参数与模拟规律，以 $S$ 表示相应的精确模拟生存函数。在式~\eqref{eq:T-definition} 中将每个经验生存函数替换为对应的精确模拟生存函数，定义 $T_k^{(\infty)}$。先对外层轨迹作条件化。对 $I\in\{0,1\}$，
+\[
+ f'(p,I)=(w^\eps)''(p)(I-p)-(w^\eps)'(p),\qquad
+ f''(p,I)=(w^\eps)'''(p)(I-p)-2(w^\eps)''(p).
+\]
+因此 $|f''|\le H_f$。对每个固定阈值，$\widehat S_n$ 是均值为 $S$ 的独立 Bernoulli 变量的样本均值，并且独立于外层轨迹。于是
+\[
+ \E(\widehat S_n-S)=0,\qquad
+ \E(\widehat S_n-S)^2=S(1-S)/n\le1/(4n).
+\]
+带积分余项的 Taylor 定理给出
+\[
+ |\E[f(\widehat S_n,I)\mid\tau^{(0)}]-f(S,I)|
+ \le H_f/(8n).
+\]
+在两个长度为 $B_v$ 的区间上积分，乘以外层得分，再使用
+$\E\norm{G_0}_2\le\sqrt{C_{G,2}}$，可得
+$\norm{\E T_k^{(n)}-\E T_k^{(\infty)}}_2\le A_b/n$。定理~\ref{thm:gradient-identity} 表明
+$\E T_k^{(\infty)}=\widetilde g_k$。另外，
+$\norm{T_{k,0}}_2\le2B_vC_1\norm{G_0}_2$，从而得到基础层的上界 $C_0$。
+
+下面证明全样本与半样本耦合差分的界。令 $n=n_\ell=2m$。在一个固定阈值处，以
+$x$ 和 $y$ 表示两个半样本的生存概率均值，则完整样本均值恰为
+$(x+y)/2$。围绕该中点展开 Taylor 公式，得到
+\begin{equation}\label{eq:midpoint-remainder}
+ \left|f\left(\frac{x+y}2,I\right)-\frac{f(x,I)+f(y,I)}2\right|
+ \le\frac{H_f}{8}(x-y)^2.
+\end{equation}
+为了控制四阶矩，将两个半样本中的 Bernoulli 变量配对，并令
+$\zeta_j=I_j^{(1)}-I_j^{(2)}$。这些变量相互独立、均值为零，而且满足
+$\E \zeta_j^2=\E \zeta_j^4=2S(1-S)\le1/2$。展开四次方并消去奇数次交叉项，可得
+\begin{align}
+ \E|x-y|^4
+ &=\frac{m\E \zeta_1^4+3m(m-1)(\E \zeta_1^2)^2}{m^4}\notag\\
+ &\le\frac{3}{4m^2}=\frac3{n^2}.
+ \label{eq:bernoulli-fourth-moment}
+\end{align}
+以 $R_+(z),R_-(z)$ 表示标量中点余项。在两个互不相交区间的并集上应用柯西施瓦茨不等式，得到
+\[
+ \left|\int R_+-\int R_-\right|^2
+ \le2B_v\left(\int|R_+|^2+\int|R_-|^2\right).
+\]
+内层样本上界对外层指示变量一致成立。先给定外层轨迹，应用式~\eqref{eq:midpoint-remainder} 至式~\eqref{eq:bernoulli-fourth-moment}，再对外层轨迹取期望，可得
+\[
+ \E\norm{\Delta_{k,\ell}}_2^2
+ \le C_{G,2}(2B_v)(2B_v)\frac{H_f^2}{64}\frac3{n_\ell^2}
+ =D2^{-2\ell}.
+\]
+该上界允许不同阈值之间存在依赖，也允许收益侧指示变量与损失侧指示变量之间存在依赖。
+
+尽管两个半样本统计量共享同一条外层轨迹，每个半样本统计量的边缘分布仍与
+$T_{k,\ell-1}$ 相同。因此，对 $\ell\ge1$，
+$\E\Delta_{k,\ell}=\E T_{k,\ell}-\E T_{k,\ell-1}$。矩界进一步给出
+\[
+ \sum_{\ell=0}^\infty\E\norm{\Delta_{k,\ell}}_2
+ \le\sqrt{C_0}+\sqrt D\sum_{\ell=1}^\infty2^{-\ell}<\infty.
+\]
+绝对可积性使得独立随机层级下可以交换求和与期望，故
+\[
+ \E Z=\sum_{\ell=0}^\infty\E\Delta_{k,\ell}
+ =\lim_{\ell\to\infty}\E T_{k,\ell}=\widetilde g_k.
+\]
+同样，利用非负项求和可得
+\[
+ \E\norm{Z}_2^2
+ =\sum_{\ell=0}^\infty\frac{\E\norm{\Delta_{k,\ell}}_2^2}{p_\ell}
+ \le\frac{C_0+D\sum_{\ell=1}^\infty2^{-(2-a)\ell}}{1-2^{-a}}
+ =C_{\db}.
+\]
+一次重复恰好使用 $1+N_02^{\mathcal L}$ 条原始轨迹。对该成本求和，得到式~\eqref{eq:uniform-db-constant} 中的 $C_{\rm cost}$。上述两个收敛的几何级数分别要求 $a<2$ 和 $a>1$。排序带来的层级因子为 $O(1+\ell)$，乘上该因子后成本级数仍然收敛。
+
+对于有限层级上限，令
+$p_{\le L_{\max}}=\sum_{j=0}^{L_{\max}}p_j$。截断层级在
+$0,\ldots,L_{\max}$ 上的分布为
+$q_\ell=p_\ell/p_{\le L_{\max}}$。于是
+\[
+ \begin{gathered}
+ \E Z^{\db,(L_{\max})}=\sum_{\ell=0}^{L_{\max}}\E\Delta_{k,\ell}
+ =\E T_{k,L_{\max}},\\
+ \E\norm{Z^{\db,(L_{\max})}}_2^2=p_{\le L_{\max}}
+ \sum_{\ell=0}^{L_{\max}}
+ \frac{\E\norm{\Delta_{k,\ell}}_2^2}{p_\ell}\le C_{\db}.
+ \end{gathered}
+\]
+结合 $n_{L_{\max}}=N_02^{L_{\max}}$ 下的期望偏差界，即可证明其余结论。这里使用的是指定的归一化有限层级分布。若先按原概率抽取层级，再直接裁剪所抽到的层级且仍沿用原概率，便不是本证明分析的构造。
+\end{proof}
+
+\subsection{\texorpdfstring{\Cref{thm:variance}}{方差定理}的证明}
+\begin{proof}
+固定条件环境。对于相互独立的完整重复样本，各中心化输出之间的交叉协方差为零。因此
+\[
+ \tr\Var\left(M^{-1}\sum_{b=1}^MZ_b\right)
+ =M^{-1}\tr\Var(Z_1)\le C_{\db}/M.
+\]
+未截断时，均值为 $\widetilde g_k$；层级上限为 $L_{\max}$ 时，均值为
+$\E T_{k,L_{\max}}$。作如下分解：
+\[
+ \E\norm{\widehat g-g_k}_2^2
+ =\tr\Var(\widehat g)+\norm{\E\widehat g-g_k}_2^2.
+\]
+确定性的条件偏差由模拟偏差与截断偏差相加得到。应用
+$\norm{a+b}_2^2\le2\norm a_2^2+2\norm b_2^2$，即得式~\eqref{eq:total-mse}。
+
+对于代入估计量，以 $\mathcal I$ 表示完整的内层样本。给定
+$\mathcal I$ 后，$m$ 个外层项相互独立，且每一项的二阶矩至多为
+$C_0$。以 $\mu(\mathcal I)$ 表示单个外层项的条件均值。全方差公式的迹形式给出
+\begin{equation}\label{eq:plugin-total-variance}
+ \tr\Var(\widehat g_{n,m}^{\pl})
+ \le C_0/m+\E\norm{\mu(\mathcal I)-\E \mu(\mathcal I)}_2^2.
+\end{equation}
+替换一条内层轨迹时，每个阈值处任一经验生存函数的改变量至多为
+$1/n$。由于 $|f'(p,I)|\le C_1+C_2$，由此造成的条件均值改变量的范数至多为
+$2B_v(C_1+C_2)\sqrt{C_{G,2}}/n$。
+
+向量形式的 Efron 与 Stein 不等式可以通过对每个坐标应用标量形式后求和得到。以 $\mathcal I^{(i)}$ 表示将第 $i$ 个内层样本独立替换后形成的样本组，则
+\[
+ \E\norm{\mu(\mathcal I)-\E \mu(\mathcal I)}_2^2
+ \le\frac12\sum_{i=1}^n
+ \E\norm{\mu(\mathcal I)-\mu(\mathcal I^{(i)})}_2^2
+ \le\frac{2B_v^2(C_1+C_2)^2C_{G,2}}{n}.
+\]
+由命题~\ref{prop:debias}，相对于 $\widetilde g_k$ 的均值偏差至多为
+$A_b/n$。加入模拟偏差，使用同一个两项平方不等式，并与式~\eqref{eq:plugin-total-variance} 合并，即得式~\eqref{eq:plugin-mse}。该推导完整保留了多个外层项共享同一内层样本所造成的依赖关系。
+\end{proof}
+
+\subsection{\texorpdfstring{\Cref{thm:clt}}{固定时期中心极限定理}的证明}
+\begin{proof}
+对几乎处处成立的固定条件环境，中心化向量
+$Z_b-\widetilde g_k$ 独立同分布且具有有限协方差。对任意确定的
+$t\in\R^d$，标量变量
+$t^\top(Z_b-\widetilde g_k)$ 独立同分布，均值为零，方差为
+$t^\top\Sigma_kt$。标量独立同分布中心极限定理与 Cramér 和 Wold 定理共同推出式~\eqref{eq:clt}，并允许协方差矩阵奇异。这些概率极限定理作用于固定的条件分布，不涉及随样本量变化的模型序列。
+
+每个协方差矩阵元素都具有有限一阶矩，因为
+$\E|Z_iZ_j|\le(\E Z_i^2\E Z_j^2)^{1/2}<\infty$。对各矩阵元素及样本均值应用独立同分布强大数定律，可得经验协方差的一致性。若
+$\Sigma_k$ 正定，则逆平方根映射在 $\Sigma_k$ 的某个邻域内连续。随着概率趋于 1，经验协方差落入该邻域；在其补集上任意定义标准化统计量，不会改变极限。再由 Slutsky 定理得到学生化结论。整个论证只使用有限二阶矩。若模拟器存在误差，把中心改为 $g_k$ 会额外引入不消失的确定性位移
+$\sqrt M(\widetilde g_k-g_k)$，因此不能作这一替换。
+\end{proof}

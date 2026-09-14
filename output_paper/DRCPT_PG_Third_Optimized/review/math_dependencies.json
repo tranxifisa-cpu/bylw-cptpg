@@ -1,0 +1,255 @@
+{
+  "results": [
+    {
+      "tex_label": "prop:path-dependence",
+      "suggested_lean_target": "reference_path_difference_and_sensitivity",
+      "statement": {
+        "number": "5.1",
+        "page": 11
+      },
+      "proof_subsection": "B.1",
+      "depends_on": [
+        "ass:bounded",
+        "ass:smooth-cpt",
+        "ass:reference-coupling",
+        "thm:gradient-identity"
+      ],
+      "quantification_scope": "Fixed law/context/parameter; two admissible initial references. The algebraic path and contraction parts require only the reference recursion.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized"
+    },
+    {
+      "tex_label": "thm:gradient-identity",
+      "suggested_lean_target": "cpt_score_gradient_identity",
+      "statement": {
+        "number": "5.2",
+        "page": 12
+      },
+      "proof_subsection": "C.1",
+      "depends_on": [
+        "ass:bounded",
+        "ass:smooth-cpt",
+        "lem:dirichlet-moments"
+      ],
+      "quantification_scope": "Fixed episode, context, parameter and true OR frozen simulation law.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized"
+    },
+    {
+      "tex_label": "prop:debias",
+      "suggested_lean_target": "antithetic_rates_and_randomized_debiasing",
+      "statement": {
+        "number": "5.3",
+        "page": 12
+      },
+      "proof_subsection": "C.2",
+      "depends_on": [
+        "thm:gradient-identity",
+        "ass:bounded",
+        "ass:smooth-cpt",
+        "alg:debiased"
+      ],
+      "quantification_scope": "Fixed conditional law; independent outer/inner data; full and halves share outer score/indicators; fixed N0 and 1<a<2.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized"
+    },
+    {
+      "tex_label": "thm:variance",
+      "suggested_lean_target": "conditional_replication_mse",
+      "statement": {
+        "number": "5.4",
+        "page": 13
+      },
+      "proof_subsection": "C.3",
+      "depends_on": [
+        "prop:debias",
+        "ass:drift"
+      ],
+      "quantification_scope": "Independent complete replications under one frozen conditional law; true-target bias is added separately.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized",
+      "optional_dependencies": {
+        "ass:drift": "Only the true-target simulation-bias contribution."
+      }
+    },
+    {
+      "tex_label": "thm:clt",
+      "suggested_lean_target": "fixed_episode_clt",
+      "statement": {
+        "number": "5.5",
+        "page": 13
+      },
+      "proof_subsection": "C.4",
+      "depends_on": [
+        "prop:debias"
+      ],
+      "quantification_scope": "M increases with k,d,theta,law,regularization fixed. Studentization adds positive definite covariance.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized"
+    },
+    {
+      "tex_label": "lem:set-drift",
+      "suggested_lean_target": "stationary_set_hausdorff_drift",
+      "statement": {
+        "number": "5.6",
+        "page": 13
+      },
+      "proof_subsection": "D.1",
+      "depends_on": [
+        "ass:bounded",
+        "ass:smooth-cpt",
+        "ass:drift",
+        "ass:error-bound"
+      ],
+      "quantification_scope": "Both episodes satisfy the same residual error bound; common Theta,a0,gamma.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized"
+    },
+    {
+      "tex_label": "lem:projected-ascent",
+      "suggested_lean_target": "normalized_projected_one_step",
+      "statement": {
+        "number": "D.1",
+        "page": 27
+      },
+      "proof_subsection": "D.2",
+      "depends_on": [],
+      "quantification_scope": "Any nonempty closed convex Theta, L-smooth J, x in Theta, finite estimator vector, gamma L <= a0; deterministic.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized"
+    },
+    {
+      "tex_label": "thm:dynamic-regret",
+      "suggested_lean_target": "average_constrained_stationarity",
+      "statement": {
+        "number": "5.7",
+        "page": 13
+      },
+      "proof_subsection": "D.3",
+      "depends_on": [
+        "lem:projected-ascent",
+        "thm:variance",
+        "ass:bounded",
+        "ass:smooth-cpt",
+        "ass:drift"
+      ],
+      "quantification_scope": "Finite K, uniform objective and gradient bounds, fixed gamma,a0; reference decomposition additionally uses prop:path-dependence and ass:reference-coupling.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized",
+      "optional_dependencies": {
+        "ass:reference-coupling": "Reference-component decomposition only.",
+        "prop:path-dependence": "Reference-component decomposition only."
+      },
+      "generic_interface": "Deterministic projected-ascent lemma, smooth bounded targets, value variation and any conditional direction-MSE bound."
+    },
+    {
+      "tex_label": "cor:static",
+      "suggested_lean_target": "static_and_sublinear_variation_limit",
+      "statement": {
+        "number": "5.8",
+        "page": 14
+      },
+      "proof_subsection": "D.4",
+      "depends_on": [
+        "thm:dynamic-regret"
+      ],
+      "quantification_scope": "Uniform constants as K increases; expected variation o(K); average expected estimator MSE tends to zero.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized"
+    },
+    {
+      "tex_label": "cor:set-tracking",
+      "suggested_lean_target": "average_distance_to_stationary_set",
+      "statement": {
+        "number": "5.9",
+        "page": 14
+      },
+      "proof_subsection": "D.5",
+      "depends_on": [
+        "thm:dynamic-regret",
+        "ass:error-bound"
+      ],
+      "quantification_scope": "Uniform error bound along all analyzed iterates. No need for lem:set-drift.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized"
+    },
+    {
+      "tex_label": "lem:dirichlet-moments",
+      "suggested_lean_target": "dirichlet_moments_and_likelihood_domination",
+      "statement": {
+        "number": "C.1",
+        "page": 22
+      },
+      "proof_subsection": "C.1",
+      "depends_on": [
+        "ass:bounded"
+      ],
+      "quantification_scope": "Uniform over a bounded parameter neighborhood and finite h,N. Every fixed p >= 1; no pointwise score bound.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized"
+    },
+    {
+      "tex_label": "thm:minimax",
+      "suggested_lean_target": "realizable_cpt_expected_budget_minimax",
+      "statement": {
+        "number": "5.10",
+        "page": 14
+      },
+      "proof_subsection": "E.1",
+      "depends_on": [
+        "ass:oracle",
+        "prop:debias",
+        "thm:variance",
+        "lem:dirichlet-moments"
+      ],
+      "quantification_scope": "Fixed d/domain/regularization; same exact fresh-trajectory oracle, gradient target and Euclidean MSE; adaptive stopping allowed; sup_P E N <= B.",
+      "status": "manually_reviewed_mathematical_proof_not_Lean_formalized"
+    }
+  ],
+  "acyclic_result_order": [
+    "lem:dirichlet-moments",
+    "thm:gradient-identity",
+    "prop:path-dependence",
+    "prop:debias",
+    "thm:variance",
+    "thm:clt",
+    "lem:set-drift",
+    "lem:projected-ascent",
+    "thm:dynamic-regret",
+    "cor:static",
+    "cor:set-tracking",
+    "thm:minimax"
+  ],
+  "assumptions": {
+    "ass:bounded": {
+      "number": "3.1",
+      "page": 6
+    },
+    "ass:smooth-cpt": {
+      "number": "3.2",
+      "page": 6
+    },
+    "ass:drift": {
+      "number": "3.3",
+      "page": 7
+    },
+    "ass:reference-coupling": {
+      "number": "3.4",
+      "page": 7
+    },
+    "ass:error-bound": {
+      "number": "3.5",
+      "page": 7
+    },
+    "ass:oracle": {
+      "number": "3.6",
+      "page": 8
+    }
+  },
+  "topological_order_of_result_labels": [
+    "lem:set-drift",
+    "lem:dirichlet-moments",
+    "thm:gradient-identity",
+    "prop:path-dependence",
+    "prop:debias",
+    "thm:clt",
+    "lem:projected-ascent",
+    "thm:variance",
+    "thm:minimax",
+    "thm:dynamic-regret",
+    "cor:static",
+    "cor:set-tracking"
+  ],
+  "formal_verification_status": "NOT_FORMALIZED_IN_LEAN",
+  "source": "DRCPT_PG_Third_Optimized.tex",
+  "fixed_dimension_minimax_only": true
+}

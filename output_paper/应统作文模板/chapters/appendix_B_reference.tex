@@ -1,0 +1,59 @@
+\section{参考点机制的证明}\label{app:reference-proofs}
+
+\subsection{\texorpdfstring{\Cref{prop:path-dependence}}{参考点命题}的证明}
+\begin{proof}
+对路径 $A$，中间参考点为 $(1-\eta_+)r_0+\eta_+H$。由假设指定的第二步分支可得
+\[
+ r_A=(1-\eta_-)((1-\eta_+)r_0+\eta_+H)+\eta_-C.
+\]
+对路径 $B$，中间参考点为 $(1-\eta_-)r_0+\eta_-L_{\rm w}$，因此
+\[
+ r_B=(1-\eta_+)((1-\eta_-)r_0+\eta_-L_{\rm w})+\eta_+C.
+\]
+两式相减后，含 $r_0$ 的项相互抵消，从而得到式~\eqref{eq:path-diff}。对确定性结果 $y$，端点归一化使其 CPT 值等于 $v_+(y)-v_-(y)$：相应的生存函数在效用值以下等于 1，在效用值以上等于 0。对于本文规定的价值函数，这一带符号变换严格递增。因此，不同的确定性相对结果对应不同的 CPT 值。
+
+固定财富值 $x$。映射 $r\mapsto\Phi(r,x)$ 在 $r=x$ 处连续，并且在
+$r\le x$ 时斜率为 $1-\eta_+$，在 $r>x$ 时斜率为 $1-\eta_-$。若
+$r,r'$ 位于 $x$ 的同一侧，Lipschitz 界可由对应斜率直接得到。若二者分处
+$x$ 两侧，则在 $x$ 处分割区间并将两段上界相加。因此
+\[
+ |\Phi(r,x)-\Phi(r',x)|\le(1-\eta_{\min})|r-r'|.
+\]
+沿共同财富路径逐步归纳，即得式~\eqref{eq:reference-contraction}。当终端财富相同时，进一步有
+$|Y-Y'|\le\chi_h|r-r'|$。
+
+对 $x>0$，
+\[
+ u'_{\alpha,\eps_v}(x)=\alpha x(x^2+\eps_v^2)^{\alpha/2-1}.
+\]
+利用 $x\le\sqrt{x^2+\eps_v^2}$ 和 $\alpha-1\le0$，可将该导数上界为
+$\alpha\eps_v^{\alpha-1}$。导数在零点的极限为零，所以与正部、负部映射复合后，函数在零点两侧仍连续可微，并具有所声明的全局 Lipschitz 上界。分别应用收益侧与损失侧的 Lipschitz 不等式并相加，便得到
+$\Omega(s)=(L_v^++L_v^-)s$。
+
+在假设~\ref{ass:reference-coupling} 下，对两个不同的初始参考点使用相同的动作抽样与市场抽样。记
+$V_\pm=v_\pm(Y)$、$V_\pm'=v_\pm(Y')$，并令
+$S_\pm,S_\pm'$ 分别为对应的生存函数。对任意由 $B_v$ 控制的非负随机变量 $V,V'$，Fubini 定理与该耦合给出
+\begin{equation}\label{eq:survival-coupling-inequality}
+ \int_0^{B_v}|\Pp(V>z)-\Pp(V'>z)|\,dz
+ \le \E\int_0^{B_v}|\1\{V>z\}-\1\{V'>z\}|\,dz
+ =\E|V-V'|.
+\end{equation}
+逐点连续模将收益侧与损失侧价值差之和控制为
+$D_h(|r-r'|)$。对两个 CPT 积分应用中值上界
+$|w^\eps(p)-w^\eps(q)|\le C_1|p-q|$，即可得到式~\eqref{eq:reference-value-sensitivity}。
+
+对于梯度结论，使用已经独立证明的定理~\ref{thm:gradient-identity}。在该恒等式中对指示变量作中心化，只会减去一个确定性标量与零均值得分的乘积。因此可以使用
+\[
+ \varphi(\tau)=\int_0^{B_v}(w_+^\eps)'(S_+(z))\1\{V_+>z\}\,dz
+ -\int_0^{B_v}(w_-^\eps)'(S_-(z))\1\{V_->z\}\,dz
+\]
+以及 $\nabla J=\E[G\varphi]$。耦合后的财富路径和动作路径具有相同特征，也具有相同的 $G$。对收益侧或损失侧中的任一侧，有
+\begin{align*}
+ &|(w^\eps)'(S)\1\{V>z\}-(w^\eps)'(S')\1\{V'>z\}|\\
+ &\hspace{1em}\le C_1|\1\{V>z\}-\1\{V'>z\}|+C_2|S-S'|.
+\end{align*}
+将上式乘以 $\norm{G}_2$，对 $z$ 积分后取期望，再把收益侧与损失侧相加。第一项逐路径由
+$C_1\E\norm{G}_2 D_h(|r-r'|)$ 控制。固定条件环境后，第二项中的生存函数差是确定量；式~\eqref{eq:survival-coupling-inequality} 将两侧生存函数差的积分之和控制为
+$D_h(|r-r'|)$。最后使用
+$\E\norm{G}_2\le\sqrt{C_{G,2}}$，即可得到式~\eqref{eq:reference-gradient-sensitivity}。整个论证只使用得分的矩界，没有使用逐点有界得分，也没有要求结果变量具有密度。
+\end{proof}

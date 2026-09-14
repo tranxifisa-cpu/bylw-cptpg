@@ -1,0 +1,32 @@
+\section{主要符号与记号约定}\label{app:notation}
+
+表~\ref{tab:notation}列出本文的主要符号。时期编号为 $k$，总时期数为 $K$，日历时点为 $u$，每期包含 $h$ 个决策步；$X_{k,h}$ 与 $r_{k,h}$ 表示第 $k$ 期的终端财富与终端参考点。条件统计结论固定期初信息 $\cF_k$，求梯度时固定期初财富、市场信息、持仓与参考点。辅助常数和采样变量在正文首次使用处定义。
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\caption{主要符号及含义}\label{tab:notation}
+\begin{tabular}{@{}p{0.34\linewidth}p{\dimexpr0.66\linewidth-2\tabcolsep\relax}@{}}
+\toprule
+符号 & 含义\\
+\midrule
+$X_u$ & 以固定初始财富为单位的账户财富\\
+$r_u$ & 与归一化财富采用相同单位的参考点\\
+$\eta_+,\eta_-$ & 盈利方向与亏损方向的参考点适应率\\
+$Y_k=X_{k,h}-r_{k,h}$ & 第 $k$ 期的终端相对结果\\
+$J_k(\theta,r_k)$ & 第 $k$ 期正则化 CPT 条件目标\\
+$\pi_\theta$ & 参数为 $\theta$ 的 Dirichlet 投资组合策略\\
+$G_{k,\theta}(\tau)$ & 完整轨迹的似然得分函数\\
+$g_k$ & $\theta_k$ 处的真实 CPT 策略梯度\\
+$\widehat g_{k,n,m}^{\pl}$ & 内外层样本分拆的 CPT 梯度代入估计量\\
+$\widehat g_k^{\db}$ & 多层去偏构造的 CPT 梯度估计量\\
+$\delta_k^J,V_K$ & 相邻时期的目标变化及其累计预算\\
+$\beta_k^{\rm sim}$ & 模拟目标与真实目标之间的梯度偏差界\\
+$Q_k,\mathcal E_K$ & 归一化投影残差及其期望平方的时期平均\\
+$\Sta_k$ & 目标 $J_k$ 的受约束一阶驻点集合\\
+$\Reg_{\rho,w}^{Q}(K)$ & 投影残差形式的窗口动态局部遗憾\\
+$B$ & 极小极大估计中的期望完整轨迹调用预算\\
+\bottomrule
+\end{tabular}
+\end{table}

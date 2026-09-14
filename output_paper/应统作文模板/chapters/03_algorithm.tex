@@ -1,0 +1,145 @@
+\chapter{算法设计}\label{sec:algorithm}
+
+上一章确定了每期需要优化的条件目标。本章依次回答三个计算问题：如何把因子参数转化为组合，如何从有限轨迹得到梯度方向，以及如何把该方向用于下一时期。算法~\ref{alg:dirichlet}负责生成动作，算法~\ref{alg:debiased}负责一次梯度统计量的计算，算法~\ref{alg:drcptpg}负责串联执行、估计和参数更新。三个层次共享同一套财富与参考点定义。
+
+\section{投资组合单纯形上的 Dirichlet 策略}
+
+对资产 $i=0,\ldots,N$，使用有界特征 $q_{i,u}$ 表示策略在时点 $u$ 可获得的资产信息。特征可以包括动量、反转、波动率、价值因子、现金指示变量与上一期持仓。本文不要求每个应用都使用完全相同的特征集合，但假设~\ref{ass:bounded} 要求实际采用的特征满足统一有界性。定义线性得分、Dirichlet 浓度参数及浓度总和为
+\begin{equation}\label{eq:dir-score}
+ z_{i,u}=\theta^\top q_{i,u},\qquad a_{i,u}=e^{z_{i,u}},\qquad a_{\Sigma,u}=\sum_{i=0}^Na_{i,u},
+\end{equation}
+并令随机投资组合服从
+\begin{equation}\label{eq:dirichlet-policy}
+ \omega_u\sim\pi_\theta(\cdot\mid s_u)=\Dir(a_{0,u},\ldots,a_{N,u}).
+\end{equation}
+指数映射保证每个浓度参数严格为正，因此从该分布产生的权重位于投资组合单纯形内部。实际执行时使用确定性的策略均值
+\begin{equation}\label{eq:dirichlet-mean}
+ \bar\omega_{i,u}=a_{i,u}/a_{\Sigma,u}.
+\end{equation}
+这一区分使真实账户执行路径由明确的均值组合产生，同时使学习层能够从随机策略分布抽取轨迹。均值执行的目标值与随机策略的 CPT 目标值通常不是同一对象，后续分析针对后者建立梯度估计。
+
+以一只股票和现金为例，若两项资产的得分分别为 $\log 2$ 与 0，则浓度分别为 2 与 1，均值组合中的股票权重为 $2/3$、现金权重为 $1/3$。采样模式每次从同一分布生成不同组合，其均值仍为上述比例。只有各资产浓度相同时，均值配置才表现为等权。学习过程中，参数改变各因子的重要性；同一因子在不同股票上的取值不同，因此同一组参数能够产生不同的资产得分。现金指示特征则使模型能够区分保留预算与承担股票风险。
+
+记 $\psi_0$ 为双伽马函数。时期 $k$ 内一条完整轨迹的得分函数为
+\begin{equation}\label{eq:explicit-score}
+ G_{k,\theta}(\tau)=\sum_{u=t_k}^{t_k+h-1}\sum_{i=0}^N
+ a_{i,u}q_{i,u}
+ \{\log\omega_{i,u}-\psi_0(a_{i,u})+\psi_0(a_{\Sigma,u})\}.
+\end{equation}
+该式等于轨迹对数似然关于 $\theta$ 的梯度，并且在开单纯形上几乎处处有定义。它与资产线性得分 $z_{i,u}$ 含义不同：资产得分用于形成浓度，轨迹得分函数衡量路径概率对参数的敏感程度，CPT 策略梯度再由轨迹得分与结果评价共同构成。由于权重可以任意接近零，$\log\omega_{i,u}$ 可以趋向负无穷，其绝对值没有逐样本统一上界。假设~\ref{ass:bounded} 下的紧浓度范围控制的是后续需要的固定阶矩，因而理论使用得分矩和似然支配条件。
+
+算法~\ref{alg:dirichlet} 汇总了两种运行模式。采样模式产生用于学习的随机动作并记录得分贡献；均值模式产生真实执行层采用的确定性组合。两种模式使用同一套特征、参数和浓度映射，其差别只在于从分布采样还是取分布均值。
+
+\begin{algorithm}[t]
+\caption{用于生成投资组合的 Dirichlet 因子策略}\label{alg:dirichlet}
+\begin{minipage}{\hsize}
+\begin{algorithmic}[1]
+\REQUIRE 状态 $s_u$，因子 $q_{i,u}$，参数 $\theta$，以及模式 $e\in\{\mathrm{sample},\mathrm{mean}\}$。
+\FOR{$i=0,\ldots,N$}
+    \STATE 计算 $z_{i,u}=\theta^\top q_{i,u}$ 与 $a_{i,u}=\exp(z_{i,u})$。
+\ENDFOR
+\IF{$e=\mathrm{sample}$}
+    \STATE 抽取 $\omega_u\sim\Dir(a_{0,u},\ldots,a_{N,u})$。
+    \STATE 记录式~\eqref{eq:explicit-score} 中用于学习的得分贡献。
+\ELSE
+    \STATE 令 $\bar\omega_{i,u}=a_{i,u}/\sum_{j=0}^{N}a_{j,u}$，并置 $\omega_u=\bar\omega_u$。
+\ENDIF
+\RETURN $\omega_u\in\Delta_N$。
+\end{algorithmic}
+\end{minipage}
+\end{algorithm}
+
+\section{去偏 CPT 策略梯度更新}
+
+算法将真实执行与策略学习分成两个层次。执行层使用策略均值生成观测到的投资组合路径，并由这条路径形成下一时期的财富、参考点和持仓信息。学习层则返回已经保存的时期起点，从该起点出发按随机策略采样，并优化 $J_k(\theta,r_k)$ 或其模拟目标。由于均值执行路径与随机学习轨迹服从不同的分布，二者的 CPT 值一般不同，不能用执行层单条路径的结果替代学习层目标。
+
+\begin{algorithm}[t]
+\caption{动态参考点 CPT 策略梯度算法（\DRCPTPG）}\label{alg:drcptpg}
+\begin{minipage}{\hsize}
+\begin{algorithmic}[1]
+\REQUIRE $\theta_1\in\Theta$，$X_1=1$，$r_1\ge0$，时域长度 $h$，固定的 CPT 参数与参考点参数，满足 $\gamma L\le a_0$ 的 $a_0,\gamma>0$，$N_0\ge1$，$1<a<2$，重复次数 $M_k\ge1$，以及截断上限 $L_{k,\max}\in\{0,1,\ldots\}\cup\{\infty\}$。
+\STATE 初始化 $\omega_0=(1,0,\ldots,0)$。
+\FOR{$k=1,\ldots,K$}
+    \STATE 记录 $z_k,r_k,\theta_k$，并且只使用 $\cF_k$ 中的信息冻结 $\widetilde P_k$。
+    \STATE \textbf{执行层：}对 $u=t_k,\ldots,t_k+h-1$，以均值模式运行算法~\ref{alg:dirichlet}，再根据式~\eqref{eq:wealth-update} 和式~\eqref{eq:reference-update} 更新财富与参考点。
+    \STATE 令 $r_{k+1}=r_{t_k+h}$，保存观测到的下一时期信息。
+    \STATE \textbf{学习层：}从已保存的时期起点信息和 $\widetilde P_k$ 出发，以截断上限 $L_{k,\max}$ 独立运行算法~\ref{alg:debiased} 共 $M_k$ 次。
+    \STATE 对输出求平均：$\widehat g_k^{\db}=M_k^{-1}\sum_{b=1}^{M_k}Z_{k,b}^{\db,(L_{k,\max})}$。
+    \STATE 归一化方向 $d_k=\widehat g_k^{\db}/\max\{\norm{\widehat g_k^{\db}}_2,a_0\}$。
+    \STATE 更新 $\theta_{k+1}=\Pi_\Theta(\theta_k+\gamma d_k)$。
+    \STATE 转入已保存的下一时期信息，并为时期 $k+1$ 重新拟合模拟器。
+\ENDFOR
+\RETURN 投资组合、财富与参考点路径、参数和诊断量。
+\end{algorithmic}
+\end{minipage}
+\end{algorithm}
+
+$M_k$ 与 $L_{k,\max}$ 均为 $\cF_k$ 可测。由于执行层和学习层都使用已经保存的时期起点信息，且学习所用分布在时期内保持冻结，所以学习计算可以在执行前完成，也可以与执行并行进行。在线分析中，将实际方向估计器简记为 $\widehat g_k=\widehat g_k^{\db}$。因此，算法实际实施的参数更新为
+\begin{equation}\label{eq:parameter-update}
+ \theta_{k+1}=\Pi_\Theta\left(\theta_k+
+ \gamma\frac{\widehat g_k}{\max\{\norm{\widehat g_k}_2,a_0\}}\right).
+\end{equation}
+分母中的 $a_0$ 避免在估计梯度很小时将其强制归一化为单位方向，外层投影则保证更新后的参数仍属于 $\Theta$。该更新不使用历史梯度平滑。式~\eqref{eq:dynamic-regret} 中的窗口只用于事后诊断；若在更新方向中加入过往梯度，还需要另行控制这些滞后梯度相对于当前 $g_k$ 的均方误差。
+
+这一更新保留了方向信息，并限制一次参数调整的尺度。当估计梯度的范数超过 $a_0$ 时，归一化后方向的长度为 1；低于该阈值时，方向长度随估计梯度减小，因而在接近一阶驻点时允许较小更新。投影处理作用于因子参数 $\theta$，Dirichlet 分布则负责组合权重的非负性与归一化。两者在算法中各自承担明确的任务。
+
+下面给出去偏估计器的一次重复。所有采样定义均以 $\cF_k,\theta_k$ 为条件，并使用冻结的模拟分布。暂时省略重复编号 $b$，将一次带截断的输出记为 $Z^{\db,(L_{\max})}$，无截断时记为 $Z=Z^{\db,(\infty)}$。首先独立抽取一条外层轨迹 $\tau^{(0)}$，由其得到轨迹得分 $G_0$ 以及指标函数
+$I_0^\pm(z)=\1\{v_\pm(Y(\tau^{(0)}))>z\}$。再独立抽取内层轨迹 $\tau^{(1)},\ldots,\tau^{(n)}$，定义经验生存概率与非线性乘子
+\begin{equation}\label{eq:empirical-survival}
+ \widehat S_n^\pm(z)=\frac1n\sum_{i=1}^n
+ \1\{v_\pm(Y(\tau^{(i)}))>z\},\qquad
+ f_\pm(p,I)=(w_\pm^\eps)'(p)(I-p).
+\end{equation}
+由同一条外层轨迹与一组内层轨迹构造
+\begin{equation}\label{eq:T-definition}
+ T_k^{(n)}=G_0\left[\int_0^{B_v}f_+(\widehat S_n^+(z),I_0^+(z))\,dz
+ -\int_0^{B_v}f_-(\widehat S_n^-(z),I_0^-(z))\,dz\right].
+\end{equation}
+式中，内层样本估计生存概率，外层样本提供指标函数和似然得分；两层样本彼此独立。令 $n_\ell=N_02^\ell$，并将 $T_k^{(n_\ell)}$ 简记为 $T_{k,\ell}$。当 $\ell\geq1$ 时，将同一组内层样本分为前后两个等大的半样本，分别形成两个低一层统计量。完整样本统计量和两个半样本统计量使用完全相同的外层轨迹与外层得分，构造多层估计中的 antithetic coupling\citep{goda2023unbiased}。本文按其具体计算方式称为全样本与半样本耦合，差分定义为
+\begin{equation}\label{eq:antithetic-delta}
+ \Delta_{k,0}=T_{k,0},\qquad
+ \Delta_{k,\ell}=T_{k,\ell}-\tfrac12(T_{k,\ell-1}^{(1)}+T_{k,\ell-1}^{(2)}).
+\end{equation}
+两个半样本统计量共享外层样本，因此在无条件意义下相互依赖；在给定该外层样本后，两个内层半样本相互独立。这一共享结构用于抵消经验生存概率代入非线性权重导数时的一阶误差，不能用两条独立重抽的外层轨迹替换。
+
+\begin{algorithm}[t]
+\caption{一次多层去偏 CPT 梯度重复}\label{alg:debiased}
+\begin{minipage}{\hsize}
+\begin{algorithmic}[1]
+\REQUIRE 冻结的时期起点信息与模型，$\theta_k$，$N_0\ge1$，$1<a<2$，截断上限 $L_{\max}\in\{0,1,\ldots\}\cup\{\infty\}$。
+\STATE 对 $\ell=0,1,\ldots$，令 $p_\ell=(1-2^{-a})2^{-a\ell}$。
+\IF{$L_{\max}<\infty$}
+    \STATE 对 $0\le\ell\le L_{\max}$，令 $q_\ell=p_\ell/\sum_{j=0}^{L_{\max}}p_j$。
+\ELSE
+    \STATE 对每个 $\ell\ge0$，令 $q_\ell=p_\ell$。
+\ENDIF
+\STATE 相互独立地抽取 $\mathcal L\sim q$、一条外层轨迹以及 $N_02^{\mathcal L}$ 条内层轨迹。
+\STATE 使用外层得分 $G_0$，根据式~\eqref{eq:T-definition} 计算 $T_{k,\mathcal L}$。
+\IF{$\mathcal L=0$}
+    \STATE 令 $\Delta_{k,0}=T_{k,0}$。
+\ELSE
+    \STATE 将内层样本等分为两半；计算 $T_{k,\mathcal L-1}^{(1)}$ 与 $T_{k,\mathcal L-1}^{(2)}$ 时，复用完全相同的外层结果与得分。
+    \STATE 令 $\Delta_{k,\mathcal L}=T_{k,\mathcal L}-\tfrac12(T_{k,\mathcal L-1}^{(1)}+T_{k,\mathcal L-1}^{(2)})$。
+\ENDIF
+\RETURN $Z_k^{\db,(L_{\max})}=\Delta_{k,\mathcal L}/q_{\mathcal L}$，以及成本 $1+N_02^{\mathcal L}$。
+\end{algorithmic}
+\end{minipage}
+\end{algorithm}
+
+算法~\ref{alg:debiased} 先按几何衰减概率选择一个层级，再只计算该层级的重加权差分。有限截断时，$q_\ell$ 是 $p_\ell$ 在 $0$ 至 $L_{\max}$ 上重新归一化后的概率；无截断时直接使用 $p_\ell$。一次重复的原始轨迹调用包括一条外层轨迹与 $N_02^{\mathcal L}$ 条内层轨迹，因此成本严格记为 $1+N_02^{\mathcal L}$。算法~\ref{alg:drcptpg} 在同一时期独立重复这一过程 $M_k$ 次，然后对输出求平均。
+
+式~\eqref{eq:T-definition} 中的积分可以通过排序内层和外层效用值，对由此形成的阶梯函数精确求和。排序后的相邻效用值给出区间长度，区间内的经验尾概率与指标保持常数；因此，排序与经验尾概率在此描述同一个统计量的计算过程。本文固定式~\eqref{eq:prob-weights}的正则化函数，各层均使用这一函数及其导数。计算过程中保留共享外层得分结构，并按所有效用断点求和，不再增加依赖 $n$ 的秩下限或额外求积近似。
+
+作为比较，代入估计器 $\widehat g_{n,m}^{\pl}$ 使用一个大小为 $n$ 的内层样本，以及与该内层样本独立的 $m$ 条外层轨迹，并对式~\eqref{eq:T-definition} 的结果取平均。由于这 $m$ 项共同使用同一组内层样本，它们并非完全相互独立；后续方差分析保留了这种依赖关系。
+
+分拆与耦合分别解决不同的估计问题。内外层独立使经验概率可以在给定外层结果后单独分析；全样本与半样本共享外层结果，则使相邻精度之间形成有利的误差抵消。例如，若本次抽到的层级对应 8 条内层轨迹，就用这 8 条轨迹计算一次统计量，再分别用前 4 条和后 4 条计算两次统计量。三次计算评价同一条外层轨迹，只改变用于估计分布的样本规模。因此，额外计算重用已经生成的数据，无需再产生两条外层投资路径。随机层重加权把不同精度的修正量合并到一个具有正确期望的统计构造中。
+
+\section{组合案例中的连续运行流程}
+
+以初始资金为 100 万元的组合说明三个算法的衔接。将初始财富归一化为 $X_1=1$，初始持仓为全现金组合 $\omega_0=(1,0,\ldots,0)$，初始参考点为 $r_1=1$，每个时期包含 $h=5$ 个交易日。在第 $k=1$ 期的起点，系统保存市场因子、归一化财富、原持仓和参考点，并用当时可获得的信息冻结模拟器 $\widetilde P_1$。以下示意场景按输入、执行、采样和更新的顺序说明状态如何连续传递。
+
+真实执行层在第 1 至第 5 个交易日依次运行算法~\ref{alg:dirichlet} 的均值模式。每个交易日先根据当前资产特征计算 $z_{i,u}$ 和 $a_{i,u}$，再按式~\eqref{eq:dirichlet-mean} 输出现金与各风险资产的权重。市场收益实现后，账户先按式~\eqref{eq:wealth-update} 扣除交易成本并更新财富，再按式~\eqref{eq:reference-update} 更新该条真实路径上的参考点。五日结束时，实际观测得到的 $X_{1,5}$、$r_{1,5}$ 和末日持仓共同进入下一时期信息，其中 $r_2=r_{1,5}$。整个执行层只产生一条真实财富与参考点路径。
+
+学习层始终从时期 1 已保存的起点出发，并使用冻结的 $\widetilde P_1$。对于一次算法~\ref{alg:debiased} 重复，系统先抽取层级 $\mathcal L$，再独立生成一条外层轨迹与 $N_02^{\mathcal L}$ 条内层轨迹。每条模拟轨迹均以同一个起点财富、起点持仓和起点参考点初始化，但在五个交易日内分别采样自己的 Dirichlet 组合和市场结果，并沿自身财富路径递推参考点。因此，每条轨迹最终形成自己的 $X_{1,5}(\tau)$、$r_{1,5}(\tau)$ 与 $Y_1(\tau)$。内层轨迹给出式~\eqref{eq:empirical-survival} 的经验生存概率，外层轨迹给出 $I_0^\pm$ 与 $G_0$，完整样本和两个半样本共同形成式~\eqref{eq:antithetic-delta} 的多层差分。
+
+在独立完成 $M_1$ 次重复后，算法~\ref{alg:drcptpg} 将去偏输出平均为 $\widehat g_1^{\db}$，按阈值 $a_0$ 归一化方向，并通过投影更新得到 $\theta_2$。进入第二时期时，策略参数改为 $\theta_2$，真实账户从第一时期末保存的财富、参考点和持仓继续运行，模拟器则可以使用新增观测重新拟合后再次冻结。此后各时期重复同一流程。真实执行路径负责传递实际账户状态，模拟轨迹负责估计当前冻结目标的方向；两者共享时期起点信息，但模拟轨迹不会把各自的期末状态写入真实账户，也不会共用真实执行路径的期末参考点。

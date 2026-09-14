@@ -31,6 +31,8 @@ def main() -> None:
     parser.add_argument("--start-date", default=DEFAULT_START_DATE, help="Start date in YYYYMMDD format")
     parser.add_argument("--end-date", default=DEFAULT_END_DATE, help="End date in YYYYMMDD format")
     parser.add_argument("--sleep-seconds", type=float, default=0.8, help="Sleep between Tushare daily and daily_basic requests")
+    parser.add_argument("--refresh-empty", action="store_true",
+                        help="Refetch only cached empty daily/daily_basic records in the requested date range")
     parser.add_argument("--status-path", type=Path, default=DEFAULT_STATUS_PATH, help="Output CSV path for cache status")
     parser.add_argument(
         "--market-context-path",
@@ -64,8 +66,8 @@ def main() -> None:
     if "ts_code" in stock_basic.columns:
         universe_codes = stock_basic["ts_code"].astype(str).tolist()
 
-    prefetch_daily_series(builder.tushare, trade_dates, args.sleep_seconds, status_rows)
-    prefetch_daily_basic_series(builder.tushare, trade_dates, args.sleep_seconds, status_rows)
+    prefetch_daily_series(builder.tushare, trade_dates, args.sleep_seconds, status_rows, args.refresh_empty)
+    prefetch_daily_basic_series(builder.tushare, trade_dates, args.sleep_seconds, status_rows, args.refresh_empty)
     market_context = pd.DataFrame()
     if not args.skip_market_context:
         market_context = build_market_context(builder, config, trade_dates, universe_codes)
@@ -156,12 +158,14 @@ def prefetch_daily_series(
     trade_dates: list[str],
     sleep_seconds: float,
     status_rows: list[dict[str, Any]],
+    refresh_empty: bool = False,
 ) -> None:
     total = len(trade_dates)
     for index, trade_date in enumerate(progress(trade_dates, desc="tushare daily", total=total)):
         payload = {"trade_date": trade_date}
         record = tushare.cache._record("daily", payload)
         cached_before = record.data_path.exists()
+        refresh_empty_record(record, refresh_empty)
         started_at = time.perf_counter()
         frame = tushare.daily_by_trade_date(trade_date)
         elapsed_seconds = round(time.perf_counter() - started_at, 3)
@@ -188,6 +192,7 @@ def prefetch_daily_basic_series(
     trade_dates: list[str],
     sleep_seconds: float,
     status_rows: list[dict[str, Any]],
+    refresh_empty: bool = False,
 ) -> None:
     total = len(trade_dates)
     for index, trade_date in enumerate(progress(trade_dates, desc="tushare daily_basic", total=total)):
@@ -197,6 +202,7 @@ def prefetch_daily_basic_series(
         }
         record = tushare.cache._record("daily_basic", payload)
         cached_before = record.data_path.exists()
+        refresh_empty_record(record, refresh_empty)
         started_at = time.perf_counter()
         frame = tushare.daily_basic_by_trade_date(trade_date)
         elapsed_seconds = round(time.perf_counter() - started_at, 3)
@@ -219,6 +225,17 @@ def prefetch_daily_basic_series(
             )
         )
         maybe_sleep(index=index, total=total, sleep_seconds=sleep_seconds)
+
+
+def refresh_empty_record(record, enabled: bool) -> None:
+    if not enabled or not record.data_path.exists():
+        return
+    frame = pd.read_pickle(record.data_path)
+    if not frame.empty:
+        return
+    record.data_path.unlink()
+    if record.meta_path.exists():
+        record.meta_path.unlink()
 
 
 def build_status_row(

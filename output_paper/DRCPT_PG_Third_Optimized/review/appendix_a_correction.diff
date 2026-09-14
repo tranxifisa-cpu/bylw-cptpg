@@ -1,0 +1,79 @@
+--- appendix_a_correction.diff.tex
++++ DRCPT_PG_Third_Optimized.tex
+@@ -898,52 +898,35 @@
+ \appendix
+ 
+ \section{Notation and Reproducibility Convention}\label{app:notation}
+-All conditional statistical results fix an episode-start context and parameter before drawing new simulation samples. Independence means conditional independence given that context. The online argument subsequently integrates those conditional statements. Limits in $M$ fix the episode and model; limits in $K$ require uniform constants across episodes. The minimax analysis is a separate fixed-parameter statistical experiment.
+-
+-
+-\begin{table}[htbp]
++
++Conditional statistical statements fix the information $\cF_k$ available at the start of episode $k$. The execution path updates actual wealth and the reference point. The learning layer uses the frozen episode-start context to simulate horizon-$h$ trajectories and estimate the \CPT gradient. Auxiliary constants and sampling variables are defined where they are used.
++
++\begin{table}[h]
+ \centering
+-\caption{Main notation. All bounds are uniform on the declared analysis domain.}\label{tab:notation}
+-\begin{tabularx}{\textwidth}{@{}lX@{}}
++\caption{Main notation.}\label{tab:notation}
++\begin{tabular}{ll}
+ \toprule
+-Symbol & Meaning\\
++Symbol & Meaning \\
+ \midrule
+-$k,u,h;\ N,d$ & Episode, trading date, horizon; risky-asset count and factor-parameter dimension.\\
+-$X_u,r_u,\omega_u$ & Normalized wealth, psychological reference, and portfolio.\\
+-$z_k,\cF_k$ & Nonreference starting context and information frozen before sampling.\\
+-$P_k,\widetilde P_k$ & True market model and fitted simulation model.\\
+-$J_k(\theta,r_k),Y_k$ & Conditional \CPT objective and trajectory-specific relative outcome.\\
+-$v_\pm,w_\pm^\eps$ & Smooth gain/loss magnitudes and normalized probability weights.\\
+-$\Theta,q_{i,u},a_{i,u}$ & Parameter domain, features, and Dirichlet concentrations.\\
+-$a_{\Sigma,u},a_0,\gamma$ & Total concentration, normalization threshold, and step size.\\
+-$G,H_{\rm lik};\ C_{G,2},C_H$ & Likelihood score/Hessian and their uniform moment bounds.\\
+-$C_1,C_2,C_3;\ L$ & Weight-derivative bounds and objective smoothness constant.\\
+-$T_k^{(n)},T_{k,\ell},\Delta_{k,\ell}$ & Inner-sample statistic, precision-level statistic, and coupled difference.\\
+-$\mathcal L,p_\ell,a,L_{k,\max}$ & Random level, level probabilities, tail exponent, and episode cap.\\
+-$Z_k^{\db},M_k,\widehat g_k^{\db}$ & Untruncated output, replication count, and update estimator.\\
+-$g_k,\widetilde g_k,\beta_k^{\rm sim}$ & True/simulation gradients and simulation-bias bound.\\
+-$\delta_k^J,V_K;\ \delta_k^g$ & Value variation and its cumulative sum; gradient variation.\\
+-$\delta_k^{\rm nr},U_K,D_h$ & Nonreference variation, its sum, and reference-sensitivity modulus.\\
+-$Q_k,\Sta_k,\mathcal E_K$ & True projected residual, stationary set, and mean squared residual.\\
+-$\kappa,w,\rho$ & Optional error-bound constant and diagnostic window parameters.\\
+-$\theta_0;\ N_{\rm call},B$ & Fixed minimax target parameter; stopping count and expected call budget.\\
++$X_u$ & normalized wealth after date $u$ \\
++$r_u$ & psychological reference point \\
++$\etaP,\etaM$ & reference adaptation rates after gains and losses \\
++$Y_k=X_k-r_{k,h}$ & terminal relative outcome in episode $k$ \\
++$J_k(\theta,r_k)$ & regularized dynamic-reference \CPT objective \\
++$\pi_\theta$ & Dirichlet portfolio policy \\
++$G_{k,\theta}(\tau)$ & trajectory score function \\
++$g_k$ & true \CPT policy gradient at $\theta_k$ \\
++$\widehat g_{k,n,m}^{\pl}$ & sample-split plug-in \CPT gradient estimator \\
++$\widehat g_k^{\db}$ & multilevel debiased \CPT gradient estimator \\
++$\delta_k^J,V_K$ & episode-wise and cumulative objective variation \\
++$\beta_k^{\rm sim}$ & simulation gradient-bias bound \\
++$Q_k,\mathcal E_K$ & projected residual and average stationarity criterion \\
++$\Sta_k$ & constrained first-order stationary set of $J_k$ \\
++$\Reg_{\rho,w}^{Q}(K)$ & discounted-window dynamic local regret (residual form) \\
++$B$ & expected raw-trajectory budget for minimax estimation \\
+ \bottomrule
+-\end{tabularx}
++\end{tabular}
+ \end{table}
+-
+-The original symbols $N,d,h,\theta,q_{i,u},a_{i,u},J_k(\theta,r_k),
+-\eta_\pm,a_0,\gamma,N_0,M_k,p_\ell$ retain their portfolio and algorithmic roles.
+-Additional objects have explicit indices or superscripts: $H_{\rm lik}$ is the
+-likelihood Hessian, $\mathcal L$ is a random precision level, and $N_{\rm call}$
+-counts raw trajectories. In the local path example, $L_{\rm w}$ denotes low
+-wealth and $L$ remains the objective-smoothness constant.
+-
+-\paragraph{Proof interfaces.}
+-The reference proof needs the scalar recursion and a value modulus. The score proof needs a dominated differentiable trajectory law. The estimator proof needs Bernoulli empirical-survival moments, not continuity of the outcome law. The online proof accepts any direction estimator with the declared conditional MSE. The set-distance conclusions add the separate error bound. These interfaces distinguish primitive conditions from conclusions to be established.
+-
+-
+-\paragraph{Proof conventions.}
+-Conditional arguments fix the episode context; the online analysis then takes total expectation. Limit statements specify which quantities remain fixed. The projected-ascent proof and the minimax experiment use separate hypotheses.
+ 
+ \section{Proofs for the Reference Mechanism}\label{app:reference-proofs}
+ \subsection{Proof of \texorpdfstring{\Cref{prop:path-dependence}}{the reference proposition}}

@@ -12,7 +12,7 @@ artifacts/synthetic/
 artifacts/traces/
 artifacts/plots/
 artifacts/tables/
-
+docs/
 .agents/
 .aris/
 .claude/
@@ -22,7 +22,7 @@ refine-logs/
 output_paper/DRCPT_PG_Three_Manuscripts
 reference_paper/
 #*.pdf
-
+behavior/
 .vscode/
 .idea/
 .DS_Store
