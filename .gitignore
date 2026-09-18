@@ -5,13 +5,7 @@ venv/
 .env
 .env.*
 
-artifacts/cache/
-artifacts/inputs/
-artifacts/results/
-artifacts/synthetic/
-artifacts/traces/
-artifacts/plots/
-artifacts/tables/
+artifacts/
 docs/
 .agents/
 .aris/

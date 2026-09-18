@@ -1,7 +1,0 @@
-path,time,wealth,reference
-gain_first,0,1.0,1.0
-gain_first,1,1.4,1.08
-gain_first,2,1.2,1.104
-loss_first,0,1.0,1.0
-loss_first,1,0.8,0.99
-loss_first,2,1.2,1.032
