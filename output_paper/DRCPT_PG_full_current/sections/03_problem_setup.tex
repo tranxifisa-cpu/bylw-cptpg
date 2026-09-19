@@ -1,0 +1,142 @@
+\section{Problem Setup}\label{sec:setup}
+
+\subsection{Nonstationary episodic portfolio process}
+
+Episodes are indexed by $k=1,\ldots,K$, begin at dates $t_k$, and have a fixed horizon $h\ge1$.  For consecutive episodes, $t_{k+1}=t_k+h$.  At calendar time $u\in\{t_k,\ldots,t_k+h-1\}$,
+\begin{equation}\label{eq:state-action}
+ s_u=(m_u,X_u,r_u,\omega_{u-1}),
+ \qquad
+ \omega_u\in\Delta_N:=\left\{\omega\in\R_+^{N+1}:\sum_{i=0}^{N}\omega_i=1\right\},
+\end{equation}
+where asset $0$ is cash, $X_u>0$ is normalized wealth, and $r_u\ge0$ is the reference wealth.  For return vector $R_{u+1}$ with $R_{0,u+1}=0$ and proportional transaction-cost coefficient $c_{\rm tc}\ge0$,
+\begin{equation}\label{eq:wealth-update}
+ X_{u+1}=X_u\left(1+\omega_u^\top R_{u+1}
+ -c_{\rm tc}\norm{\omega_u-\omega_{u-1}}_1\right),
+ \qquad X_1=1.
+\end{equation}
+The conditional market transition law may vary with calendar time.  Conditional on the observed history and action, it has no explicit dependence on the policy parameter.
+
+\subsection{Dynamic reference and terminal relative outcome}
+
+For fixed $\etaP,\etaM\in[0,1)$,
+\begin{equation}\label{eq:reference-update}
+ r_{u+1}=\Phi(r_u,X_{u+1})
+ =\begin{cases}
+ (1-\etaP)r_u+\etaP X_{u+1}, & X_{u+1}\ge r_u,\\[1mm]
+ (1-\etaM)r_u+\etaM X_{u+1}, & X_{u+1}<r_u.
+ \end{cases}
+\end{equation}
+Let $\cF_k$ be the information available at the start of episode $k$, and set
+\begin{equation}\label{eq:start-context}
+ r_k:=r_{t_k},
+ \qquad
+ z_k:=(m_{t_k},X_{t_k},\omega_{t_k-1}).
+\end{equation}
+All Monte Carlo learning trajectories for episode $k$ are generated conditionally on the frozen context $(\cF_k,z_k,r_k)$.  Each trajectory $\tau$ carries its own wealth and reference recursions and produces
+\begin{equation}\label{eq:relative-outcome}
+ Y_k(\tau)=X_{t_k+h}(\tau)-r_{t_k+h}(\tau).
+\end{equation}
+
+\subsection{Dirichlet portfolio policy}
+
+For asset $i=0,\ldots,N$, let $q_{i,u}\in\R^d$ be a bounded feature vector.  For $\theta\in\Theta\subset\R^d$ define
+\begin{equation}\label{eq:dirichlet-policy}
+ a_{i,u}(\theta)=\exp(\theta^\top q_{i,u}),
+ \qquad
+ \widetilde\omega_u\sim
+ \pi_\theta(\cdot\mid s_u)
+ =\Dir\!\left(a_{0,u}(\theta),\ldots,a_{N,u}(\theta)\right).
+\end{equation}
+A parameter-independent feasibility map $\mathsf M_u:\Delta_N\to\Delta_N$ and a fixed trade fraction $\chi\in(0,1]$ generate the executed portfolio
+\begin{equation}\label{eq:action-map}
+ \omega_u=(1-\chi)\omega_{u-1}+\chi\,\mathsf M_u(\widetilde\omega_u).
+\end{equation}
+The realized path and all learning trajectories use the same stochastic actor \eqref{eq:dirichlet-policy} and the same map \eqref{eq:action-map}.  The augmented trajectory records $\widetilde\omega_u$, so its score is
+\begin{equation}\label{eq:trajectory-score}
+ G_{k,\theta}(\tau)
+ =\sum_{u=t_k}^{t_k+h-1}\sum_{i=0}^{N}
+ a_{i,u}q_{i,u}
+ \left\{\log\widetilde\omega_{i,u}
+ -\psi(a_{i,u})+\psi\!\left(\sum_{j=0}^{N}a_{j,u}\right)\right\},
+\end{equation}
+where $\psi$ is the digamma function.
+
+\subsection{Regularized CPT objective}
+
+For $x\ge0$ let
+\begin{equation}\label{eq:value-functions}
+ u_{\alpha,\eps_v}(x)=(x^2+\eps_v^2)^{\alpha/2}-\eps_v^\alpha,
+ \qquad
+ v_+(y)=u_{\alpha_+,\eps_v}(y^+),
+ \qquad
+ v_-(y)=\lambda u_{\alpha_-,\eps_v}(y^-),
+\end{equation}
+with $0<\alpha_+,\alpha_-\le1$, $\lambda>1$, and $\eps_v>0$.  Let $w_\pm$ be strictly increasing probability-weighting functions and, for fixed $\eps\in(0,1/2)$, define the endpoint-normalized weights
+\begin{equation}\label{eq:normalized-weight}
+ w_\pm^\eps(p)
+ =\frac{w_\pm(\eps+(1-2\eps)p)-w_\pm(\eps)}
+ {w_\pm(1-\eps)-w_\pm(\eps)},
+ \qquad 0\le p\le1.
+\end{equation}
+Thus $w_\pm^\eps(0)=0$ and $w_\pm^\eps(1)=1$.
+
+For a frozen episode environment/model $P$ and context $(z,r)$, let $P_\theta$ denote the induced augmented trajectory law under $\pi_\theta$.  Write
+\[
+ S_{P,z,r,\theta}^{\pm}(y)
+ =P_\theta\{v_\pm(Y)>y\}.
+\]
+On the bounded analysis domain, $v_\pm(Y)\in[0,B_v]$.  Define
+\begin{equation}\label{eq:generic-cpt-objective}
+ J(P,z,r;\theta)
+ =\int_0^{B_v}w_+^\eps\!\left(S_{P,z,r,\theta}^{+}(y)\right)dy
+ -\int_0^{B_v}w_-^\eps\!\left(S_{P,z,r,\theta}^{-}(y)\right)dy.
+\end{equation}
+Let $P_k$ denote the true conditional episode-$k$ model and $\widetilde P_k$ its frozen simulator model.  Both are fixed when differentiating with respect to $\theta$; their induced trajectory laws depend on $\theta$ through the policy.  Then
+\begin{equation}\label{eq:true-sim-objectives}
+ J_k(\theta,r_k):=J(P_k,z_k,r_k;\theta),
+ \qquad
+ \widetilde J_k(\theta,r_k):=J(\widetilde P_k,z_k,r_k;\theta),
+\end{equation}
+with gradients
+\begin{equation}\label{eq:true-sim-gradients}
+ g_k(\theta):=\nabla_\theta J_k(\theta,r_k),
+ \qquad
+ \widetilde g_k(\theta):=\nabla_\theta\widetilde J_k(\theta,r_k).
+\end{equation}
+
+\subsection{Projected residual and dynamic local regret}
+
+Fix a normalization floor $\vartheta>0$ and a step size $\gamma>0$.  Define
+\begin{equation}\label{eq:normalized-direction}
+ \mathsf d(g)=\frac{g}{\max\{\norm{g}_2,\vartheta\}},
+\end{equation}
+and the population projected residual
+\begin{equation}\label{eq:projected-residual}
+ Q_k(\theta)
+ =\frac{\Pi_\Theta\{\theta+\gamma\mathsf d(g_k(\theta))\}-\theta}{\gamma}.
+\end{equation}
+The constrained first-order stationary set is
+\begin{equation}\label{eq:stationary-set}
+ \Sta_k
+ =\{\theta\in\Theta:Q_k(\theta)=0\}
+ =\left\{\theta\in\Theta:
+ \ip{g_k(\theta)}{u-\theta}\le0\ \forall u\in\Theta\right\}.
+\end{equation}
+Because $J_k$ is continuously differentiable on compact convex $\Theta$, each $J_k$ attains a maximizer satisfying \eqref{eq:stationary-set}; continuity of $Q_k$ then makes $\Sta_k$ a nonempty compact set.  At the realized iterate, let
+\begin{equation}\label{eq:periodwise-residual}
+ \zeta_k:=\norm{Q_k(\theta_k)}_2^2,
+ \qquad
+ \cE_K:=\frac1K\sum_{k=1}^{K}\E\zeta_k.
+\end{equation}
+
+For window length $w\ge1$ and discount $\rho\in(0,1]$, set
+\begin{equation}\label{eq:dynamic-window-residual}
+ W_{\rho,w}:=\sum_{j=0}^{w-1}\rho^j,
+ \qquad
+ \bar Q_k:=W_{\rho,w}^{-1}\sum_{j=0}^{w-1}\rho^j Q_{k-j}(\theta_{k-j}),
+\end{equation}
+with $Q_t(\theta_t):=0$ for $t\le0$.  The dynamic local regret (DLR) is
+\begin{equation}\label{eq:dynamic-regret}
+ \Reg_{\rho,w}(K):=\sum_{k=1}^{K}\norm{\bar Q_k}_2^2.
+\end{equation}
+Here $Q_k$ is the projected residual, $\zeta_k$ is the squared projected residual, and $\cE_K$ is the average expected squared projected residual.  Each projected residual is evaluated at its contemporaneous iterate before the residual vectors are exponentially averaged over the recent window.  This is the dynamic local-regret object used to evaluate online adaptation below.

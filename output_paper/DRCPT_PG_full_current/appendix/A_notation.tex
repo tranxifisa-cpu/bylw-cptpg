@@ -1,0 +1,140 @@
+\section{Notation and Analytic Preliminaries}\label{app:notation}
+
+All fixed-target statistical statements condition on the episode-start information, the queried parameter, and the frozen simulator before new Monte Carlo trajectories are drawn.  Conditional independence is always with respect to this law.  Limits in $M$ fix the target and estimator design $(n,\varrho,b)$; limits in $K$ require the constants in the stated assumptions to be uniform over episodes; the minimax limit fixes $d$ and all model-class constants while $\mathsf B\to\infty$.
+
+\subsection{Main notation}
+
+\begin{table}[h]
+\centering
+\caption{Main notation along the state, objective, estimation, and online-evaluation chain.  Estimator internals and proof-local constants are defined where they are used.}
+\label{tab:notation-core}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.16\textwidth}X@{}}
+\toprule
+Symbol & Type & Meaning \\
+\midrule
+$k,u,h$ & indices / integer & episode, calendar time, and finite episode horizon \\
+$s_u,\omega_u,\widetilde\omega_u$ & state / portfolios & state $(m_u,X_u,r_u,\omega_{u-1})$ with market state $m_u$; executed portfolio and latent proposal \\
+$z_k,\cF_k,r_k$ & context / information & frozen non-reference start state, episode-start information, and reference $r_{t_k}$ \\
+$\theta,\Theta,\pi_\theta$ & vector / set / policy & parameter, compact convex parameter set, and Dirichlet actor \\
+$P_k,\widetilde P_k$ & episode models & true and frozen-simulator models inducing policy-dependent trajectory laws \\
+$Y_k,v_\pm,w_\pm^\eps$ & outcome / functions & terminal relative outcome and regularized CPT value and weight maps \\
+$J_k,\widetilde J_k$ & scalar functions & true and frozen-simulator CPT objectives \\
+$g_k,\widetilde g_k,G_{k,\theta}$ & $\R^d$ & true gradient, simulator gradient, and complete-trajectory score \\
+$\widehat g_k^{\db},M_k$ & vector / integer & debiased update estimate averaged over $M_k$ independent complete outputs \\
+$Q_k;\gamma,\vartheta$ & vector / scalars & projected residual; step size and normalization floor \\
+$\Sta_k$ & subset of $\Theta$ & constrained first-order stationary set \\
+$\zeta_k$ & $\R_+$ & squared projected residual $\norm{Q_k(\theta_k)}_2^2$ \\
+$\cE_K$ & $\R_+$ & average expected squared projected residual \\
+$\Reg_{\rho,w}(K);\rho,w$ & scalar / parameters & dynamic local regret (DLR); discount and window length \\
+$\beta_k,\cV_K$ & $\R_+$ & simulator-gradient error bound and cumulative true-objective variation \\
+$T_{\rm call},\mathsf B$ & integer / scalar & oracle trajectory count and expected trajectory budget \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Dirichlet score moments}
+
+\begin{lemma}[Uniform moments of the augmented trajectory score]\label{lem:dirichlet-moments}
+Under Assumption \ref{ass:trajectory}, there exist $0<\underline a\le\overline a<\infty$ such that
+\begin{equation}\label{eq:concentration-compactness}
+ \underline a\le a_{i,u}(\theta)\le\overline a
+\end{equation}
+uniformly in $i,u,\theta$.  For every fixed $p<\infty$,
+\begin{equation}\label{eq:score-moment-bound}
+ \sup_{k,\theta}\E\norm{G_{k,\theta}}_2^p<\infty.
+\end{equation}
+The trajectory log-likelihood Hessian $\mathcal H_{k,\theta}$ also satisfies
+\begin{equation}\label{eq:hessian-moment-bound}
+ \sup_{k,\theta}\E\norm{\mathcal H_{k,\theta}}_{\op}<\infty.
+\end{equation}
+Moreover, for every bounded measurable trajectory functional $F$, differentiation under the conditional trajectory law is valid up to order two:
+\begin{equation}\label{eq:likelihood-ratio-identities}
+ \nabla_\theta\E_\theta F=\E_\theta(FG_{k,\theta}),
+ \qquad
+ \nabla_\theta^2\E_\theta F
+ =\E_\theta\{F(G_{k,\theta}G_{k,\theta}^\top+\mathcal H_{k,\theta})\}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Compactness of $\Theta$ and boundedness of $q_{i,u}$ imply \eqref{eq:concentration-compactness}.  Every Dirichlet coordinate has a Beta marginal with parameters in a compact subset of $(0,\infty)^2$.  Hence, for every finite $p$,
+\[
+ \sup_{\mathfrak a,\mathfrak b}\int_0^1
+ \abs{\log x}^p x^{\mathfrak a-1}(1-x)^{\mathfrak b-1}\,dx<\infty,
+\]
+where the supremum is over the induced compact parameter set.  The digamma and polygamma terms are bounded on the same positive compact interval.  Equation \eqref{eq:trajectory-score}, bounded features, and finite $(h,N)$ therefore give \eqref{eq:score-moment-bound}; differentiating the score once more gives \eqref{eq:hessian-moment-bound}.  The market kernel and $\mathsf M_u$ contribute no likelihood derivative by Assumption \ref{ass:trajectory}.
+
+To justify differentiation under the trajectory integral, enlarge $\Theta$ slightly while keeping it compactly contained in the policy domain.  On this neighborhood the Dirichlet concentrations remain in $[a_-,a_+]$ for some $a_->0$.  For one latent action $\widetilde\omega$, the Dirichlet density and its first two $\theta$-derivatives are bounded, up to constants independent of $\theta$, by
+\[
+ \prod_{i=0}^{N}\widetilde\omega_i^{a_- -1}
+ \left(1+\sum_{i=0}^{N}|\log\widetilde\omega_i|^2\right).
+\]
+This envelope is integrable on the simplex for $a_->0$.  Taking the finite product over the $h$ latent actions gives an integrable trajectory envelope; the parameter-independent market kernels integrate to one conditionally at each step.  Hence bounded $F$ times either derivative is dominated by a common integrable function.  Dominated convergence yields \eqref{eq:likelihood-ratio-identities}.
+\end{proof}
+
+\subsection{Smoothness of the CPT objective}
+
+\begin{lemma}[Uniform gradient and smoothness bounds]\label{lem:cpt-smoothness}
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, there exist $B_g,L<\infty$ such that
+\begin{equation}\label{eq:uniform-gradient-smoothness}
+ \sup_{k,\theta\in\Theta}\norm{g_k(\theta)}_2\le B_g,
+ \qquad
+ \norm{g_k(\theta)-g_k(\theta')}_2\le L\norm{\theta-\theta'}_2.
+\end{equation}
+With
+\[
+ C_{G,2}:=\sup_{k,\theta}\E\norm{G_{k,\theta}}_2^2,
+ \qquad
+ C_H:=\sup_{k,\theta}\E\norm{\mathcal H_{k,\theta}}_{\op},
+\]
+one admissible choice is
+\begin{equation}\label{eq:smoothness-constant}
+ B_g=2B_vC_1\sqrt{C_{G,2}},
+ \qquad
+ L=2B_v\{C_2C_{G,2}+C_1(C_{G,2}+C_H)\}.
+\end{equation}
+Moreover $\abs{J_k(\theta,r_k)}\le B_v$.
+\end{lemma}
+
+\begin{proof}
+For one side $\sigma$ and threshold $y$, the likelihood-score identity and Lemma \ref{lem:dirichlet-moments} give
+\[
+ \nabla S_\theta^\sigma(y)=\E\{I_\sigma(y)G_\theta\},
+ \qquad
+ \nabla^2S_\theta^\sigma(y)
+ =\E\{I_\sigma(y)(G_\theta G_\theta^\top+\mathcal H_\theta)\}.
+\]
+The bounded indicator and the moment bounds provide an integrable dominating function, so the derivative--expectation interchange is justified by dominated convergence.  Consequently
+\[
+ \norm{\nabla S_\theta^\sigma(y)}_2\le\sqrt{C_{G,2}},
+ \qquad
+ \norm{\nabla^2S_\theta^\sigma(y)}_{\op}\le C_{G,2}+C_H.
+\]
+Differentiating the CPT integral twice and using Assumption \ref{ass:cpt-regularity} gives
+\[
+ \nabla^2\!\int_0^{B_v}w_\sigma^\eps(S_\theta^\sigma(y))dy
+ =\int_0^{B_v}
+ \{(w_\sigma^\eps)''(S)\nabla S\nabla S^\top
+ +(w_\sigma^\eps)'(S)\nabla^2S\}dy.
+\]
+The integrand is uniformly dominated by the constants above, giving \eqref{eq:smoothness-constant}.  The first-derivative bound is analogous.  Finally $0\le w_\sigma^\eps\le1$ and the two integrals have common length $B_v$, so $\abs{J_k}\le B_v$.
+\end{proof}
+
+\subsection{Projected residual and constrained stationarity}
+
+\begin{lemma}[Projected residual characterizes first-order stationarity]\label{lem:residual-stationarity}
+For closed convex $\Theta$, $\gamma,\vartheta>0$, and $g\in\R^d$,
+\begin{equation}\label{eq:projection-stationarity-equivalence}
+ \Pi_\Theta\{\theta+\gamma\mathsf d(g)\}=\theta
+ \quad\Longleftrightarrow\quad
+ \ip{g}{u-\theta}\le0\quad\forall u\in\Theta.
+\end{equation}
+Hence the two definitions in \eqref{eq:stationary-set} coincide.
+\end{lemma}
+
+\begin{proof}
+The projection variational inequality gives
+$x=\Pi_\Theta(y)$ iff $\ip{y-x}{u-x}\le0$ for every $u\in\Theta$.  Substitute $y=\theta+\gamma\mathsf d(g)$ and use
+$\mathsf d(g)=g/\max\{\norm g_2,\vartheta\}$, a positive scalar multiple of $g$.
+\end{proof}

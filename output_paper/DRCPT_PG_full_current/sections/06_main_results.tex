@@ -1,0 +1,280 @@
+\section{Main Results}\label{sec:results}
+
+\subsection{Reference dependence}
+
+\begin{proposition}[Same terminal wealth, different CPT value]\label{prop:path-dependence}
+Let $x_{\rm lo}<r_0<x_{\rm f}<x_{\rm hi}$ and consider
+\[
+ \mathrm{I}: r_0\to x_{\rm hi}\to x_{\rm f},
+ \qquad
+ \mathrm{II}: r_0\to x_{\rm lo}\to x_{\rm f}.
+\]
+Assume
+\[
+ x_{\rm f}<(1-\etaP)r_0+\etaP x_{\rm hi},
+ \qquad
+ x_{\rm f}>(1-\etaM)r_0+\etaM x_{\rm lo}.
+\]
+Then
+\begin{equation}\label{eq:path-reference-gap}
+ r_{\rm I}-r_{\rm II}
+ =\etaP(1-\etaM)x_{\rm hi}
+ -\etaM(1-\etaP)x_{\rm lo}
+ +(\etaM-\etaP)x_{\rm f}.
+\end{equation}
+If the right-hand side is nonzero, the two paths have different regularized CPT values despite identical terminal wealth $x_{\rm f}$.
+\end{proposition}
+
+\begin{proposition}[Reference sensitivity]\label{prop:reference-sensitivity}
+Under Assumptions \ref{ass:trajectory}, \ref{ass:cpt-regularity}, and \ref{ass:reference-coupling}, set
+\begin{equation}\label{eq:reference-constants}
+ \eta_{\min}=\min(\etaP,\etaM),
+ \qquad
+ L_v=\alpha_+\eps_v^{\alpha_+-1}
+ +\lambda\alpha_-\eps_v^{\alpha_--1}.
+\end{equation}
+For two episode-start references $r,r'$ coupled through the same wealth path,
+\begin{equation}\label{eq:reference-contraction}
+ \abs{r_{t_k+h}(r)-r_{t_k+h}(r')}
+ \le(1-\eta_{\min})^h\abs{r-r'},
+\end{equation}
+and, for fixed $(P,z,\theta)$,
+\begin{equation}\label{eq:reference-value-sensitivity}
+ \abs{J(P,z,r;\theta)-J(P,z,r';\theta)}
+ \le C_1L_v(1-\eta_{\min})^h\abs{r-r'}.
+\end{equation}
+Consequently, with
+\[
+ v_k^{\rm nr}
+ :=\sup_{\theta\in\Theta}
+ \abs{J(P_{k+1},z_{k+1},r_k;\theta)-J(P_k,z_k,r_k;\theta)},
+\]
+\begin{equation}\label{eq:variation-decomposition}
+ \sup_{\theta\in\Theta}
+ \abs{J_{k+1}(\theta,r_{k+1})-J_k(\theta,r_k)}
+ \le v_k^{\rm nr}
+ +C_1L_v(1-\eta_{\min})^h\abs{r_{k+1}-r_k}.
+\end{equation}
+\end{proposition}
+
+\subsection{Gradient identity and debiased estimation}
+
+\begin{theorem}[Regularized CPT score-gradient identity]\label{thm:gradient-identity}
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix one target and write $J=J_k$, $Y=Y_k$, $S_\theta^\pm(y):=S_{P_k,z_k,r_k,\theta}^\pm(y)$, and $G_\theta:=G_{k,\theta}$.  Define
+\begin{align}\label{eq:cpt-multiplier}
+ \Psi_\theta(\tau)
+ ={}&\int_0^{B_v}(w_+^\eps)'(S_\theta^+(y))
+ \{\1[v_+(Y(\tau))>y]-S_\theta^+(y)\}\,dy\notag\\
+ &-\int_0^{B_v}(w_-^\eps)'(S_\theta^-(y))
+ \{\1[v_-(Y(\tau))>y]-S_\theta^-(y)\}\,dy.
+\end{align}
+Then
+\begin{equation}\label{eq:score-gradient-identity}
+ \nabla J(\theta)=\E\{\Psi_\theta(\tau)G_\theta(\tau)\}.
+\end{equation}
+The same identity holds for the frozen simulator objective $\widetilde J$.
+\end{theorem}
+
+\begin{lemma}[Coupled full/half cancellation]\label{lem:level-cancellation}
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix one target and parameter and write $g:=\nabla J(\theta)$.  There exist a measurable $\mathfrak h$ and constants $C_{\rm rem},C_U<\infty$ such that
+\begin{equation}\label{eq:loo-expansion}
+ U_n^{\rm raw}-g
+ =\frac1n\sum_{i=1}^{n}\mathfrak h(\mathsf X_i)+\mathcal B_n,
+ \qquad
+ \E\mathfrak h(\mathsf X_i)=0,
+ \qquad
+ \E\norm{\mathcal B_n}_2^2\le\frac{C_{\rm rem}}{n^2},
+\end{equation}
+which implies
+\begin{equation}\label{eq:level-second-moment}
+ \E\norm{D_{n,\ell}^{\rm raw}}_2^2
+ \le\frac{9C_{\rm rem}}{n^2}2^{-2\ell},
+ \qquad \ell\ge1,
+\end{equation}
+and
+\begin{equation}\label{eq:centered-loo-variance}
+ \tr\Cov(U_n^{\rm cen})\le\frac{C_U}{n}.
+\end{equation}
+\end{lemma}
+
+
+\begin{lemma}[Centering and finite-sample bias]\label{lem:centering-expectation}
+For $n\ge2$,
+\begin{equation}\label{eq:centered-raw-mean}
+ \E U_n^{\rm cen}=\E U_n^{\rm raw}=: \mu_n,
+\end{equation}
+and there exists $C_{\rm bias}<\infty$ such that
+\begin{equation}\label{eq:loo-bias-order}
+ \norm{\mu_n-g}_2\le \frac{C_{\rm bias}}{n},
+ \qquad g:=\nabla J(\theta).
+\end{equation}
+\end{lemma}
+
+\begin{theorem}[Exact unbiasedness, finite variance, and finite expected cost]\label{thm:estimator}
+Let $Z_n^{\db}$ be defined by \eqref{eq:debiased-output}, with $n\ge2$, $\varrho\in(0,1]$, and $1<b<2$.  Put
+\begin{equation}\label{eq:level-series-constants}
+ \Xi_b
+ :=\sum_{\ell\ge1}\frac{4^{-\ell}}{\nu_\ell}
+ =\frac{1}{4(1-2^{-b})(1-2^{b-2})},
+ \qquad
+ \Upsilon_b
+ :=\sum_{\ell\ge1}\nu_\ell2^\ell
+ =\frac{2(1-2^{-b})}{1-2^{1-b}}.
+\end{equation}
+Then
+\begin{equation}\label{eq:estimator-unbiased}
+ \E Z_n^{\db}=g,
+\end{equation}
+\begin{equation}\label{eq:single-output-variance}
+ \tr\Cov(Z_n^{\db})
+ \le C_{\rm var}(n)
+ :=\frac{C_U}{n}+\frac{9C_{\rm rem}\Xi_b}{\varrho n^2}<\infty,
+\end{equation}
+and the expected number of complete trajectories is
+\begin{equation}\label{eq:expected-estimator-cost}
+ C_{\rm cost}(n,\varrho,b)
+ =n(1+\varrho\Upsilon_b)<\infty.
+\end{equation}
+For $M$ independent outputs,
+\begin{equation}\label{eq:estimator-mse}
+ \widehat g_{M,n}^{\db}:=\frac1M\sum_{m=1}^{M}Z_{n,m}^{\db},
+ \qquad
+ \E\norm{\widehat g_{M,n}^{\db}-g}_2^2
+ \le\frac{C_{\rm var}(n)}{M}.
+\end{equation}
+\end{theorem}
+
+\begin{theorem}[Fixed-target asymptotic normality]\label{thm:clt}
+Under \Cref{thm:estimator}, fix $(n,\varrho,b)$ and let $\Sigma_n=\Cov(Z_n^{\db})$.  Then
+\begin{equation}\label{eq:clt}
+ \sqrt M\,(\widehat g_{M,n}^{\db}-g)
+ \rightsquigarrow \mathcal N(0,\Sigma_n).
+\end{equation}
+If $\Sigma_n$ is nonsingular and $\widehat\Sigma_{M,n}$ is the empirical covariance of the $M$ outputs, then
+\begin{equation}\label{eq:studentized-clt}
+ \sqrt M\,\widehat\Sigma_{M,n}^{-1/2}
+ (\widehat g_{M,n}^{\db}-g)
+ \rightsquigarrow \mathcal N(0,I_d).
+\end{equation}
+\end{theorem}
+
+\subsection{Online residual, dynamic local regret, and stationary-set tracking}
+
+\begin{lemma}[One-step normalized projected ascent]\label{lem:projected-ascent}
+Let $J$ be $L$-smooth on the nonempty closed convex set $\Theta$.  Fix $x\in\Theta$, let $g=\nabla J(x)$ with $\norm{g}_2\le B_g$, and let $\widehat g$ be any finite vector.  Set
+\[
+ x^+=\Pi_\Theta\{x+\gamma\mathsf d(\widehat g)\},
+ \qquad
+ Q(x)=\gamma^{-1}[\Pi_\Theta\{x+\gamma\mathsf d(g)\}-x].
+\]
+If $\gamma L\le\vartheta$ and $C_g:=\max\{B_g,\vartheta\}$, then
+\begin{equation}\label{eq:one-step-ascent}
+ J(x^+)-J(x)
+ \ge\frac{\vartheta\gamma}{8}\norm{Q(x)}_2^2
+ -\frac{5C_g\gamma}{4\vartheta^2}\norm{\widehat g-g}_2^2.
+\end{equation}
+\end{lemma}
+
+\begin{theorem}[Average expected squared projected residual bound]\label{thm:online-residual}
+Suppose Assumptions \ref{ass:trajectory}--\ref{ass:online-variation} hold and $\gamma L\le\vartheta$.  Let $\widehat g_k^{\db}$ be defined by \eqref{eq:gradient-average} and target $\widetilde g_k(\theta_k)$.  Then
+\begin{equation}\label{eq:true-gradient-mse}
+ \E\norm{\widehat g_k^{\db}-g_k(\theta_k)}_2^2
+ \le\frac{C_{\rm var}(n)}{M_k}+\E\beta_k^2,
+\end{equation}
+and
+\begin{equation}\label{eq:online-residual-bound}
+ \boxed{
+ \cE_K
+ \le
+ \frac{8\{2B_v+\E\cV_K\}}{\vartheta\gamma K}
+ +\frac{10C_g}{\vartheta^3K}
+ \sum_{k=1}^{K}
+ \left(\frac{C_{\rm var}(n)}{M_k}+\E\beta_k^2\right),
+ }
+\end{equation}
+\end{theorem}
+
+\begin{corollary}[Dynamic local regret]\label{cor:dynamic-local-regret}
+For every $K\ge1$, pathwise,
+\begin{equation}\label{eq:dynamic-local-regret-bound}
+ \Reg_{\rho,w}(K)
+ \le\sum_{k=1}^{K}\zeta_k,
+\end{equation}
+and therefore
+\begin{equation}\label{eq:average-dynamic-local-regret-bound}
+ \frac1K\E\Reg_{\rho,w}(K)
+ \le\cE_K.
+\end{equation}
+\end{corollary}
+
+\begin{corollary}[Moving stationary-set tracking]\label{cor:stationary-tracking}
+If Assumption \ref{ass:error-bound} also holds, then
+\begin{equation}\label{eq:stationary-tracking}
+ \frac1K\sum_{k=1}^{K}
+ \E\dist^2(\theta_k,\Sta_k)
+ \le\kappa^2\cE_K.
+\end{equation}
+\end{corollary}
+
+\begin{lemma}[Drift of stationary sets]\label{lem:stationary-set-drift}
+Under Assumption \ref{ass:error-bound}, define
+\begin{equation}\label{eq:gradient-drift}
+ \delta_k^g:=\sup_{\theta\in\Theta}
+ \norm{g_{k+1}(\theta)-g_k(\theta)}_2.
+\end{equation}
+Then
+\begin{equation}\label{eq:stationary-set-drift}
+ \dH(\Sta_{k+1},\Sta_k)
+ \le\frac{\kappa}{\vartheta}\delta_k^g.
+\end{equation}
+\end{lemma}
+
+\begin{corollary}[Vanishing average expected squared projected residual and DLR]\label{cor:vanishing-tracking}
+Fix $w<\infty$ and $\rho\in(0,1]$.  If
+\begin{equation}\label{eq:vanishing-conditions}
+ \E\cV_K=o(K),
+ \qquad
+ \frac1K\sum_{k=1}^{K}
+ \left(\frac1{M_k}+\E\beta_k^2\right)\to0,
+\end{equation}
+then
+\begin{equation}\label{eq:vanishing-conclusion}
+ \cE_K\to0,
+ \qquad
+ K^{-1}\E\Reg_{\rho,w}(K)\to0.
+\end{equation}
+Under Assumption \ref{ass:error-bound}, the left-hand side of \eqref{eq:stationary-tracking} also converges to zero.
+\end{corollary}
+
+The growing replication schedule used in E3 is
+\begin{equation}\label{eq:growing-replication}
+ M_k=\max\{4,\lceil\sqrt{k}\rceil\},\qquad k\ge1.
+\end{equation}
+Since $M_k\ge\sqrt{k}$ and
+$\sum_{k=1}^{K}k^{-1/2}\le1+\int_1^K x^{-1/2}\,dx=2\sqrt K-1$,
+\begin{equation}\label{eq:growing-replication-bound}
+ \frac1K\sum_{k=1}^{K}\frac1{M_k}
+ \le\frac{2\sqrt K-1}{K}=O(K^{-1/2}).
+\end{equation}
+Thus the sampling term in \eqref{eq:online-residual-bound} vanishes under this schedule.  Under the remaining hypotheses of \Cref{thm:online-residual}, if $\E\cV_K=o(K)$ and $K^{-1}\sum_{k=1}^{K}\E\beta_k^2\to0$, \Cref{cor:vanishing-tracking} yields sublinear expected dynamic local regret.
+
+\subsection{Fixed-dimension minimax information rate}
+
+Under Assumption \ref{ass:minimax-oracle}, define
+\begin{equation}\label{eq:minimax-risk}
+ \mathfrak R_{\mathsf B}
+ :=\inf_{\widehat g:\,\sup_{P\in\mathfrak C}\E_P T_{\rm call}\le\mathsf B}
+ \sup_{P\in\mathfrak C}
+ \E_P\norm{\widehat g-g_P}_2^2.
+\end{equation}
+
+\begin{theorem}[Minimax-optimal fixed-dimension trajectory-budget rate]\label{thm:minimax}
+Under Assumption \ref{ass:minimax-oracle}, there exist constants
+$c_{\rm lb},C_{\rm ub},\mathsf B_0\in(0,\infty)$, independent of $\mathsf B$, such that for all $\mathsf B\ge\mathsf B_0$,
+\begin{equation}\label{eq:minimax-rate}
+ \frac{c_{\rm lb}}{\mathsf B}
+ \le \mathfrak R_{\mathsf B}
+ \le \frac{C_{\rm ub}}{\mathsf B}.
+\end{equation}
+The upper bound is attained, up to constants, by averaging independent untruncated outputs $Z_n^{\db}$ under the same expected complete-trajectory budget.  Hence, for fixed $d$ and fixed regularization, the minimax gradient-estimation rate is $\Theta(\mathsf B^{-1})$.
+\end{theorem}

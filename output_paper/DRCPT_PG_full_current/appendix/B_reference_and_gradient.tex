@@ -1,0 +1,95 @@
+\section{Proofs for the Reference Mechanism and CPT Gradient}\label{app:reference-gradient}
+
+\subsection{Same terminal wealth and path-dependent reference}
+
+\begin{proof}
+It is enough to compute the two terminal references and then use strict monotonicity of the deterministic CPT value.
+
+For path I, the first step is a gain, so its interim reference is
+\[
+ r_{\rm I}^{(1)}=(1-\eta_+)r_0+\eta_+x_{\rm hi}.
+\]
+The first displayed condition in the proposition makes the second step a loss relative to this interim reference.  Hence
+\[
+ r_{\rm I}=(1-\eta_-)\{(1-\eta_+)r_0+\eta_+x_{\rm hi}\}+\eta_-x_{\rm f}.
+\]
+For path II, the first step is a loss and
+\[
+ r_{\rm II}^{(1)}=(1-\eta_-)r_0+\eta_-x_{\rm lo}.
+\]
+The second displayed condition makes the move to $x_{\rm f}$ a gain, so
+\[
+ r_{\rm II}=(1-\eta_+)\{(1-\eta_-)r_0+\eta_-x_{\rm lo}\}+\eta_+x_{\rm f}.
+\]
+Subtracting cancels the coefficient of $r_0$ and gives \eqref{eq:path-reference-gap}.
+
+It remains to translate a nonzero reference gap into a CPT-value gap.  A deterministic relative outcome $y_0$ has survival function equal to one below its corresponding value magnitude and zero above it.  Since $w_\pm^\eps(0)=0$ and $w_\pm^\eps(1)=1$, its CPT value is
+$v_+(y)-v_-(y)$.  The shifted-power gain term is strictly increasing on $y>0$, and $-v_-(y)$ is strictly increasing on $y<0$; the two pieces meet continuously at zero.  Thus the signed deterministic CPT value is strictly increasing in $y$.  If $r_{\rm I}\ne r_{\rm II}$, then $x_{\rm f}-r_{\rm I}\ne x_{\rm f}-r_{\rm II}$, so the two CPT values differ.
+\end{proof}
+
+\subsection{Reference contraction and CPT sensitivity}
+
+\begin{proof}
+To prove \eqref{eq:reference-value-sensitivity}, it is enough to establish three bounds: contraction of the reference recursion, Lipschitz continuity of the value transformation, and an $L^1$ survival-function coupling inequality.
+
+Fix a wealth value $x$.  The map $r\mapsto\Phi(r,x)$ is continuous, with slope $1-\eta_+$ when $r\le x$ and slope $1-\eta_-$ when $r>x$.  Splitting an interval at $x$ when necessary therefore gives
+\[
+ \abs{\Phi(r,x)-\Phi(r',x)}
+ \le(1-\eta_{\min})\abs{r-r'}.
+\]
+Under Assumption \ref{ass:reference-coupling}, the two compared trajectories have the same wealth path.  Iterating the preceding inequality for $h$ steps proves \eqref{eq:reference-contraction}.  Since their terminal wealth is common,
+\begin{equation}\label{eq:relative-reference-coupling}
+ \abs{Y(r)-Y(r')}
+ \le(1-\eta_{\min})^h\abs{r-r'}.
+\end{equation}
+
+For $x\ge0$,
+\[
+ \frac{d}{dx}u_{\alpha,\eps_v}(x)
+ =\alpha x(x^2+\eps_v^2)^{\alpha/2-1}
+ \le\alpha\eps_v^{\alpha-1},
+\]
+where the bound uses $x\le(x^2+\eps_v^2)^{1/2}$ and $\alpha\le1$.  Hence
+\[
+ \abs{v_+(y)-v_+(y')}
+ +\abs{v_-(y)-v_-(y')}
+ \le L_v\abs{y-y'}.
+\]
+Combining this with \eqref{eq:relative-reference-coupling} controls the sum of the two terminal value-magnitude differences.
+
+Finally, if $V,V'\in[0,B_v]$ are coupled nonnegative random variables, Tonelli's theorem gives
+\begin{align*}
+ \int_0^{B_v}\abs{P(V>y)-P(V'>y)}\,dy
+ &\le \E\int_0^{B_v}
+ \abs{\1\{V>y\}-\1\{V'>y\}}\,dy\\
+ &=\E\abs{V-V'}.
+\end{align*}
+Since $\abs{w_\sigma^\eps(p)-w_\sigma^\eps(q)}\le C_1\abs{p-q}$, applying this inequality to the gain and loss integrals and using the preceding value bound proves \eqref{eq:reference-value-sensitivity}.  The decomposition \eqref{eq:variation-decomposition} follows by adding and subtracting $J(P_{k+1},z_{k+1},r_k;\theta)$ and applying the triangle inequality uniformly in $\theta$.
+\end{proof}
+
+\subsection{Score representation of the CPT gradient}
+
+\begin{proof}
+We prove the gain part; the loss part follows by the same calculation and is subtracted at the end.  To differentiate
+\[
+ J^+(\theta)=\int_0^{B_v}w_+^\eps(S_\theta^+(y))\,dy,
+\]
+it is enough to identify $\nabla S_\theta^+(y)$ and justify moving the derivative through the $y$-integral.
+
+For fixed $y$, the likelihood-ratio identity in \Cref{lem:dirichlet-moments} applied to the bounded indicator gives
+\begin{equation}\label{eq:survival-score-derivative}
+ \nabla S_\theta^+(y)
+ =\E\{\1[v_+(Y)>y]G_\theta\}.
+\end{equation}
+By Cauchy--Schwarz and Assumption \ref{ass:trajectory}, the norm of the right-hand side is at most $\sqrt{C_{G,2}}$ uniformly in $y$ and $\theta$.  Since $(w_+^\eps)'$ is bounded by $C_1$ and the integration interval is finite, this constant is an integrable dominating function.  The dominated convergence theorem therefore gives
+\begin{align*}
+ \nabla J^+(\theta)
+ &=\int_0^{B_v}(w_+^\eps)'(S_\theta^+(y))
+ \E\{\1[v_+(Y)>y]G_\theta\}\,dy\\
+ &=\E\left[G_\theta
+ \int_0^{B_v}(w_+^\eps)'(S_\theta^+(y))\1[v_+(Y)>y]dy\right],
+\end{align*}
+where Fubini's theorem is applicable because the integrand is dominated by $C_1B_v\norm{G_\theta}$ and $\E\norm{G_\theta}<\infty$.
+
+The score has mean zero.  Therefore subtracting the deterministic quantity $S_\theta^+(y)$ inside the integral does not change the expectation.  This yields the gain component of \eqref{eq:cpt-multiplier}.  Repeating the argument for the loss side and subtracting proves \eqref{eq:score-gradient-identity}.  The frozen-simulator identity follows under the same conditional argument with its trajectory law in place of the true law.
+\end{proof}
