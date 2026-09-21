@@ -52,10 +52,10 @@ The key result is a rank reversal under a matched current state.  The two accoun
 Beginning with E2, we use a common $30$-stock-plus-cash semi-synthetic market built from a frozen empirical A-share factor-block library.  Factor blocks are sampled from a time-invariant empirical distribution, while the return law follows a pre-specified path across episodes.  For risky asset $i$ in episode $k$,
 \[
 R_{i,k,u}=0.08\,\tanh\!\left(
-\frac{\mu_k+2.5\,b_k^\top f_{i,u}+\xi^{\rm com}_{k,u}+\xi^{\rm id}_{i,k,u}}{0.08}
+\frac{\mu_k^{\rm ret}+2.5\,(c_k^{\rm ret})^\top f_{i,u}+\xi^{\rm com}_{k,u}+\xi^{\rm id}_{i,k,u}}{0.08}
 \right),
 \]
-where the common and idiosyncratic shocks have standard deviations $0.006s_k$ and $0.009s_k$, respectively.  Episodes $1$--$40$ use the stable momentum law, episodes $41$--$60$ use the reversal law, episodes $61$--$120$ interpolate to the terminal low-volatility/value/quality law, and the exogenous return law is fixed thereafter.  E2 standardizes the account context to
+where the common and idiosyncratic shocks have standard deviations $0.006\sigma_k^{\rm ret}$ and $0.009\sigma_k^{\rm ret}$, respectively; $(\mu_k^{\rm ret},c_k^{\rm ret},\sigma_k^{\rm ret})$ denotes the episode-specific return-law coefficients.  Episodes $1$--$40$ use the stable momentum law, episodes $41$--$60$ use the reversal law, episodes $61$--$120$ interpolate to the terminal low-volatility/value/quality law, and the exogenous return law is fixed thereafter.  E2 standardizes the account context to
 \[
 (X,r,\omega,\theta)=(1,1,e_{\rm cash},0)
 \]
@@ -106,18 +106,18 @@ E3 releases the market setup introduced in E2 as one continuous online process. 
 \[
 \begin{aligned}
 \log X_{k+1}
-&=(1-\alpha_k)\log X_k+\alpha_k\log\widetilde X_{k+1},\\
+&=(1-\varpi_k)\log X_k+\varpi_k\log\widetilde X_{k+1},\\
 r_{k+1}
-&=(1-\alpha_k)r_k+\alpha_k\widetilde r_{k+1},\\
+&=(1-\varpi_k)r_k+\varpi_k\widetilde r_{k+1},\\
 \omega_{k+1}
-&=(1-\alpha_k)\omega_k+\alpha_k\omega_{k+1}^{\mathrm{end}},
+&=(1-\varpi_k)\omega_k+\varpi_k\omega_{k+1}^{\mathrm{end}},
 \qquad
-\alpha_k=k^{-3/4}.
+\varpi_k=k^{-3/4}.
 \end{aligned}
 \]
-The within-episode reference update remains the asymmetric mechanism in \eqref{eq:reference-update} with $(\eta_+,\eta_-)=(0.20,0.05)$.  Under the bounded analysis domain of Assumption~\ref{ass:trajectory} and the bounded semi-synthetic returns, the episode-start state increments are $O(\alpha_k)$, with
+The within-episode reference update remains the asymmetric mechanism in \eqref{eq:reference-update} with $(\eta_+,\eta_-)=(0.20,0.05)$.  Under the bounded analysis domain of Assumption~\ref{ass:trajectory} and the bounded semi-synthetic returns, the episode-start state increments are $O(\varpi_k)$, with
 \[
-\sum_{k\le K}\alpha_k=O(K^{1/4})=o(K).
+\sum_{k\le K}\varpi_k=O(K^{1/4})=o(K).
 \]
 The factor-block distribution is time invariant, the exogenous return coefficients follow the E2 phase path through episode $120$, and remain fixed for episodes $121$--$300$.  Appendix~\ref{app:online} shows how this schedule induces $\cV_K=O(K^{1/4})$ whenever the frozen objective is uniformly Lipschitz in the episode-start account variables and return-law coefficients on the analyzed compact domain.  E3 therefore controls the design-side quantities that enter the theorem's variation budget while retaining the dynamic reference's path dependence.
 
