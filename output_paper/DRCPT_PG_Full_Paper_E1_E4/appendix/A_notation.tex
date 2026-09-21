@@ -26,8 +26,8 @@ $Q_k;\gamma,\vartheta$ & vector / scalars & projected residual; step size and no
 $\Sta_k$ & subset of $\Theta$ & constrained first-order stationary set \\
 $\zeta_k$ & $\R_+$ & squared projected residual $\norm{Q_k(\theta_k)}_2^2$ \\
 $\cE_K$ & $\R_+$ & average expected squared projected residual \\
-$m_k,W_{\rho,m_k},\bar\zeta_k$ & integer / scalars & active window length, exponential mass, and square-first windowed residual \\
-$\Reg_{\rho,w}(K);\rho,w$ & scalar / parameters & cumulative square-first DLR; discount and maximum window length \\
+$A_{\rho,W},\bar Q_k$ & scalar / $\R^d$ & full-window exponential mass and temporally smoothed projected residual \\
+$\Reg_{\rho,W}(K);\rho,W$ & scalar / parameters & dynamic local regret; discount and window length \\
 $\beta_k,\cV_K$ & $\R_+$ & simulator-gradient error bound and cumulative true-objective variation \\
 $T_{\rm call},\mathsf B$ & integer / scalar & oracle trajectory count and expected trajectory budget \\
 \bottomrule
@@ -64,7 +64,7 @@ Compactness of $\Theta$ and boundedness of $q_{i,u}$ imply \eqref{eq:concentrati
  \sup_{\mathfrak a,\mathfrak b}\int_0^1
  \abs{\log x}^p x^{\mathfrak a-1}(1-x)^{\mathfrak b-1}\,dx<\infty,
 \]
-where the supremum is over the induced compact parameter set.  The digamma and polygamma terms are bounded on the same positive compact interval.  Equation \eqref{eq:trajectory-score}, bounded features, and finite $(h,N)$ therefore give \eqref{eq:score-moment-bound}; differentiating the score once more gives \eqref{eq:hessian-moment-bound}.  The market kernel and $\mathsf M_u$ contribute no likelihood derivative by Assumption \ref{ass:likelihood}.
+where the supremum is over the induced compact parameter set.  The digamma and polygamma terms are bounded on the same positive compact interval.  Equation \eqref{eq:trajectory-score}, bounded features, and finite $(h,N)$ therefore give \eqref{eq:score-moment-bound}; differentiating the score once more gives \eqref{eq:hessian-moment-bound}.  The market kernel and $\mathsf M_u(\cdot\mid s_u)$ contribute no likelihood derivative by Assumption \ref{ass:likelihood}.
 
 To justify differentiation under the trajectory integral, enlarge $\Theta$ slightly while keeping it compactly contained in the policy domain.  On this neighborhood the Dirichlet concentrations remain in $[a_-,a_+]$ for some $a_->0$.  For one latent action $\widetilde\omega$, the Dirichlet density and its first two $\theta$-derivatives are bounded, up to constants independent of $\theta$, by
 \[
