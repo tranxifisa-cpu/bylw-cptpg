@@ -6,7 +6,7 @@ The experiments follow the argument developed in the theory.  E1 isolates the pa
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.96\textwidth]{figures/experiment_evidence_map.pdf}
-    \caption{Experimental evidence map.  E1--E4 form the theory-aligned core: mechanism, estimator, online tracking, and robustness.  E5--E7 extend the chain to chronological market outcomes, held-out investor behavior, and calibrated heterogeneous interaction.  The external-validity layers preserve separate estimands rather than using portfolio performance or simulated satisfaction as substitutes for the E2--E4 statistical and tracking diagnostics.}
+    \caption{Experimental evidence map for the theory-aligned core.  E1 establishes the decision consequence of path-dependent reference formation; E2 evaluates the frozen-target gradient estimator; E3 measures continuous first-order tracking; and E4 maps robustness.  E5--E7 follow this core as external-validity layers for market, behavior, and interaction, while keeping their estimands separate from the E2--E4 statistical and tracking diagnostics.}
     \label{fig:evidence-map}
 \end{figure}
 \FloatBarrier
@@ -190,7 +190,7 @@ We compare DRCPT-PG with symmetric-reference CPT-PG, static-reference CPT-PG, ex
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=\textwidth]{figures/e5_external_validity.pdf}
+    \includegraphics[width=\textwidth]{../../results/e5_hs300_e3sync_expcompatible_beta6_c10/figures/figure_E5_external_validity.pdf}
     \caption{E5 chronological A-share evaluation.  \textbf{A}: median normalized wealth across the ten policy seeds, with seed dispersion bands.  \textbf{B}: drawdown and recovery over the same replay, with market-stage annotations used only for visualization.  \textbf{C}: terminal wealth versus maximum drawdown; bubble size represents turnover.  \textbf{D}: mean turnover and cumulative transaction cost.  All learned methods share the same fixed asset universe, point-in-time information set, transaction-cost rule, and stochastic execution protocol.}
     \label{fig:e5-market}
 \end{figure}
@@ -226,7 +226,7 @@ The behavioral statistic is recomputed under each reference representation rathe
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=\textwidth]{figures/e6_behavior_alignment.pdf}
+    \includegraphics[width=\textwidth]{../../results/e6_reference_behavior_eta041/model/figures/figure_E6_behavior_alignment.pdf}
     \caption{E6 held-out behavioral alignment.  \textbf{A}: paired-bootstrap improvements in out-of-sample log loss and Brier score relative to the no-reference model.  \textbf{B}: observed reduction rates in gain and loss states defined separately by each reference.  \textbf{C}: reference-conditioned gain-minus-loss reduction gap.  \textbf{D}: log-loss improvement over the no-reference model across pre-test investor-history strata.  Error bars in A--C are paired investor-cluster 95\% bootstrap intervals.}
     \label{fig:e6-behavior}
 \end{figure}
@@ -245,7 +245,7 @@ For every method, the experiment exactly replays the full cash-plus-300-stock re
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=\textwidth]{figures/e7_heterogeneous_agents.pdf}
+    \includegraphics[width=\textwidth]{../../results/e7_heterogeneous_agents/figures/figure_E7_heterogeneous_agents.pdf}
     \caption{E7 calibrated heterogeneous-agent interaction.  \textbf{A}: standardized profiles of the four investor types.  \textbf{B}: simulated episode-level adoption by type and method.  \textbf{C}: five-day conditional satisfaction after adoption.  \textbf{D}: method-level adoption--satisfaction plane; bubble size encodes mean recommendation compatibility.  Adoption is decided before episode returns are revealed, and satisfaction is evaluated against a no-rebalance counterfactual with its own reference path.}
     \label{fig:e7-agents}
 \end{figure}
