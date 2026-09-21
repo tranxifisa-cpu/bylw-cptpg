@@ -3,7 +3,7 @@
 \subsection{Experimental roadmap}\label{sec:exp-roadmap}
 The experiments follow the argument developed in the theory.  E1 isolates the path-dependent reference mechanism and its decision consequence.  E2 evaluates the frozen-target gradient estimator in the shared semi-synthetic setup.  E3 releases the same setup as a continuous slow-variation process and tests online first-order tracking, while E4 maps the robustness of that tracking result over reference, horizon, and optimizer perturbations.  E5 then moves to a time-ordered real A-share replay under common trading constraints.  E6 holds real investor decisions, controls, chronological split, and predictive model fixed while changing only the reference representation.  E7 replays the E5 recommendations through investor types calibrated from E6 and historical behavior, separating recommendation adoption from satisfaction after adoption.  \Cref{fig:evidence-map} summarizes the theory-aligned core and these three external-validity layers.
 
-\begin{figure}[t]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.96\textwidth]{figures/experiment_evidence_map.pdf}
     \caption{Experimental evidence map for the theory-aligned core.  E1 establishes the decision consequence of path-dependent reference formation; E2 evaluates the frozen-target gradient estimator; E3 measures continuous first-order tracking; and E4 maps robustness.  E5--E7 follow this core as external-validity layers for market, behavior, and interaction, while keeping their estimands separate from the E2--E4 statistical and tracking diagnostics.}
@@ -21,14 +21,14 @@ We construct two histories with the same initial wealth and the same endpoint,
 \]
 and apply the reference recursion in \eqref{eq:reference-update} with $(\eta_+,\eta_-)=(0.20,0.05)$.  The histories are matched at the decision time: current wealth is $X_T=1.015$, the pre-trade portfolio is $50\%$ cash and $50\%$ risky asset, and the next risky return is $+4\%$ with probability $p$ and $-4\%$ otherwise.  We compare two feasible target allocations, $20\%$ and $80\%$ risky.  Under the action inertia in \eqref{eq:action-map}, these targets execute as $44\%$ and $56\%$ risky.  Because the next-period distribution has two states, all CPT values are evaluated exactly rather than by Monte Carlo.
 
-\begin{figure}[t]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/e1_path_and_decision_final.pdf}
     \caption{Path dependence changes both the perceived domain and the portfolio ranking.  \textbf{A}: The two histories end at the same wealth but generate different asymmetric reference points.  \textbf{B}: The asymmetric rule places the rise--fall history below its reference and the fall--rise history above its reference; the symmetric and static rules provide mechanism controls.  \textbf{C--D}: Exact CPT values of the two feasible executed allocations as the probability $p$ of a $+4\%$ risky return varies.  At $p=0.7$, the matched rise--fall account prefers $44\%$ risky whereas the matched fall--rise account prefers $56\%$ risky.}
     \label{fig:e1-path-choice}
 \end{figure}
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \caption{E1 exact mechanism summary at $p=0.7$.}
 \label{tab:e1-summary}
@@ -67,14 +67,14 @@ We compare the proposed centered leave-one-out estimator with independent raw ra
 \]
 and numerical gradient references are generated independently at substantially higher cost.
 
-\begin{figure}[t]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/e2_estimator_diagnostics.pdf}
     \caption{Finite-sample gradient estimation in the shared semi-synthetic setup.  \textbf{A}: coordinate bias at the stable target.  \textbf{B}: trace covariance of averages of $M$ independent complete estimator outputs; the dotted reference has slope $-1$.  \textbf{C}: studentized normal-quantile diagnostic at $M=64$.  \textbf{D}: full-gradient MSE versus expected trajectory budget for $d\in\{2,4,8,10\}$; the dotted reference has slope $-1$.  The corresponding unbiasedness, asymptotic normality, and fixed-dimensional minimax statements are given in \Cref{thm:estimator,thm:clt,thm:minimax}.}
     \label{fig:e2-estimator}
 \end{figure}
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \small
 \caption{Full-gradient MSE at expected trajectory budget $\mathsf B=512$ across the four fixed targets.  MSE entries are in units of $10^{-6}$.  The last column gives a paired 95\% bootstrap interval for $\mathrm{MSE}_{\rm prop}-\mathrm{MSE}_{\rm v5}$ in the same units.}
@@ -102,7 +102,7 @@ The four frozen targets show where this distinction matters for the full gradien
 
 \subsection{E3: Continuous slow-variation online tracking}\label{sec:e3}
 \paragraph{Design.}
-E3 releases the market setup introduced in E2 as one continuous online process.  No account state is reset.  If a five-day episode starting from $(X_k,r_k,\omega_k)$ produces the raw terminal state $(\widetilde X_{k+1},\widetilde r_{k+1},\widetilde\omega_{k+1})$, the next episode starts from the diminishing-gain transition
+E3 releases the market setup introduced in E2 as one continuous online process.  No account state is reset.  If a five-day episode starting from $(X_k,r_k,\omega_k)$ produces the terminal state $(\widetilde X_{k+1},\widetilde r_{k+1},\omega_{k+1}^{\mathrm{end}})$, the next episode starts from the diminishing-gain transition
 \[
 \begin{aligned}
 \log X_{k+1}
@@ -110,24 +110,24 @@ E3 releases the market setup introduced in E2 as one continuous online process. 
 r_{k+1}
 &=(1-\alpha_k)r_k+\alpha_k\widetilde r_{k+1},\\
 \omega_{k+1}
-&=(1-\alpha_k)\omega_k+\alpha_k\widetilde\omega_{k+1},
+&=(1-\alpha_k)\omega_k+\alpha_k\omega_{k+1}^{\mathrm{end}},
 \qquad
 \alpha_k=k^{-3/4}.
 \end{aligned}
 \]
-The within-episode reference update remains the asymmetric mechanism in \eqref{eq:reference-update} with $(\eta_+,\eta_-)=(0.20,0.05)$.  Hence the reference point retains its cross-episode memory, while bounded raw transitions imply episode-start state increments of order $O(\alpha_k)$ and
+The within-episode reference update remains the asymmetric mechanism in \eqref{eq:reference-update} with $(\eta_+,\eta_-)=(0.20,0.05)$.  Under the bounded analysis domain of Assumption~\ref{ass:trajectory} and the bounded semi-synthetic returns, the episode-start state increments are $O(\alpha_k)$, with
 \[
 \sum_{k\le K}\alpha_k=O(K^{1/4})=o(K).
 \]
-The factor-block distribution is time invariant, the exogenous return coefficients follow the E2 phase path through episode $120$, and remain fixed for episodes $121$--$300$.  This construction keeps the dynamic-reference system continuous while imposing a sublinear state-step budget, providing the theory-aligned slow-variation setting used to probe \Cref{cor:vanishing-tracking}.
+The factor-block distribution is time invariant, the exogenous return coefficients follow the E2 phase path through episode $120$, and remain fixed for episodes $121$--$300$.  The finite-horizon sensitivity argument in Appendix~\ref{app:online} then converts these state increments into $\cV_K\le C\sum_{k<K}\alpha_k+C'=O(K^{1/4})$ on this common domain.  This identifies the objective-level condition behind the slow-variation setting without removing the dynamic reference's path dependence.
 
 The comparison uses $20$ independent test trajectories.  The online learner and frozen control share the complete path through episode $40$.  Thereafter the online learner continues Algorithm~\ref{alg:drcptpg}, whereas the control freezes $\theta$ but continues to propagate wealth, reference, and holdings under the same slow transition.  We fix $(\gamma,\vartheta)=(0.08,0.05)$ before the E3 test runs and use the growing replication schedule
 \[
 M_k=\max\{4,\lceil\sqrt{k}\rceil\},
 \]
-so that the average inverse replication count decays as $O(K^{-1/2})$ by \eqref{eq:growing-replication-bound}.  DLR follows \eqref{eq:dynamic-regret} with $w=5$ and $\rho=0.9$.  Two independent evaluation streams estimate both the squared projected residual and the squared norm of the window-averaged projected residual by cross-stream products, preventing the ordinary self-square noise term from entering the evaluation.
+for which $M_k\ge\sqrt{k}$ and $K^{-1}\sum_{k=1}^{K}M_k^{-1}\le(2\sqrt K-1)/K=O(K^{-1/2})$.  DLR follows \eqref{eq:dynamic-regret} with $w=5$ and $\rho=0.9$.  Two independent evaluation streams estimate both the squared projected residual and the squared norm of the window-averaged projected residual by cross-stream products, preventing the ordinary self-square noise term from entering the evaluation.
 
-\begin{figure}[t]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/e3_online_tracking.pdf}
     \caption{Continuous online tracking under slow variation.  \textbf{A--B}: cumulative squared projected residual and its average.  \textbf{C--D}: cumulative and average DLR.  The two methods share the same trajectory through episode $40$; thereafter the frozen control holds $\theta$ fixed while both methods continue to propagate their own wealth, reference, and holdings.  Dotted lines mark the abrupt change, the start of gradual drift, and the point after which the exogenous return law is fixed.  Curves are means over $20$ independent trajectories and shaded bands are $1.96$ standard errors.}
@@ -139,16 +139,17 @@ so that the average inverse replication count decays as $O(K^{-1/2})$ by \eqref{
 Continued adaptation changes the accumulation of first-order tracking error, not merely the terminal portfolio outcome.  From episodes $41$--$300$, the online learner accumulates $0.684$ squared projected residual versus $1.427$ for the frozen control, a reduction of about $52\%$; cumulative DLR is $0.687$ versus $1.369$, a reduction of about $50\%$.  The corresponding seed-paired 95\% bootstrap intervals for the differences are $[-0.834,-0.650]$ and $[-0.738,-0.622]$, and by episode $300$ the average DLR is $2.411\times10^{-3}$ online versus $4.685\times10^{-3}$ frozen (\Cref{fig:e3-tracking}).  Because the two policies generate different endogenous wealth, reference, and holding paths after episode $40$, the frozen arm is deliberately a closed-loop control rather than a common-objective optimizer comparison.  The relevant question is whether continued updating keeps each induced system closer to its own contemporaneous first-order condition, which is exactly what the projected residual and DLR measure.
 
 The tail behavior strengthens this interpretation.  After the exogenous return law becomes fixed, episodes $121$--$300$ still contain slow endogenous state variation.  Over this interval, cumulative DLR grows with empirical log--log slope $0.704$ under continued updating but $0.968$ under freezing; squared projected residual shows the same separation, $0.745$ versus $0.959$.  Thus updating changes error accumulation from a nearly linear frozen trajectory toward the sublinear direction predicted by \Cref{cor:dynamic-local-regret,cor:vanishing-tracking}.  The two independent evaluation streams also rule out the ordinary self-square noise term as an explanation for the separation.  E3 therefore supports the mechanism behind the online analysis: repeated first-order corrections absorb a slowly moving target rather than simply benefiting from a favorable realized account path.  Under the optional error-bound condition in \Cref{ass:error-bound}, the same residual control additionally translates into average squared distance to the contemporaneous stationary set through \Cref{cor:stationary-tracking}.
+
 \FloatBarrier
 
 \subsection{E4: Robustness of online tracking}\label{sec:e4}
 \paragraph{Design.}
-E4 tests whether the E3 closed-loop tracking advantage persists when the reference dynamics, decision horizon, and optimizer scale are perturbed.  Because each perturbation changes the induced objective sequence, absolute DLR values are not compared across configurations.  Instead, within each configuration $c$ we report the matched-control ratio
+E4 tests whether the E3 closed-loop tracking advantage persists when the reference dynamics, decision horizon, and optimizer scale are perturbed.  Because each perturbation changes the induced objective sequence, absolute DLR values are not compared across configurations.  For configuration $c$ and paired seed $s$, we form the matched-control ratio
 \[
-\mathcal R_{\rm DLR}(c)
-=\frac{\mathrm{DLR}^{\rm post}_{\rm online}(c)}{\mathrm{DLR}^{\rm post}_{\rm frozen}(c)},
+\mathrm{Ratio}_{\mathrm{DLR}}(c,s)
+=\frac{\mathrm{DLR}^{\rm post}_{\rm online}(c,s)}{\mathrm{DLR}^{\rm post}_{\rm frozen}(c,s)},
 \]
-where the post-change interval begins at the first regime change.  This is a within-configuration normalization of the same DLR used in E3, not a new loss; $\mathcal R_{\rm DLR}<1$ means that continued updating accumulates less DLR than freezing $\theta$ under the same configuration.
+where the post-change interval begins at the first regime change.  Figures show the mean of the seed-level ratios with paired-seed bootstrap intervals, rather than the ratio of two across-seed mean DLR values.  A ratio below one means that continued updating accumulates less DLR than freezing $\theta$ on that matched trajectory.
 
 Panel A evaluates the full $9\times9$ reference grid
 \[
@@ -156,9 +157,9 @@ Panel A evaluates the full $9\times9$ reference grid
 \]
 Panel B varies the episode horizon over
 \[
-h\in\{1,2,4,5,10,20,25,50\},
+h\in\{1,5,10,15,20,25,30,35,40,45,50\},
 \]
-while holding total market time at $1500$ days and tying the state-gain clock to elapsed market time.  Panel C evaluates $48$ admissible optimizer configurations from
+with the $200$-, $300$-, $600$-, and $1500$-day boundaries assigned to the nearest complete episode where needed; the state-gain clock remains tied to elapsed market time.  Panel C evaluates $48$ optimizer configurations retained by a pre-specified diagnostic screen from
 \[
 \gamma\in\{0.01,0.02,0.03,0.04,0.05,0.06,0.08,0.10,0.12\},
 \]
@@ -168,20 +169,21 @@ while holding total market time at $1500$ days and tying the state-gain clock to
 \gamma L_{\rm diag}\le\vartheta,
 \quad L_{\rm diag}=0.31.
 \]
-The E3 defaults $(\eta_+,\eta_-)=(0.20,0.05)$, $h=5$, and $(\gamma,\vartheta)=(0.08,0.05)$ are marked but are not re-selected in E4.  Each configuration uses four independent paired trajectories.
+Here $L_{\rm diag}$ defines the displayed grid and is distinct from the uniform smoothness constant $L$ in \Cref{thm:online-residual}.  The E3 defaults $(\eta_+,\eta_-)=(0.20,0.05)$, $h=5$, and $(\gamma,\vartheta)=(0.08,0.05)$ are marked but are not re-selected in E4.  Each configuration uses four independent paired trajectories and two independent evaluation streams.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/e4_robustness.pdf}
-    \caption{Robustness of the online-tracking advantage measured by the configuration-matched post-change DLR ratio $\mathcal R_{\rm DLR}$.  \textbf{A}: reference-adaptation surface over the simulated $9\times9$ grid; the black contour marks $\mathcal R_{\rm DLR}=1$, the diagonal marks $\eta_+=\eta_-$, and the star marks the default asymmetric rule.  \textbf{B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks $\mathcal R_{\rm DLR}=1$ and the vertical line marks $h=5$.  \textbf{C}: admissible $(\gamma,\vartheta)$ grid; blank cells are excluded by $\gamma L_{\rm diag}>\vartheta$, and the star marks the E3 default.}
+    \caption{Robustness of the online-tracking advantage measured by the configuration-matched post-change DLR ratio $\mathrm{Ratio}_{\mathrm{DLR}}$.  \textbf{A}: reference-adaptation surface over the simulated $9\times9$ grid; the black contour marks a ratio of one, the diagonal marks $\eta_+=\eta_-$, and the star marks the default asymmetric rule.  \textbf{B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$.  \textbf{C}: diagnostically screened $(\gamma,\vartheta)$ grid; blank cells lie outside $\gamma L_{\rm diag}\le\vartheta$, and the star marks the E3 default.}
     \label{fig:e4-robustness}
 \end{figure}
 \FloatBarrier
 
 \paragraph{Results.}
-E4 asks whether the E3 separation is a property of the mechanism or an accident of one tuning choice.  The reference sweep gives the clearest answer.  Continued updating has lower post-change DLR in $76$ of $81$ reference configurations, and all $36$ gain-dominant asymmetric settings with $\eta_+>\eta_-$ lie below the matched-control boundary; $33$ of those have paired 95\% intervals entirely below one.  The default rule has $\mathcal R_{\rm DLR}=0.458$ with interval $[0.332,0.621]$.  The surface also identifies a coherent boundary of the phenomenon: strongly loss-dominant adaptation can reverse the comparison, as at $(\eta_+,\eta_-)=(0.05,0.40)$ where the ratio is $1.403$ with interval $[1.224,1.552]$ (\Cref{fig:e4-robustness}A).  The robustness region therefore follows the qualitative reference dynamics rather than looking like isolated favorable cells.
+E4 asks whether the E3 separation is a property of the mechanism or an accident of one tuning choice.  The reference sweep gives the clearest answer.  Continued updating has lower post-change DLR in $76$ of $81$ reference configurations, and all $36$ gain-dominant asymmetric settings with $\eta_+>\eta_-$ lie below the matched-control boundary; $33$ of those have paired 95\% intervals entirely below one.  The default rule has $\mathrm{Ratio}_{\mathrm{DLR}}=0.458$ with interval $[0.332,0.621]$.  The surface also identifies a coherent boundary of the phenomenon: strongly loss-dominant adaptation can reverse the comparison, as at $(\eta_+,\eta_-)=(0.05,0.40)$ where the ratio is $1.403$ with interval $[1.224,1.552]$ (\Cref{fig:e4-robustness}A).  The robustness region therefore follows the qualitative reference dynamics rather than looking like isolated favorable cells.
 
-The other two sweeps test whether the effect is tied to discretization or optimizer tuning.  Mean ratios are below one at all eight horizons, with seven intervals entirely below one, so the E3 result is not specific to the five-day episode length (\Cref{fig:e4-robustness}B).  Across the $48$ admissible $(\gamma,\vartheta)$ pairs, $47$ mean ratios are below one and $45$ intervals are entirely below one; the lone point estimate above one has interval $[0.876,1.342]$ and is unresolved from the matched control.  Taken together, the sweeps map a broad region in which continued adaptation improves first-order tracking.  This is stronger evidence than a single default run because it shows that the E3 separation survives changes to the behavioral state dynamics, the temporal aggregation scale, and the optimizer itself.
+The other two sweeps test whether the effect is tied to discretization or optimizer tuning.  Mean ratios are below one at all $11$ horizons, with $10$ intervals entirely below one; only the $h=50$ interval crosses one, so the E3 result is not specific to the five-day episode length (\Cref{fig:e4-robustness}B).  Across the $48$ screened $(\gamma,\vartheta)$ pairs, $47$ mean ratios are below one and $45$ intervals are entirely below one; the lone point estimate above one has interval $[0.876,1.342]$ and is unresolved from the matched control.  Taken together, the sweeps map a broad region in which continued adaptation improves first-order tracking.  This is stronger evidence than a single default run because it shows that the E3 separation survives changes to the behavioral state dynamics, the temporal aggregation scale, and the optimizer itself.
+
 \FloatBarrier
 
 \subsection{E5: Real-market portfolio evaluation}\label{sec:e5}
@@ -190,14 +192,14 @@ E5 transfers the portfolio learner from the controlled E2--E4 market to a chrono
 
 We compare DRCPT-PG with symmetric-reference CPT-PG, static-reference CPT-PG, expected-wealth PG, exponential-utility PG, and a passive equal-weight anchor.  The five learned policies use the same five-day horizon, $\gamma=0.08$, expected trajectory budget $512$, and ten pre-specified policy seeds; DRCPT-PG keeps $(\eta_+,\eta_-)=(0.20,0.05)$.  The primary market diagnostics are wealth, annualized return and volatility, Sharpe ratio, maximum drawdown, turnover, and cumulative transaction cost.  DLR is not used to rank the real-market methods because the objective of E5 is economic external validity rather than theorem verification.
 
-\begin{figure}[t]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{../../results/e5_hs300_e3sync_expcompatible_beta6_c10/figures/figure_E5_external_validity.pdf}
     \caption{E5 chronological A-share evaluation.  \textbf{A}: median normalized wealth across the ten policy seeds, with seed dispersion bands.  \textbf{B}: drawdown and recovery over the same replay, with market-stage annotations used only for visualization.  \textbf{C}: terminal wealth versus maximum drawdown; bubble size represents turnover.  \textbf{D}: mean turnover and cumulative transaction cost.  All learned methods share the same fixed asset universe, point-in-time information set, transaction-cost rule, and stochastic execution protocol.}
     \label{fig:e5-market}
 \end{figure}
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \small
 \caption{E5 real-market summary.  Entries are means across the ten policy seeds; the equal-weight row is the deterministic passive anchor.}
@@ -226,7 +228,7 @@ E6 asks whether the reference state used by the portfolio model carries incremen
 
 The behavioral statistic is recomputed under each reference representation rather than fixing gain and loss states to the static purchase cost.  For the same realized decisions, we therefore report the reduction rate when the position is above its own reference, the reduction rate when it is below its own reference, and their difference.  This separates two questions: whether a reference representation improves held-out prediction and whether the gain/loss partition that it induces aligns with the observed disposition asymmetry.
 
-\begin{figure}[t]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{../../results/e6_reference_behavior_eta041/model/figures/figure_E6_behavior_alignment.pdf}
     \caption{E6 held-out behavioral alignment.  \textbf{A}: paired-bootstrap improvements in out-of-sample log loss and Brier score relative to the no-reference model.  \textbf{B}: observed reduction rates in gain and loss states defined separately by each reference.  \textbf{C}: reference-conditioned gain-minus-loss reduction gap.  \textbf{D}: log-loss improvement over the no-reference model across pre-test investor-history strata.  Error bars in A--C are paired investor-cluster 95\% bootstrap intervals.}

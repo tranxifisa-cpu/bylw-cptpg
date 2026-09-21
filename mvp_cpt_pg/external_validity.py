@@ -229,17 +229,12 @@ def _add_stage_bands(ax, stages, colors):
                 start_episode, current = int(stages.episode.iloc[index]), stages.stage.iloc[index]
 
 
-def _panel_label(ax, label):
-    ax.text(.015, .97, label, transform=ax.transAxes, ha="left", va="top",
-            fontsize=10, fontweight="bold", color="white",
-            bbox=dict(boxstyle="round,pad=.18", facecolor="#263746", edgecolor="none"))
-
-
 def plot_e5(daily, summary, output, panel=None, start_day=None, horizon=5):
     """Plot the four-panel real-market external-validity figure."""
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
-    methods = [m for m in E5_METHODS if m in set(daily.method)]
+    methods = [m for m in E5_METHODS
+               if m != "equal_weight" and m in set(daily.method)]
     stages = (_market_stage_table(panel, start_day, len(daily[daily.method == methods[0]].day.unique()), horizon)
               if panel is not None and start_day is not None and methods else pd.DataFrame())
     stage_colors = {"Uptrend": "#DDEFE0", "Reversal": "#E5E7F5",
@@ -263,8 +258,8 @@ def plot_e5(daily, summary, output, panel=None, start_day=None, horizon=5):
         if not stages.empty:
             _add_stage_bands(axes[0, 0], stages, stage_colors)
             _add_stage_bands(axes[0, 1], stages, stage_colors)
-        axes[0, 0].set_title("A-share real-market wealth replay")
-        axes[0, 1].set_title("Stress-period drawdown and recovery")
+        axes[0, 0].set_title("A  Normalized wealth", loc="left", fontweight="bold")
+        axes[0, 1].set_title("B  Drawdown and recovery", loc="left", fontweight="bold")
         axes[0, 0].set_xlabel("Episode")
         axes[0, 1].set_xlabel("Episode")
         axes[0, 0].set_ylabel("Normalized wealth")
@@ -282,7 +277,7 @@ def plot_e5(daily, summary, output, panel=None, start_day=None, horizon=5):
                                color=PLOT_COLORS[method],
                                s=180 + 720 * row.total_turnover / max_turnover,
                                alpha=.84, edgecolor="white", linewidth=.7)
-        axes[1, 0].set_title("Return-risk-turnover Pareto lens")
+        axes[1, 0].set_title("C  Terminal wealth, drawdown, and turnover", loc="left", fontweight="bold")
         axes[1, 0].set_xlabel("Maximum drawdown (lower is better)")
         axes[1, 0].set_ylabel("Terminal wealth")
 
@@ -301,7 +296,7 @@ def plot_e5(daily, summary, output, panel=None, start_day=None, horizon=5):
                                  height=.30, color=colors, alpha=.48, hatch="//")
         ax_turnover.set_yticks(y, [METHOD_LABELS[m] for m in mean_metrics.method], fontsize=8)
         ax_turnover.invert_yaxis()
-        ax_turnover.set_title("Trading activity and transaction cost")
+        ax_turnover.set_title("D  Turnover and transaction cost", loc="left", fontweight="bold")
         ax_turnover.set_xlabel("Mean total turnover")
         ax_cost.set_xlabel("Mean cumulative transaction cost")
         ax_cost.tick_params(axis="y", left=False, right=False,
@@ -319,8 +314,6 @@ def plot_e5(daily, summary, output, panel=None, start_day=None, horizon=5):
             ax.grid(alpha=.18, linewidth=.6)
             ax.set_axisbelow(True)
         axes[0, 0].legend(frameon=False, fontsize=7, ncol=2, loc="upper left")
-        for ax, label in zip(axes.flat, "ABCD"):
-            _panel_label(ax, label)
         fig.savefig(output / "figure_E5_external_validity.pdf", bbox_inches="tight")
         fig.savefig(output / "figure_E5_external_validity.svg", bbox_inches="tight")
         fig.savefig(output / "figure_E5_external_validity.png", dpi=300, bbox_inches="tight")
@@ -938,7 +931,7 @@ def plot_e6(metrics, predictions, output):
         axes[0, 0].axhline(0, color="#555555", linewidth=.8)
         axes[0, 0].set_xticks(x, [labels[ref] for ref in refs], rotation=25, ha="right", fontsize=8)
         axes[0, 0].set_ylabel("OOS error improvement vs no reference")
-        axes[0, 0].set_title("Incremental decision-prediction value")
+        axes[0, 0].set_title("A  Incremental decision-prediction value", loc="left", fontweight="bold")
         axes[0, 0].legend(handles=[Patch(facecolor="#999999", label="Log loss"),
                                    Patch(facecolor="#999999", hatch="//", label="Brier score")],
                           frameon=False, fontsize=8)
@@ -962,7 +955,7 @@ def plot_e6(metrics, predictions, output):
                            alpha=.86, edgecolor="white", linewidth=.6)
         axes[0, 1].set_xticks(x, [labels[ref] for ref in refs], rotation=25, ha="right", fontsize=8)
         axes[0, 1].set_ylabel("Observed reduction rate")
-        axes[0, 1].set_title("Realized behavior under each reference partition")
+        axes[0, 1].set_title("B  Realized behavior under each reference partition", loc="left", fontweight="bold")
         axes[0, 1].legend(handles=[Patch(facecolor="#999999", label="Gain state"),
                                    Patch(facecolor="#999999", hatch="//", label="Loss state")],
                           frameon=False, fontsize=8)
@@ -977,7 +970,7 @@ def plot_e6(metrics, predictions, output):
         axes[1, 0].axhline(0, color="#555555", linewidth=.8)
         axes[1, 0].set_xticks(x, [labels[ref] for ref in refs], rotation=25, ha="right", fontsize=8)
         axes[1, 0].set_ylabel("Gain minus loss reduction rate")
-        axes[1, 0].set_title("Reference-conditioned disposition gap")
+        axes[1, 0].set_title("C  Reference-conditioned disposition gap", loc="left", fontweight="bold")
     else:
         axes[0, 1].text(.5, .5, "Behavior bootstrap unavailable", ha="center", va="center")
         axes[1, 0].text(.5, .5, "Behavior bootstrap unavailable", ha="center", va="center")
@@ -1006,14 +999,13 @@ def plot_e6(metrics, predictions, output):
                               [f"{kind.replace('_group', '')}: {value}" for kind, value in present],
                               rotation=35, ha="right", fontsize=7)
         axes[1, 1].set_ylabel("Log-loss improvement vs no reference")
-        axes[1, 1].set_title("Incremental value by pre-test investor history")
+        axes[1, 1].set_title("D  Incremental value by pre-test investor history", loc="left", fontweight="bold")
         axes[1, 1].legend(frameon=False, fontsize=7)
     else:
         axes[1, 1].text(.5, .5, "Subgroup output unavailable", ha="center", va="center")
-    for ax, panel_label in zip(axes.flat, "ABCD"):
+    for ax in axes.flat:
         ax.grid(alpha=.18, linewidth=.5)
         ax.set_axisbelow(True)
-        _panel_label(ax, panel_label)
     fig.savefig(output / "figure_E6_behavior_alignment.pdf", bbox_inches="tight")
     fig.savefig(output / "figure_E6_behavior_alignment.svg", bbox_inches="tight")
     fig.savefig(output / "figure_E6_behavior_alignment.png", dpi=300, bbox_inches="tight")
@@ -1654,7 +1646,8 @@ def plot_e7(summary, profiles, output, overall=None):
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     order_types = sorted(summary.agent_type.unique())
-    order_methods = [m for m in E5_METHODS if m in set(summary.method)]
+    order_methods = [m for m in E5_METHODS
+                     if m != "equal_weight" and m in set(summary.method)]
     method_labels = [METHOD_LABELS[m] for m in order_methods]
     method_colors = [PLOT_COLORS[m] for m in order_methods]
     with plt.rc_context({"font.family": "DejaVu Sans",
@@ -1668,7 +1661,7 @@ def plot_e7(summary, profiles, output, overall=None):
         im = axes[0, 0].imshow(profile_values, aspect="auto", cmap="RdBu_r")
         axes[0, 0].set_xticks(np.arange(len(profile_cols)), profile_cols, rotation=35, ha="right")
         axes[0, 0].set_yticks(np.arange(len(order_types)), order_types, fontsize=7)
-        axes[0, 0].set_title("Calibrated investor profiles")
+        axes[0, 0].set_title("A  Calibrated investor profiles", loc="left", fontweight="bold")
         fig.colorbar(im, ax=axes[0, 0], fraction=.046, pad=.04)
         for ax, value, title, fmt in (
                 (axes[0, 1], "adoption_rate", "Episode-level adoption by investor type", ".2f"),
@@ -1678,7 +1671,8 @@ def plot_e7(summary, profiles, output, overall=None):
             im = ax.imshow(matrix.to_numpy(float), aspect="auto", cmap="YlGn")
             ax.set_xticks(np.arange(len(order_methods)), method_labels, rotation=45, ha="right", fontsize=7)
             ax.set_yticks(np.arange(len(order_types)), order_types, fontsize=7)
-            ax.set_title(title)
+            panel_label = "B" if ax is axes[0, 1] else "C"
+            ax.set_title(f"{panel_label}  {title}", loc="left", fontweight="bold")
             fig.colorbar(im, ax=ax, fraction=.046, pad=.04)
             for i in range(matrix.shape[0]):
                 for j in range(matrix.shape[1]):
@@ -1698,6 +1692,7 @@ def plot_e7(summary, profiles, output, overall=None):
                             mean_compatibility=("weighted_compatibility", "sum")))
         else:
             average = overall.copy()
+        average = average[average.method.isin(order_methods)]
         short_labels = {"dynamic": "DRCPT", "symmetric": "Symmetric", "static": "Static",
                         "expected": "Expected", "exponential": "Exponential",
                         "equal_weight": "Equal Weight"}
@@ -1712,11 +1707,10 @@ def plot_e7(summary, profiles, output, overall=None):
                                 xytext=(5, 4), textcoords="offset points", fontsize=7)
         axes[1, 1].set_xlabel("Average simulated adoption rate")
         axes[1, 1].set_ylabel(r"Five-day satisfaction after adoption ($\times 10^4$)")
-        axes[1, 1].set_title("Method-level adoption--satisfaction trade-off")
-        for ax, panel_label in zip(axes.flat, "ABCD"):
+        axes[1, 1].set_title("D  Method-level adoption--satisfaction trade-off", loc="left", fontweight="bold")
+        for ax in axes.flat:
             ax.grid(alpha=.16, linewidth=.5)
             ax.set_axisbelow(True)
-            _panel_label(ax, panel_label)
         fig.savefig(output / "figure_E7_heterogeneous_agents.pdf", bbox_inches="tight")
         fig.savefig(output / "figure_E7_heterogeneous_agents.svg", bbox_inches="tight")
         fig.savefig(output / "figure_E7_heterogeneous_agents.png", dpi=300, bbox_inches="tight")

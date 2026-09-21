@@ -12,12 +12,10 @@ from mvp_cpt_pg.paper_market import PaperPanel, FEATURES
 from mvp_cpt_pg.synthetic_env import _semi_synthetic_regime_parameters
 from mvp_cpt_pg.paper_experiments import PaperConfig, EpisodeLaw
 from mvp_cpt_pg.cpt_objective import CPTPreference
-from mvp_cpt_pg.external_validity import augment_quality_feature
 
 
-PROJECT_ROOT = ROOT.parents[2]
-DEFAULT_PANEL = PROJECT_ROOT / 'artifacts' / 'inputs' / 'paper_hs300_full.csv'
-DEFAULT_CACHE = PROJECT_ROOT / 'artifacts' / 'cache' / 'raw' / 'tushare'
+DEFAULT_PANEL = ROOT / 'inputs' / 'paper_hs300.csv'
+RISKY_ASSETS = 30
 
 
 @dataclass(frozen=True)
@@ -122,9 +120,10 @@ class ThreeStagePaperMarket:
 
 
 def load_panel(input_csv: Path | None = None) -> PaperPanel:
-    path = input_csv or DEFAULT_PANEL
+    path = DEFAULT_PANEL if input_csv is None else input_csv
     panel = PaperPanel.load(path, '20230301', '20260529')
-    augment_quality_feature(panel, DEFAULT_CACHE)
+    if len(panel.codes) != RISKY_ASSETS + 1:
+        raise ValueError(f'E2-E4 require {RISKY_ASSETS} stocks plus cash; got {len(panel.codes) - 1} stocks from {path}')
     return panel
 
 

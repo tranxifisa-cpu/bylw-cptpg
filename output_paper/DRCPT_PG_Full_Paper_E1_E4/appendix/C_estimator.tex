@@ -2,7 +2,7 @@
 
 Throughout this appendix, condition on one frozen target and write
 $g=\nabla J(\theta)$.  The complete trajectory summaries $\mathsf X_1,\mathsf X_2,\ldots$ are independent and identically distributed under this conditional law.
-For a realization $x=(v^+,v^-,G_x)$, write $I_{x,\sigma}(y)=\1\{v^\sigma>y\}$.
+For a realization $x=(V^+,V^-,G_x)$, write $I_{x,\sigma}(y)=\1\{V^\sigma>y\}$.
 
 \subsection{Second-order expansion and full/half coupling}
 
@@ -18,9 +18,9 @@ Taylor's theorem applied to $(w_\sigma^\eps)'$ gives
  (w_\sigma^\eps)'(S_\sigma+e)
  =(w_\sigma^\eps)'(S_\sigma)
  +(w_\sigma^\eps)''(S_\sigma)e
- +r_\sigma(e),
+ +\operatorname{Rem}_\sigma(e),
  \qquad
- \abs{r_\sigma(e)}\le\frac{C_3}{2}e^2.
+ \abs{\operatorname{Rem}_\sigma(e)}\le\frac{C_3}{2}e^2.
 \end{equation}
 Substituting \eqref{eq:weight-taylor} into \eqref{eq:raw-loo} splits the statistic into a first-order trajectory term, an ordered two-sample term, and a Taylor remainder.
 

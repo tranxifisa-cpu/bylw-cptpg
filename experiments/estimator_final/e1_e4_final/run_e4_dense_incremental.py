@@ -18,7 +18,7 @@ from run_e4_slow import E4_SEED_BASE, L_DIAG, one
 
 # Dense E4 design frozen after the E3/E4 interpretation audit.
 REFERENCE_GRID = tuple(round(0.05 * i, 10) for i in range(9))  # 0.00,...,0.40
-HORIZON_GRID = (1, 2, 4, 5, 10, 20, 25, 50)
+HORIZON_GRID = (1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50)
 GAMMA_GRID = (0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10, 0.12)
 VARTTHETA_GRID = (0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06)
 

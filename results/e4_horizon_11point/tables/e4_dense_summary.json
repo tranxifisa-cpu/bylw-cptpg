@@ -1,0 +1,43 @@
+{
+  "quantity": "configuration-matched post-change DLR ratio (online/frozen)",
+  "neutral_value": 1.0,
+  "reference_configs": 81,
+  "reference_below_one": 76,
+  "horizon_configs": 11,
+  "horizon_below_one": 11,
+  "optimizer_configs": 48,
+  "optimizer_below_one": 47,
+  "default_reference": {
+    "panel": "reference",
+    "key1": 0.2,
+    "key2": 0.05,
+    "dlr_ratio_mean": 0.45757884842412183,
+    "dlr_ratio_ci_low": 0.3322195917245602,
+    "dlr_ratio_ci_high": 0.6209098357002789,
+    "online_dlr_mean": 0.5501332149423369,
+    "frozen_dlr_mean": 1.2672704168724103,
+    "seeds": 4
+  },
+  "default_horizon": {
+    "panel": "horizon",
+    "key1": 5.0,
+    "key2": NaN,
+    "dlr_ratio_mean": 0.45757884842412183,
+    "dlr_ratio_ci_low": 0.3322195917245602,
+    "dlr_ratio_ci_high": 0.6209098357002789,
+    "online_dlr_mean": 0.5501332149423369,
+    "frozen_dlr_mean": 1.2672704168724103,
+    "seeds": 4
+  },
+  "default_optimizer": {
+    "panel": "optimizer",
+    "key1": 0.08,
+    "key2": 0.05,
+    "dlr_ratio_mean": 0.45757884842412183,
+    "dlr_ratio_ci_low": 0.3322195917245602,
+    "dlr_ratio_ci_high": 0.6209098357002789,
+    "online_dlr_mean": 0.5501332149423369,
+    "frozen_dlr_mean": 1.2672704168724103,
+    "seeds": 4
+  }
+}

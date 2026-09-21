@@ -10,7 +10,7 @@ This code-only update leaves the manuscript unchanged and adds the finalized den
 - Four paired seeds (`2000`--`2003`).
 - Primary display quantity: configuration-matched post-change DLR ratio `DLR_online / DLR_frozen`. It is not a new theoretical loss; it is a within-configuration normalization of the same DLR.
 
-The full dense design contains 548 seed-level jobs. The previous sparse E4 contains 160 reusable jobs.
+The 11-point horizon design contains 560 seed-level jobs. The previous 548-row dense E4 result supplies 540 reusable rows; only the five new horizons at four seeds each must run.
 
 ## Recommended run
 

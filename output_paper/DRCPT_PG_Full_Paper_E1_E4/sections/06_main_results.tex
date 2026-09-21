@@ -45,14 +45,14 @@ and, for fixed $(P,z,\theta)$,
 \end{equation}
 Consequently, with
 \[
- v_k^{\rm nr}
+ \Delta_k^{\mathrm{nr}}
  :=\sup_{\theta\in\Theta}
  \abs{J(P_{k+1},z_{k+1},r_k;\theta)-J(P_k,z_k,r_k;\theta)},
 \]
 \begin{equation}\label{eq:variation-decomposition}
  \sup_{\theta\in\Theta}
  \abs{J_{k+1}(\theta,r_{k+1})-J_k(\theta,r_k)}
- \le v_k^{\rm nr}
+ \le \Delta_k^{\mathrm{nr}}
  +C_1L_v(1-\eta_{\min})^h\abs{r_{k+1}-r_k}.
 \end{equation}
 \end{proposition}
@@ -245,18 +245,6 @@ then
 \end{equation}
 Under Assumption \ref{ass:error-bound}, the left-hand side of \eqref{eq:stationary-tracking} also converges to zero.
 \end{corollary}
-
-The growing replication schedule used in E3 is
-\begin{equation}\label{eq:growing-replication}
- M_k=\max\{4,\lceil\sqrt{k}\rceil\},\qquad k\ge1.
-\end{equation}
-Since $M_k\ge\sqrt{k}$ and
-$\sum_{k=1}^{K}k^{-1/2}\le1+\int_1^K x^{-1/2}\,dx=2\sqrt K-1$,
-\begin{equation}\label{eq:growing-replication-bound}
- \frac1K\sum_{k=1}^{K}\frac1{M_k}
- \le\frac{2\sqrt K-1}{K}=O(K^{-1/2}).
-\end{equation}
-Thus the sampling term in \eqref{eq:online-residual-bound} vanishes under this schedule.  Under the remaining hypotheses of \Cref{thm:online-residual}, if $\E\cV_K=o(K)$ and $K^{-1}\sum_{k=1}^{K}\E\beta_k^2\to0$, \Cref{cor:vanishing-tracking} yields sublinear expected dynamic local regret.
 
 \subsection{Fixed-dimension minimax information rate}
 

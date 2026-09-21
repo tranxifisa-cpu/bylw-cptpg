@@ -56,7 +56,7 @@ Let $\mathsf A\sim\operatorname{Bernoulli}(\varrho)$ and, conditional on $\maths
 \end{equation}
 with the second term defined as zero when $\mathsf A=0$.
 
-\begin{algorithm}[t]
+\begin{algorithm}[H]
 \caption{One centered-LOO debiased CPT-gradient output}\label{alg:cloo-rd}
 \begin{algorithmic}[1]
 \Require $(z,r,\widetilde P,\theta)$, $n\ge2$, $\varrho\in(0,1]$, $b\in(1,2)$
@@ -86,7 +86,7 @@ The parameter update is
  =\Pi_\Theta\left\{\theta_k+\gamma\mathsf d(\widehat g_k^{\db})\right\}.
 \end{equation}
 
-\begin{algorithm}[t]
+\begin{algorithm}[H]
 \caption{Dynamic-reference CPT policy gradient (\DRCPTPG)}\label{alg:drcptpg}
 \begin{algorithmic}[1]
 \Require $\theta_1\in\Theta$, $(X_1,r_1,\omega_0)$, $h,\chi,\gamma,\vartheta$, $(n,\varrho,b)$, $\{M_k\}_{k=1}^{K}$
@@ -103,3 +103,4 @@ The parameter update is
 \State \Return $\{\theta_k,X_{t_k},r_k,\omega_{t_k-1}\}_{k=1}^{K+1}$
 \end{algorithmic}
 \end{algorithm}
+\FloatBarrier

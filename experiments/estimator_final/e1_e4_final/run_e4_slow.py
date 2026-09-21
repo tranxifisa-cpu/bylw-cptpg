@@ -29,15 +29,18 @@ def admissible(g,v):
 
 def make_spec(horizon:int)->SlowVariationSpec:
     h=int(horizon)
-    if TOTAL_DAYS % h or 200 % h or 300 % h or 600 % h:
-        raise ValueError('horizon must divide all market-time boundaries')
-    return SlowVariationSpec(episodes=TOTAL_DAYS//h,horizon=h,stable_end=200//h,
-                             abrupt_end=300//h,drift_end=600//h,state_power=.75)
+    if h < 1:
+        raise ValueError('horizon must be positive')
+    # Map day boundaries to the nearest complete episode; exact divisors are unchanged.
+    nearest=lambda day: (2*day+h)//(2*h)
+    return SlowVariationSpec(episodes=nearest(TOTAL_DAYS),horizon=h,stable_end=nearest(200),
+                             abrupt_end=nearest(300),drift_end=nearest(600),state_power=.75)
 
 
 def run_pair(seed:int, *, horizon:int=5, gamma:float=.08, vartheta:float=.05,
              eta_gain:float=.20, eta_loss:float=.05):
-    spec=make_spec(horizon);market=load_slow_market(spec)
+    spec=make_spec(horizon)
+    market=load_slow_market(spec)
     config=slow_config(10,TRAIN_BUDGET,gamma,vartheta,horizon=horizon,
                        eta_gain=eta_gain,eta_loss=eta_loss)
     states={'online':initial_state(market,config.dimension),'frozen':initial_state(market,config.dimension)}

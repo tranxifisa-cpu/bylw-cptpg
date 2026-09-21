@@ -7,7 +7,7 @@ The target is a lower bound in terms of the population projected residual $Q(x)$
 
 Let
 \[
- s=x^+-x,
+ \Delta x=x^+-x,
  \qquad
  c_g=\max\{\norm{g}_2,\vartheta\},
  \qquad
@@ -15,19 +15,19 @@ Let
 \]
 The projection variational inequality with the feasible comparison point $x$ gives
 \begin{equation}\label{eq:projection-vi}
- \langle\mathsf d(\widehat g),s\rangle\ge\frac{\norm{s}_2^2}{\gamma}.
+ \langle\mathsf d(\widehat g),\Delta x\rangle\ge\frac{\norm{\Delta x}_2^2}{\gamma}.
 \end{equation}
 Since $g=c_g\mathsf d(g)$, the $L$-smooth lower quadratic bound and \eqref{eq:projection-vi} imply
 \begin{align}
- J(x+s)-J(x)
- &\ge \langle g,s\rangle-\frac L2\norm{s}_2^2\notag\\
- &=c_g\langle\mathsf d(\widehat g)-\mathfrak e,s\rangle
- -\frac L2\norm{s}_2^2\notag\\
- &\ge\left(\frac{c_g}{\gamma}-\frac L2\right)\norm{s}_2^2
- -c_g\norm{\mathfrak e}_2\norm{s}_2\notag\\
- &\ge\left(\frac{3c_g}{4\gamma}-\frac L2\right)\norm{s}_2^2
+ J(x+\Delta x)-J(x)
+ &\ge \langle g,\Delta x\rangle-\frac L2\norm{\Delta x}_2^2\notag\\
+ &=c_g\langle\mathsf d(\widehat g)-\mathfrak e,\Delta x\rangle
+ -\frac L2\norm{\Delta x}_2^2\notag\\
+ &\ge\left(\frac{c_g}{\gamma}-\frac L2\right)\norm{\Delta x}_2^2
+ -c_g\norm{\mathfrak e}_2\norm{\Delta x}_2\notag\\
+ &\ge\left(\frac{3c_g}{4\gamma}-\frac L2\right)\norm{\Delta x}_2^2
  -c_g\gamma\norm{\mathfrak e}_2^2\notag\\
- &\ge\frac{c_g}{4\gamma}\norm{s}_2^2
+ &\ge\frac{c_g}{4\gamma}\norm{\Delta x}_2^2
  -c_g\gamma\norm{\mathfrak e}_2^2.
  \label{eq:actual-displacement-ascent}
 \end{align}
@@ -40,10 +40,10 @@ Now let
  t=\Pi_\Theta\{x+\gamma\mathsf d(g)\}-x=\gamma Q(x).
 \]
 Nonexpansiveness of Euclidean projection gives
-$\norm{s-t}_2\le\gamma\norm{\mathfrak e}_2$.  From
-$\norm{t}_2^2\le2\norm{s}_2^2+2\norm{s-t}_2^2$,
+$\norm{\Delta x-t}_2\le\gamma\norm{\mathfrak e}_2$.  From
+$\norm{t}_2^2\le2\norm{\Delta x}_2^2+2\norm{\Delta x-t}_2^2$,
 \[
- \norm{s}_2^2\ge\frac12\norm{t}_2^2-\gamma^2\norm{\mathfrak e}_2^2.
+ \norm{\Delta x}_2^2\ge\frac12\norm{t}_2^2-\gamma^2\norm{\mathfrak e}_2^2.
 \]
 Substituting into \eqref{eq:actual-displacement-ascent} yields
 \[
@@ -163,3 +163,13 @@ In \eqref{eq:online-residual-bound}, the endpoint term is $O(K^{-1})$.  The assu
 \]
 by the assumed Ces\`aro condition.  Therefore $\cE_K\to0$.  Equation \eqref{eq:average-dynamic-local-regret-bound} gives the DLR conclusion, and \eqref{eq:stationary-tracking} gives the stationary-set conclusion when Assumption \ref{ass:error-bound} is imposed.
 \end{proof}
+
+\paragraph{Objective variation in the semi-synthetic environment.}
+Write $z_k=(\log X_k,r_k,\omega_k)$ and $\boldsymbol\chi_k=(\mu_k,b_k,s_k)$ for the episode-start account state and return-law coefficients.  On the bounded analysis domain of Assumption~\ref{ass:trajectory}, the semi-synthetic return bound and transaction-cost rule keep each daily wealth multiplier uniformly positive and bounded.  The fixed horizon therefore bounds the raw change in log wealth; reference values and holdings are bounded by the same assumption and the portfolio simplex.  The finite factor-block library and compact parameter set keep Dirichlet shape parameters in a common compact subset of $(0,\infty)$.  Uniform likelihood moments, the Lipschitz executable-action map in preceding holdings, and the fixed-horizon wealth and reference recursions give uniform sensitivity of the conditional outcome law to $z$ and $\boldsymbol\chi$.  The regularized CPT value and probability-weight functions then yield constants $C_1,C_2<\infty$, independent of $k$ and $\theta$, such that
+\[
+ \sup_{\theta\in\Theta}\abs{J_{k+1}(\theta,r_{k+1})-J_k(\theta,r_k)}
+ \le C_1\bigl(\abs{\log X_{k+1}-\log X_k}+\abs{r_{k+1}-r_k}
+       +\norm{\omega_{k+1}-\omega_k}_1\bigr)
+       +C_2\norm{\boldsymbol\chi_{k+1}-\boldsymbol\chi_k}.
+\]
+The episode-boundary transition gives $\norm{z_{k+1}-z_k}=O(\alpha_k)$.  The return-law coefficients change at one boundary, then along a finite interpolation, and are fixed thereafter; thus $\sum_k\norm{\boldsymbol\chi_{k+1}-\boldsymbol\chi_k}<\infty$.  Consequently $\cV_K=O(K^{1/4})=o(K)$ on the stated analysis domain.  The training simulator samples the same conditional factor-block and return law as the environment, so its population gradient error is zero under that model.
