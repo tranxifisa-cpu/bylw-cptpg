@@ -152,18 +152,18 @@ and
 
 Equation~\eqref{eq:online-residual-bound} separates the three quantities that govern online tracking: movement of the true objective sequence through $\cV_K$, Monte Carlo error through $M_k^{-1}$, and frozen-simulator discrepancy through $\beta_k^2$.  The target is the contemporaneous constrained first-order condition rather than a single static optimum.
 
-\begin{corollary}[Square-first dynamic local regret]\label{cor:dynamic-local-regret}
-Let $W_{\rho,w}=\sum_{j=0}^{w-1}\rho^j$.  For every $K\ge1$, pathwise,
+\begin{corollary}[Dynamic local regret]\label{cor:dynamic-local-regret}
+For every fixed window length $W\ge1$, discount $\rho\in(0,1]$, and horizon $K\ge1$,
 \begin{equation}\label{eq:dynamic-local-regret-bound}
- \Reg_{\rho,w}(K)
- \le W_{\rho,w}\sum_{k=1}^{K}\zeta_k,
+ \Reg_{\rho,W}(K)
+ \le \sum_{k=1}^{K}\zeta_k
 \end{equation}
-and therefore
+pathwise, and hence
 \begin{equation}\label{eq:average-dynamic-local-regret-bound}
- \frac1K\E\Reg_{\rho,w}(K)
- \le W_{\rho,w}\cE_K.
+ \frac1K\E\Reg_{\rho,W}(K)
+ \le \cE_K.
 \end{equation}
-For fixed $w$ and $\rho$, temporal smoothing therefore changes only the constant relating DLR to the periodwise squared projected residual.
+Thus the same projected-residual control also governs the temporally smoothed first-order criterion used in the online evaluation.
 \end{corollary}
 
 \paragraph{Stationary-set interpretation.}
@@ -185,7 +185,7 @@ If \eqref{eq:error-bound} holds, then
 \end{corollary}
 
 \begin{corollary}[Vanishing average expected squared projected residual and DLR]\label{cor:vanishing-tracking}
-Fix $w<\infty$ and $\rho\in(0,1]$.  If
+Fix $W<\infty$ and $\rho\in(0,1]$.  If
 \begin{equation}\label{eq:vanishing-conditions}
  \E\cV_K=o(K),
  \qquad
@@ -196,7 +196,7 @@ then
 \begin{equation}\label{eq:vanishing-conclusion}
  \cE_K\to0,
  \qquad
- K^{-1}\E\Reg_{\rho,w}(K)\to0.
+ K^{-1}\E\Reg_{\rho,W}(K)\to0.
 \end{equation}
 If \eqref{eq:error-bound} holds, the left-hand side of \eqref{eq:stationary-tracking} also converges to zero.
 \end{corollary}
