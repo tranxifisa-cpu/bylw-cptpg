@@ -120,25 +120,54 @@ Since $\abs{J_k}\le B_v$ and the second line is bounded above by $\cV_K$,
 Summing \eqref{eq:online-one-step}, applying \eqref{eq:true-gradient-mse} and \eqref{eq:telescope-upper}, and dividing by $\vartheta\gamma K/8$ gives exactly \eqref{eq:online-residual-bound}.
 \end{proof}
 
-\subsection{Square-first dynamic local regret}
+\subsection{Dynamic local regret}
 
 \begin{proof}[Proof of \Cref{cor:dynamic-local-regret}]
-By definition,
+Write $A=A_{\rho,W}$.  With the convention $Q_t(\theta_t)=0$ for $t\le0$, the coefficients $\rho^j/A$, $j=0,\ldots,W-1$, are nonnegative and sum to one.  Convexity of $q\mapsto\norm{q}_2^2$ gives
 \[
- \Reg_{\rho,w}(K)
- =\sum_{k=1}^{K}\frac{1}{W_{\rho,m_k}}
-   \sum_{j=0}^{m_k-1}\rho^j\zeta_{k-j}.
+ \norm{\bar Q_k}_2^2
+ \le \frac1A\sum_{j=0}^{W-1}\rho^j
+       \norm{Q_{k-j}(\theta_{k-j})}_2^2.
 \]
-All terms are nonnegative and $W_{\rho,m_k}\ge1$.  Reindexing by the episode $t=k-j$ that generated each squared residual therefore gives
+Summing over $k\le K$ and reindexing,
 \begin{align*}
- \Reg_{\rho,w}(K)
+ \Reg_{\rho,W}(K)
  &\le
  \sum_{t=1}^{K}\zeta_t
- \sum_{j=0}^{\min\{w-1,K-t\}}\rho^j\notag\\
- &\le W_{\rho,w}\sum_{t=1}^{K}\zeta_t.
+ \left\{\frac1A\sum_{j=0}^{\min\{W-1,K-t\}}\rho^j\right\}
+ \le \sum_{t=1}^{K}\zeta_t.
 \end{align*}
-This proves \eqref{eq:dynamic-local-regret-bound}.  Taking expectations and dividing by $K$ gives \eqref{eq:average-dynamic-local-regret-bound}.  The factor $W_{\rho,w}$ is fixed whenever the window design $(w,\rho)$ is fixed, so it does not alter the vanishing-rate conclusion.
+This proves \eqref{eq:dynamic-local-regret-bound}; taking expectations and dividing by $K$ gives \eqref{eq:average-dynamic-local-regret-bound}.
 \end{proof}
+
+\subsection{Independent-stream residual evaluation}
+
+For a fixed iterate $\theta$, write
+\[
+ \mathcal Q_\theta(g)
+ :=\gamma^{-1}\!\left[\Pi_\Theta\{\theta+\gamma\mathsf d(g)\}-\theta\right].
+\]
+Projection nonexpansiveness and the $\vartheta^{-1}$-Lipschitz property of $\mathsf d$ imply
+\begin{equation}\label{eq:residual-evaluation-lipschitz}
+ \norm{\mathcal Q_\theta(\widehat g)-\mathcal Q_\theta(g)}_2
+ \le \vartheta^{-1}\norm{\widehat g-g}_2.
+\end{equation}
+Hence, if $\widehat g^{(1)},\widehat g^{(2)}$ are independent unbiased gradient estimates with
+$\E\norm{\widehat g^{(j)}-g}_2^2\le\varepsilon_g^2$, and
+$\widehat Q^{(j)}=\mathcal Q_\theta(\widehat g^{(j)})$, then
+\begin{equation}\label{eq:cross-stream-residual-error}
+ \left|
+ \E\ip{\widehat Q^{(1)}}{\widehat Q^{(2)}}
+ -\norm{\mathcal Q_\theta(g)}_2^2
+ \right|
+ \le \frac{2\varepsilon_g}{\vartheta}
+ +\frac{\varepsilon_g^2}{\vartheta^2}.
+\end{equation}
+Indeed, independence gives
+$\E\ip{\widehat Q^{(1)}}{\widehat Q^{(2)}}=\norm{\E\widehat Q^{(1)}}_2^2$.
+Writing $e=\E\widehat Q^{(1)}-\mathcal Q_\theta(g)$, Jensen's inequality and
+\eqref{eq:residual-evaluation-lipschitz} give $\norm e_2\le\varepsilon_g/\vartheta$.
+Finally $\norm{\mathcal Q_\theta(g)}_2\le1$, because $\norm{\mathsf d(g)}_2\le1$, which yields \eqref{eq:cross-stream-residual-error}.
 
 \subsection{Stationary-set consequences}
 
@@ -193,11 +222,28 @@ by the assumed Ces\`aro condition.  Therefore $\cE_K\to0$.  Equation \eqref{eq:a
 \end{proof}
 
 \paragraph{Objective variation in the semi-synthetic environment.}
-Write $z_k=(\log X_k,r_k,\omega_k)$ and $\boldsymbol\chi_k=(\mu_k,b_k,s_k)$ for the episode-start account state and return-law coefficients.  On the bounded analysis domain of Assumption~\ref{ass:trajectory}, the semi-synthetic return bound and transaction-cost rule keep each daily wealth multiplier uniformly positive and bounded.  The fixed horizon therefore bounds the raw change in log wealth; reference values and holdings are bounded by the same assumption and the portfolio simplex.  The finite factor-block library and compact parameter set keep Dirichlet shape parameters in a common compact subset of $(0,\infty)$.  Uniform likelihood moments, the Lipschitz executable-action map in preceding holdings, and the fixed-horizon wealth and reference recursions give uniform sensitivity of the conditional outcome law to $z$ and $\boldsymbol\chi$.  The regularized CPT value and probability-weight functions then yield constants $C_z,C_\chi<\infty$, independent of $k$ and $\theta$, such that
+Let $c_k^{\rm ret}$ collect the episode-$k$ coefficients of the semi-synthetic return law.  The E3 construction makes the episode-start account changes satisfy
 \[
- \sup_{\theta\in\Theta}\abs{J_{k+1}(\theta,r_{k+1})-J_k(\theta,r_k)}
- \le C_z\bigl(\abs{\log X_{k+1}-\log X_k}+\abs{r_{k+1}-r_k}
-       +\norm{\omega_{k+1}-\omega_k}_1\bigr)
-       +C_\chi\norm{\boldsymbol\chi_{k+1}-\boldsymbol\chi_k}.
+ \abs{\log X_{t_{k+1}}-\log X_{t_k}}
+ +\abs{r_{k+1}-r_k}
+ +\norm{\omega_{t_{k+1}-1}-\omega_{t_k-1}}_1
+ =O(\alpha_k),
+ \qquad \alpha_k=k^{-3/4},
 \]
-The episode-boundary transition gives $\norm{z_{k+1}-z_k}=O(\alpha_k)$.  The return-law coefficients change at one boundary, then along a finite interpolation, and are fixed thereafter; thus $\sum_k\norm{\boldsymbol\chi_{k+1}-\boldsymbol\chi_k}<\infty$.  Consequently $\cV_K=O(K^{1/4})=o(K)$ on the stated analysis domain.  The training simulator samples the same conditional factor-block and return law as the environment, so its population gradient error is zero under that model.
+while $c_k^{\rm ret}$ changes only at the regime boundary and over a finite interpolation, so
+$\sum_k\norm{c_{k+1}^{\rm ret}-c_k^{\rm ret}}<\infty$.
+For a frozen objective that is uniformly Lipschitz in these episode-start inputs on the compact analysis domain, there are finite constants $L_{\rm acct},L_{\rm ret}$ such that
+\[
+ \sup_{\theta\in\Theta}
+ \abs{J_{k+1}(\theta,r_{k+1})-J_k(\theta,r_k)}
+ \le
+ L_{\rm acct}\!\left(
+ \abs{\log X_{t_{k+1}}-\log X_{t_k}}
+ +\abs{r_{k+1}-r_k}
+ +\norm{\omega_{t_{k+1}-1}-\omega_{t_k-1}}_1
+ \right)
+ +L_{\rm ret}\norm{c_{k+1}^{\rm ret}-c_k^{\rm ret}}.
+\]
+Under this regularity, the schedule gives
+$\cV_K=O(\sum_{k<K}\alpha_k)+O(1)=O(K^{1/4})=o(K)$.
+The experiment uses the same conditional factor-block and return law for training and execution, so the simulator discrepancy term is zero at the population level for this semi-synthetic construction.
