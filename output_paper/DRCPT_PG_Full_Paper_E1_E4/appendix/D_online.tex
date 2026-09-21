@@ -123,7 +123,7 @@ Summing \eqref{eq:online-one-step}, applying \eqref{eq:true-gradient-mse} and \e
 \subsection{Dynamic local regret}
 
 \begin{proof}[Proof of \Cref{cor:dynamic-local-regret}]
-Write $A=A_{\rho,W}$.  With the convention $Q_t(\theta_t)=0$ for $t\le0$, the coefficients $\rho^j/A$, $j=0,\ldots,W-1$, are nonnegative and sum to one.  Convexity of $q\mapsto\norm{q}_2^2$ gives
+Write $A=A_{\rho,W}$.  With the convention $Q_t(\theta_t)=0$ for $t\le0$, the coefficients $\rho^j/A$, $j=0,\ldots,W-1$, are nonnegative and sum to one.  Convexity of $x\mapsto\norm{x}_2^2$ gives
 \[
  \norm{\bar Q_k}_2^2
  \le \frac1A\sum_{j=0}^{W-1}\rho^j
@@ -168,6 +168,24 @@ $\E\ip{\widehat Q^{(1)}}{\widehat Q^{(2)}}=\norm{\E\widehat Q^{(1)}}_2^2$.
 Writing $e=\E\widehat Q^{(1)}-\mathcal Q_\theta(g)$, Jensen's inequality and
 \eqref{eq:residual-evaluation-lipschitz} give $\norm e_2\le\varepsilon_g/\vartheta$.
 Finally $\norm{\mathcal Q_\theta(g)}_2\le1$, because $\norm{\mathsf d(g)}_2\le1$, which yields \eqref{eq:cross-stream-residual-error}.
+
+The same argument passes through the linear DLR smoothing.  If
+\[
+ \widehat{\bar Q}_k^{(j)}
+ =A_{\rho,W}^{-1}\sum_{r=0}^{W-1}\rho^r\widehat Q_{k-r}^{(j)},
+ \qquad
+ \bar\varepsilon_k
+ =A_{\rho,W}^{-1}\sum_{r=0}^{W-1}\rho^r\varepsilon_{g,k-r},
+\]
+with prehistory terms set to zero as in \eqref{eq:dynamic-window-residual}, then
+\begin{equation}\label{eq:cross-stream-dlr-error}
+ \left|
+ \E\ip{\widehat{\bar Q}_k^{(1)}}{\widehat{\bar Q}_k^{(2)}}
+ -\norm{\bar Q_k}_2^2
+ \right|
+ \le \frac{2\bar\varepsilon_k}{\vartheta}
+ +\frac{\bar\varepsilon_k^2}{\vartheta^2}.
+\end{equation}
 
 \subsection{Stationary-set consequences}
 
