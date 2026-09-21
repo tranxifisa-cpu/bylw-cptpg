@@ -170,11 +170,11 @@ with $C_U=C_E/2$.  This completes the proof.
 \begin{lemma}[Centering and finite-sample bias]\label{lem:centering-expectation}
 For $n\ge2$,
 \begin{equation}\label{eq:centered-raw-mean}
- \E U_n^{\rm cen}=\E U_n^{\rm raw}=: \mu_n,
+ \E U_n^{\rm cen}=\E U_n^{\rm raw}=: \bar U_n,
 \end{equation}
 and there exists $C_{\rm bias}<\infty$ such that
 \begin{equation}\label{eq:loo-bias-order}
- \norm{\mu_n-g}_2\le \frac{C_{\rm bias}}{n},
+ \norm{\bar U_n-g}_2\le \frac{C_{\rm bias}}{n},
  \qquad g:=\nabla J(\theta).
 \end{equation}
 \end{lemma}
@@ -194,11 +194,11 @@ where
  \widehat S_{-i,n}^\sigma(y)\,dy.
 \]
 The coefficient $H_{-i}^{\rm ctr}$ depends only on trajectories with indices different from $i$.  It is therefore independent of $G_i$.  The score identity gives $\E G_i=0$, while Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity} make $G_iH_{-i}^{\rm ctr}$ integrable.  Hence every summand in \eqref{eq:centering-control} has mean zero and
-$\E U_n^{\rm cen}=\E U_n^{\rm raw}=\mu_n$.
+$\E U_n^{\rm cen}=\E U_n^{\rm raw}=\bar U_n$.
 
-It remains to control $\mu_n-g$.  This follows from the expansion in \Cref{lem:level-cancellation}.  Taking expectations in \eqref{eq:loo-expansion} and using $\E\mathfrak h(\mathsf X)=0$ yields
+It remains to control $\bar U_n-g$.  This follows from the expansion in \Cref{lem:level-cancellation}.  Taking expectations in \eqref{eq:loo-expansion} and using $\E\mathfrak h(\mathsf X)=0$ yields
 \[
- \norm{\mu_n-g}_2
+ \norm{\bar U_n-g}_2
  =\norm{\E \mathcal B_n}_2
  \le(\E\norm{\mathcal B_n}_2^2)^{1/2}
  \le\frac{\sqrt{C_{\rm rem}}}{n}.
@@ -210,7 +210,7 @@ Thus \eqref{eq:loo-bias-order} holds with $C_{\rm bias}=\sqrt{C_{\rm rem}}$.
 \subsection{Unbiasedness, variance, cost, and the CLT}
 
 \begin{proof}[Proof of \Cref{thm:estimator}]
-We first prove exact unbiasedness.  By \Cref{lem:centering-expectation}, the centered base has mean $\mu_n$.  For the raw correction,
+We first prove exact unbiasedness.  By \Cref{lem:centering-expectation}, the centered base has mean $\bar U_n$.  For the raw correction,
 \begin{equation}\label{eq:delta-mean}
  \E D_{n,\ell}^{\rm raw}
  =\mu_{n2^\ell}-\mu_{n2^{\ell-1}}.
@@ -223,8 +223,8 @@ The level bound \eqref{eq:level-second-moment} implies
 so the expectation can be interchanged with the infinite randomized series.  Since \eqref{eq:loo-bias-order} gives $\mu_{n2^{\ell_{\max}}}\to g$,
 \begin{align*}
  \E Z_n^{\db}
- &=\mu_n+\sum_{\ell\ge1}\E D_{n,\ell}^{\rm raw}\\
- &=\mu_n+\lim_{\ell_{\max}\to\infty}(\mu_{n2^{\ell_{\max}}}-\mu_n)
+ &=\bar U_n+\sum_{\ell\ge1}\E D_{n,\ell}^{\rm raw}\\
+ &=\bar U_n+\lim_{\ell_{\max}\to\infty}(\mu_{n2^{\ell_{\max}}}-\bar U_n)
  =g.
 \end{align*}
 This proves \eqref{eq:estimator-unbiased}.
