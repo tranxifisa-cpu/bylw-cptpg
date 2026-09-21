@@ -208,11 +208,11 @@ For the semi-synthetic environment used in E3--E4, Appendix~\ref{app:online} giv
 \begin{definition}[Complete-trajectory oracle experiment]\label{def:minimax-oracle}
 Fix $d$, $\theta_0=0\in\operatorname{int}(\Theta)$, common finite bounds on $h$ and $N$, and the constants in Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}.  Let $\mathfrak C$ be a model class satisfying these bounds, containing the Bernoulli-return submodel constructed in Appendix \ref{app:minimax}, with $(w_+^\eps)'(0)>0$.  Under $P\in\mathfrak C$, an adaptive query $\theta_t\in\Theta$ returns one fresh complete augmented trajectory
 \[
- \tau_t\mid\mathcal H_{t-1}\sim P_{\theta_t},
+ \tau_t\mid\mathcal G_{t-1}\sim P_{\theta_t},
  \qquad
- \mathcal H_t:=\sigma\{(\theta_j,\tau_j):j\le t\}.
+ \mathcal G_t:=\sigma\{(\theta_j,\tau_j):j\le t\}.
 \]
-An admissible procedure chooses a stopping time $T_{\rm call}$ and an $\mathcal H_{T_{\rm call}}$-measurable estimator $\widehat g$ such that
+An admissible procedure chooses a stopping time $T_{\rm call}$ and an $\mathcal G_{T_{\rm call}}$-measurable estimator $\widehat g$ such that
 \begin{equation}\label{eq:minimax-budget}
  \sup_{P\in\mathfrak C}\E_P T_{\rm call}\le\mathsf B,
 \end{equation}
