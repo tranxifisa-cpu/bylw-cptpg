@@ -36,7 +36,7 @@ E1--E4 的冻结实现、证明说明和复现资产位于 `experiments/estimato
 
 ## 当前论文
 
-当前英文源文件位于 `output_paper/DRCPT_PG_Full_Paper_E1_E4/`。其理论、算法与 E1--E4 已和 hybrid 主线对齐；E5--E7 正文仍待从上述正式结果写回。
+当前英文源文件位于 `output_paper/DRCPT_PG_Full_Paper_E1_E4/`。其理论、算法与 E1--E7 已和 hybrid 主线对齐；E5--E7 正文使用上述正式结果，并保持市场、行为与交互三类外部有效性结论和 E1--E4 理论证据分层解释。
 
 以下目录不是当前论文入口：
 
