@@ -231,20 +231,20 @@ This proves \eqref{eq:estimator-unbiased}.
 
 For the second moment of the correction, independence of the activation and level variables gives
 \begin{align*}
- \E\left\|\frac{\mathsf A}{\varrho\nu_{\ell^\star}}D_{n,\ell^\star}^{\rm raw}\right\|_2^2
- &=\frac1\varrho\sum_{\ell\ge1}
+ \E\left\|\frac{\mathsf A}{p_{\rm act}\nu_{\ell^\star}}D_{n,\ell^\star}^{\rm raw}\right\|_2^2
+ &=\frac1p_{\rm act}\sum_{\ell\ge1}
  \frac{\E\norm{D_{n,\ell}^{\rm raw}}_2^2}{\nu_\ell}\\
- &\le\frac{9C_{\rm rem}}{\varrho n^2}
+ &\le\frac{9C_{\rm rem}}{p_{\rm act} n^2}
  \sum_{\ell\ge1}\frac{4^{-\ell}}{\nu_\ell}
- =\frac{9C_{\rm rem}\Xi_b}{\varrho n^2}.
+ =\frac{9C_{\rm rem}\Xi_b}{p_{\rm act} n^2}.
 \end{align*}
 The series $\Xi_b$ is finite because $b<2$.  The base sample and correction sample are independent, so their covariance is zero.  Combining the correction bound with \eqref{eq:centered-loo-variance} gives \eqref{eq:single-output-variance}.
 
 One base output costs exactly $n$ complete trajectories.  Conditional on activation and level $\ell$, the correction uses one fresh batch of $n2^\ell$ trajectories; the two halves reuse this same batch.  Hence
 \begin{align*}
  \E\operatorname{cost}(Z_n^{\db})
- &=n+\varrho n\sum_{\ell\ge1}\nu_\ell2^\ell
- =n(1+\varrho \Upsilon_b),
+ &=n+p_{\rm act} n\sum_{\ell\ge1}\nu_\ell2^\ell
+ =n(1+p_{\rm act} \Upsilon_b),
 \end{align*}
 where $\Upsilon_b<\infty$ because $b>1$.  Direct summation of the geometric series gives the closed forms in \eqref{eq:level-series-constants}.
 
@@ -258,7 +258,7 @@ This is \eqref{eq:estimator-mse}.
 \end{proof}
 
 \begin{proof}[Proof of \Cref{thm:clt}]
-For fixed target and fixed $(n,\varrho,b)$, \Cref{thm:estimator} gives iid vectors $Z_{n,r}^{\db}$ with mean $g$ and finite covariance $\Sigma_n$.  For any fixed $t\in\R^d$, the scalar variables
+For fixed target and fixed $(n,p_{\rm act},b)$, \Cref{thm:estimator} gives iid vectors $Z_{n,r}^{\db}$ with mean $g$ and finite covariance $\Sigma_n$.  For any fixed $t\in\R^d$, the scalar variables
 $t^\top(Z_{n,r}^{\db}-g)$ are iid with finite variance.  The classical scalar central limit theorem therefore gives
 \[
  \sqrt M\,t^\top(\widehat g_{M,n}^{\db}-g)
