@@ -125,7 +125,7 @@ The comparison uses $20$ independent test trajectories.  The online learner and 
 \[
 M_k=\max\{4,\lceil\sqrt{k}\rceil\},
 \]
-for which $M_k\ge\sqrt{k}$ and $K^{-1}\sum_{k=1}^{K}M_k^{-1}\le(2\sqrt K-1)/K=O(K^{-1/2})$.  DLR follows \eqref{eq:dynamic-regret} with $w=5$ and $\rho=0.9$.  Two independent evaluation streams estimate both the squared projected residual and the squared norm of the window-averaged projected residual by cross-stream products, preventing the ordinary self-square noise term from entering the evaluation.
+for which $M_k\ge\sqrt{k}$ and $K^{-1}\sum_{k=1}^{K}M_k^{-1}\le(2\sqrt K-1)/K=O(K^{-1/2})$.  DLR follows \eqref{eq:dynamic-regret} with $w=5$ and $\rho=0.9$.  Two independent evaluation streams estimate the periodwise squared projected residual and the square-first windowed residual in \eqref{eq:dynamic-window-residual} by cross-stream products, preventing the ordinary self-square noise term from entering the evaluation.
 
 \begin{figure}[H]
     \centering
