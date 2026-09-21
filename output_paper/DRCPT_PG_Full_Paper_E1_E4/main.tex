@@ -61,6 +61,10 @@
 \begin{document}
 \maketitle
 
+\begin{abstract}
+Cumulative prospect theory (CPT) makes portfolio evaluation reference dependent, yet first-order CPT policy optimization is usually formulated around a fixed reference.  We study the harder setting in which realized wealth updates the reference state, so the learning target is simultaneously nonlinear, path dependent, and nonstationary.  We introduce Dynamic-Reference Cumulative Prospect Policy Gradient (DRCPT-PG), combining a factor-parametrized Dirichlet portfolio policy with asymmetric reference adaptation, an exactly unbiased frozen-target CPT gradient estimator, and normalized projected online tracking.  The estimator has finite expected trajectory cost and variance, admits studentized asymptotic inference, and attains the fixed-dimensional minimax trajectory-budget rate; the online analysis controls the projected residual and dynamic local regret under sublinear target variation.  In controlled experiments, continued updating reduces cumulative squared projected residual from $1.427$ to $0.684$ relative to a frozen closed-loop control.  The external-validity layers preserve the same separation of claims: in a time-ordered 300-stock A-share replay, DRCPT-PG has the highest mean Sharpe ratio and the lowest mean drawdown and turnover among the learned policies; on $71{,}854$ held-out investor decisions, the asymmetric reference lowers log loss by $0.0249$ relative to no reference under paired investor-cluster bootstrap; and in a four-type calibrated interaction replay it gives the highest adoption-weighted satisfaction among the learned advisers in every investor type.  Together, the results show how endogenous reference formation can be treated as a first-order statistical and online-optimization problem while retaining market and behavioral interpretability.
+\end{abstract}
+
 \input{sections/01_introduction}
 \input{sections/02_related_work}
 
@@ -71,8 +75,7 @@
 
 \input{sections/07_experiments}
 
-\section{Discussion}\label{sec:discussion}
-\placeholder{Discussion.}
+\input{sections/08_discussion}
 
 \bibliographystyle{unsrtnat}
 \bibliography{references}
