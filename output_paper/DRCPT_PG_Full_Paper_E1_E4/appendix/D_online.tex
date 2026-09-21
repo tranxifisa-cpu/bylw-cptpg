@@ -227,8 +227,8 @@ Let $c_k^{\rm ret}$ collect the episode-$k$ coefficients of the semi-synthetic r
  \abs{\log X_{t_{k+1}}-\log X_{t_k}}
  +\abs{r_{k+1}-r_k}
  +\norm{\omega_{t_{k+1}-1}-\omega_{t_k-1}}_1
- =O(\alpha_k),
- \qquad \alpha_k=k^{-3/4},
+ =O(\varpi_k),
+ \qquad \varpi_k=k^{-3/4},
 \]
 while $c_k^{\rm ret}$ changes only at the regime boundary and over a finite interpolation, so
 $\sum_k\norm{c_{k+1}^{\rm ret}-c_k^{\rm ret}}<\infty$.
@@ -245,5 +245,5 @@ For a frozen objective that is uniformly Lipschitz in these episode-start inputs
  +L_{\rm ret}\norm{c_{k+1}^{\rm ret}-c_k^{\rm ret}}.
 \]
 Under this regularity, the schedule gives
-$\cV_K=O(\sum_{k<K}\alpha_k)+O(1)=O(K^{1/4})=o(K)$.
+$\cV_K=O(\sum_{k<K}\varpi_k)+O(1)=O(K^{1/4})=o(K)$.
 The experiment uses the same conditional factor-block and return law for training and execution, so the simulator discrepancy term is zero at the population level for this semi-synthetic construction.
