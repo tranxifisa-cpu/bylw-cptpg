@@ -47,9 +47,9 @@ For asset $i=0,\ldots,N$, let $q_{i,u}\in\R^d$ be a feature vector.  For $\theta
  \pi_\theta(\cdot\mid s_u)
  =\Dir\!\left(a_{0,u}(\theta),\ldots,a_{N,u}(\theta)\right).
 \end{equation}
-A feasibility map $\mathsf M_u:\Delta_N\to\Delta_N$ and a fixed trade fraction $\chi\in(0,1]$ generate the executed portfolio
+A history-measurable feasibility map $\mathsf M_u(\cdot\mid s_u):\Delta_N\to\Delta_N$ and a fixed trade fraction $\chi\in(0,1]$ generate the executed portfolio
 \begin{equation}\label{eq:action-map}
- \omega_u=(1-\chi)\omega_{u-1}+\chi\,\mathsf M_u(\widetilde\omega_u).
+ \omega_u=(1-\chi)\omega_{u-1}+\chi\,\mathsf M_u(\widetilde\omega_u\mid s_u).
 \end{equation}
 The realized path and all learning trajectories use the same stochastic actor \eqref{eq:dirichlet-policy} and the same map \eqref{eq:action-map}.  The augmented trajectory records $\widetilde\omega_u$, so its score is
 \begin{equation}\label{eq:trajectory-score}
@@ -145,17 +145,15 @@ Because $J_k$ is continuously differentiable on compact convex $\Theta$, each $J
  \cE_K:=\frac1K\sum_{k=1}^{K}\E\zeta_k.
 \end{equation}
 
-For window length $w\ge1$ and discount $\rho\in(0,1]$, let
+For window length $W\ge1$ and discount $\rho\in(0,1]$, define
 \begin{equation}\label{eq:dynamic-window-residual}
- m_k:=\min\{w,k\},
+ A_{\rho,W}:=\sum_{j=0}^{W-1}\rho^j,
  \qquad
- W_{\rho,m_k}:=\sum_{j=0}^{m_k-1}\rho^j,
- \qquad
- \bar\zeta_k
- :=W_{\rho,m_k}^{-1}\sum_{j=0}^{m_k-1}\rho^j\zeta_{k-j}.
+ \bar Q_k
+ :=A_{\rho,W}^{-1}\sum_{j=0}^{W-1}\rho^j Q_{k-j}(\theta_{k-j}),
 \end{equation}
-The dynamic local regret (DLR) is the cumulative square-first windowed residual
+with the convention $Q_t(\theta_t)=0$ for $t\le0$.  The dynamic local regret (DLR) is
 \begin{equation}\label{eq:dynamic-regret}
- \Reg_{\rho,w}(K):=\sum_{k=1}^{K}\bar\zeta_k.
+ \Reg_{\rho,W}(K):=\sum_{k=1}^{K}\norm{\bar Q_k}_2^2.
 \end{equation}
-Thus $Q_k$ is the contemporaneous projected residual, $\zeta_k=\norm{Q_k(\theta_k)}_2^2$ measures its magnitude before any temporal smoothing, and $\bar\zeta_k$ averages these squared magnitudes over the recent window.  This square-first definition matches the online evaluation used below and keeps the periodwise residual and its smoothed accumulation conceptually distinct.
+Thus $\zeta_k=\norm{Q_k(\theta_k)}_2^2$ records the periodwise first-order residual, while DLR first smooths the residual vectors over the recent window and then accumulates their squared norms.
