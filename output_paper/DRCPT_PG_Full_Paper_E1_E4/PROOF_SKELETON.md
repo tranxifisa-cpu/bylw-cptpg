@@ -2,7 +2,7 @@
 
 ## Scope
 
-Audited theorem-bearing files:
+This ledger tracks the current theorem-bearing manuscript chain:
 
 - `sections/03_problem_setup.tex`
 - `sections/04_assumptions.tex`
@@ -14,116 +14,98 @@ Audited theorem-bearing files:
 - `appendix/D_online.tex`
 - `appendix/E_minimax.tex`
 
-Current revision: the full source was read for consistency; the mathematical obligation ledger below covers the theorem-bearing files. Introduction/related work and E1–E4 are populated, E5–E7 remain design sections, and Discussion is still the original placeholder. This precision repair does not fill or rewrite them.
+The main text now states claim-level results; proof-only lemmas are kept in the appendices.  E1--E7 are populated and use the same estimator, residual, and reference definitions as the theory sections.
 
 ## Dependency DAG
 
-The dependency graph is acyclic.
+1. `ass:trajectory` + the explicit Dirichlet actor imply positive compact concentration parameters and finite score moments.
+2. `ass:likelihood` identifies the policy score as the complete explicit parameter derivative of the frozen conditional trajectory law.
+3. Steps 1--2 + `ass:cpt-regularity` imply CPT smoothness and `thm:gradient-identity`.
+4. `thm:gradient-identity` + the second-order expansion and Hoeffding decomposition imply `lem:level-cancellation`.
+5. `lem:level-cancellation` + leave-one-out independence imply `lem:centering-expectation`.
+6. The two estimator lemmas + the untruncated randomized level law imply exact unbiasedness, finite variance, and finite expected cost in `thm:estimator`; iid replication gives `thm:clt`.
+7. CPT smoothness + projection geometry imply the appendix lemma `lem:projected-ascent`.
+8. `thm:estimator` + `lem:projected-ascent` + the problem-defined budgets `beta_k` and `V_K` imply `thm:online-residual`.
+9. `thm:online-residual` + the square-first window definition imply `cor:dynamic-local-regret` by nonnegative reweighting and reindexing.
+10. The local geometry condition `eq:error-bound` converts residual control to `cor:stationary-tracking`; together with gradient drift it also yields the appendix lemma `lem:stationary-set-drift`.
+11. `thm:online-residual` + sublinear objective variation + vanishing Cesaro estimator/simulator error imply `cor:vanishing-tracking`.
+12. The complete-trajectory oracle experiment in `def:minimax-oracle` + the realizable Bernoulli-return submodel gives the minimax lower bound; `thm:estimator` under the same expected trajectory budget gives the upper bound in `thm:minimax`.
 
-1. `ass:trajectory` + explicit Dirichlet actor -> `lem:dirichlet-moments`.
-2. `lem:dirichlet-moments` + `ass:cpt-regularity` -> `lem:cpt-smoothness` and `thm:gradient-identity`.
-3. `thm:gradient-identity` + Taylor expansion + Hoeffding decomposition -> `lem:level-cancellation`.
-4. `lem:level-cancellation` + leave-one-out independence -> `lem:centering-expectation`.
-5. `lem:level-cancellation` + `lem:centering-expectation` + randomized level law -> `thm:estimator`.
-6. `thm:estimator` -> `thm:clt`.
-7. `lem:cpt-smoothness` + projection geometry -> `lem:projected-ascent`.
-8. `thm:estimator` + `ass:online-variation` + `lem:projected-ascent` -> `thm:online-residual`.
-9. `thm:online-residual` + discounted residual-vector averaging + Jensen -> `cor:dynamic-local-regret`.
-10. `thm:online-residual` + `ass:error-bound` -> `cor:stationary-tracking` and `lem:stationary-set-drift`.
-11. `thm:online-residual` + sublinear variation/MSE conditions -> `cor:vanishing-tracking`.
-12. `ass:minimax-oracle` + realizable Bernoulli-return submodel -> minimax lower bound; `thm:estimator` + expected-cost calibration -> minimax upper bound -> `thm:minimax`.
+## Standing-assumption ledger
 
-## Assumption Ledger
+| Standing condition | Main role | How it is checked in the manuscript | If the global form is unavailable |
+|---|---|---|---|
+| `ass:trajectory` compact policy and trajectory domain | uniform score moments, bounded objective, episode-uniform smoothness constants | policy domain, horizon/assets, feature bounds and analyzed trajectory ranges | fixed-target arguments remain local; online constants become local or high-probability |
+| `ass:likelihood` policy-mediated likelihood structure | validates the trajectory-score derivative used by the gradient estimator | simulator interface: after the action is fixed, the market kernel and feasibility map have no extra theta input | add the direct likelihood/pathwise derivative; otherwise the present score estimates only the policy-mediated component |
+| `ass:cpt-regularity` smooth regularized CPT weighting | gradient identity, Hessian/smoothness control, second-order LOO remainder | analytic derivatives of the chosen regularized weight maps | weaker identities may survive, but the present finite-sample remainder/variance proof needs replacement tail or margin control |
 
-| Result | Required assumptions / inputs | Discharge location |
-|---|---|---|
-| Score moments and likelihood-ratio identities | bounded factor features; compact parameter set; finite horizon/assets; theta-independent market kernel and feasibility map | Appendix A, `lem:dirichlet-moments` |
-| CPT smoothness | score moments; fixed C3 regularized weighting functions; bounded value range | Appendix A, `lem:cpt-smoothness` |
-| Reference sensitivity | bounded CPT derivatives; reference-isolated coupling | Appendix B |
-| Gradient identity | likelihood-ratio identities; bounded CPT derivative; finite integration range | Appendix B |
-| Full/half cancellation | C3 weight regularity; fourth moments of Bernoulli empirical survival; score second moment | Appendix C |
-| Exact unbiasedness | centered/raw equal mean; raw full/half telescoping; no hard level truncation; independent base/correction | Appendix C |
-| Finite variance | level second moment O(4^-ell); level pmf exponent b<2; base variance O(1/n) | Appendix C |
-| Finite expected cost | level pmf exponent b>1 | Appendix C |
-| CLT | iid complete outputs; finite second moment; fixed target/design | Appendix C |
-| One-step projected ascent | L-smooth objective; closed convex Theta; gamma L <= vartheta | Appendix D |
-| Online residual | one-step ascent; estimator MSE; objective variation budget | Appendix D |
-| Dynamic local regret | nonnegative exponential weights summing to one; convexity of squared norm | Appendix D |
-| Stationary-set tracking | residual error bound with uniform kappa | Appendix D |
-| Minimax lower bound | exact-trajectory oracle; fixed d; realizable Bernoulli-return submodel; positive endpoint slope | Appendix E |
-| Minimax upper bound | uniform estimator constants over model class; expected trajectory cost | Appendix E |
+Result-specific conditions are not standing assumptions: reference-isolated coupling is local to `prop:reference-sensitivity`; `eq:error-bound` is local to stationary-set interpretation; and the minimax information source is defined by `def:minimax-oracle`.
 
-## Canonical Quantified Statements
+## Canonical quantified statements
 
-### Estimator theorem
-For every fixed conditional target satisfying Assumptions 4.1-4.2, every integer n>=2, activation probability varrho in (0,1], exponent b in (1,2), and M>=1 independent complete outputs,
+### Frozen-target estimator
 
-- E[Z_n^db] = g;
-- tr Cov(Z_n^db) <= C_var(n) < infinity;
-- E[cost(Z_n^db)] = C_cost(n,varrho,b) < infinity;
-- E||M^{-1} sum_m Z_{n,m}^db - g||^2 <= C_var(n)/M.
+For every fixed conditional target satisfying the standing assumptions, every integer (n\ge2), activation probability (\varrho\in(0,1]), exponent (b\in(1,2)), and (M\ge1) independent complete outputs,
 
-All constants are uniform over episodes only when the primitive bounds in the standing assumptions are uniform over episodes.
+- (E[Z_n^{db}]=g);
+- (operatorname{tr}\operatorname{Cov}(Z_n^{db})\le C_{var}(n)<\infty);
+- (E[\operatorname{cost}(Z_n^{db})]=C_{cost}(n,\varrho,b)<\infty);
+- (E\|M^{-1}\sum_m Z_{n,m}^{db}-g\|^2\le C_{var}(n)/M).
 
-### Online residual theorem
-For every K>=1, fixed gamma,vartheta>0 satisfying gamma L<=vartheta, and the supplied deterministic replication schedule M_k>=1,
+### Online residual
 
-E_K <= 8(2 B_v + E V_K)/(vartheta gamma K)
-      + 10 C_g/(vartheta^3 K) sum_k [C_var(n)/M_k + E beta_k^2].
+For every (K\ge1) and fixed (\gamma,\vartheta>0) with (\gamma L\le\vartheta),
 
-### Minimax theorem
-For fixed dimension d and fixed regularization/model-class constants, there exist c_lb,C_ub,B_0 in (0,infinity) such that for every budget B>=B_0,
+[
+\mathcal E_K
+\le
+\frac{8(2B_v+E\mathcal V_K)}{\vartheta\gamma K}
++
+\frac{10C_g}{\vartheta^3K}
+\sum_{k=1}^K
+\left(\frac{C_{var}(n)}{M_k}+E\beta_k^2\right).
+]
 
-c_lb/B <= R_B <= C_ub/B.
+With the square-first window statistic,
+[
+\mathcal R_{\rho,w}(K)
+\le
+W_{\rho,w}\sum_{k=1}^K\zeta_k,
+\qquad
+W_{\rho,w}=\sum_{j=0}^{w-1}\rho^j.
+]
+Thus fixed (w,\rho) preserve the vanishing-rate conclusion when (\mathcal E_K\to0).
 
-No dimension-uniform d/B claim and no online minimax-regret claim is made.
+### Minimax rate
 
-## Micro-Claim Inventory
+For fixed dimension and fixed regularization/model-class constants under `def:minimax-oracle`,
+[
+c_{lb}/\mathsf B\le\mathfrak R_{\mathsf B}\le C_{ub}/\mathsf B
+]
+for all sufficiently large expected complete-trajectory budgets (\mathsf B).
 
-- MC-01: compact theta + bounded q -> all Dirichlet concentrations lie in a positive compact interval.
-- MC-02: the Dirichlet density derivatives admit a common integrable log-polynomial envelope.
-- MC-03: MC-02 -> first/second likelihood-ratio differentiation for bounded trajectory functionals.
-- MC-04: reference recursion is (1-eta_min)-Lipschitz in the reference coordinate under common wealth paths.
-- MC-05: shifted-power values are globally Lipschitz with the displayed constant.
-- MC-06: integrated survival-function difference is bounded by coupled E|V-V'|.
-- MC-07: CPT score identity follows by likelihood-ratio differentiation, DCT, Fubini, and score centering.
-- MC-08: raw LOO Taylor expansion decomposes into a linear influence term, a degenerate ordered U-statistic, and a quadratic remainder.
-- MC-09: the degenerate ordered U-statistic has L2 norm O(n^-1).
-- MC-10: the Taylor remainder has L2 norm O(n^-1).
-- MC-11: the common influence term cancels exactly in full-vs-half coupling, giving E||D_{n,ell}||^2=O(n^-2 4^-ell).
-- MC-12: centered and raw LOO statistics have the same finite-sample mean because the centering coefficient excludes trajectory i and E G_i=0.
-- MC-13: randomized raw corrections telescope from mu_n to g and are absolutely integrable.
-- MC-14: b<2 gives finite correction second moment; b>1 gives finite expected correction cost.
-- MC-15: iid averaging gives 1/M MSE and the fixed-target multivariate CLT.
-- MC-16: normalized direction map is vartheta^-1-Lipschitz as a Euclidean projection onto the unit ball.
-- MC-17: projection VI + L-smoothness + MC-16 -> one-step projected-ascent inequality.
-- MC-18: moving-objective increments telescope pathwise and are bounded by 2 B_v + V_K.
-- MC-19: MC-17 + MC-18 + true-gradient MSE -> average projected-residual bound.
-- MC-20: Jensen applied to the full-window exponential weights gives each DLR term an upper bound by the corresponding weighted residual squares; reindexing yields `Reg_{rho,w}(K) <= sum_k zeta_k`.
-- MC-21: error bound converts Q_k residuals to distances from S_k.
-- MC-22: normalized residual maps inherit gradient drift, and MC-21 converts it to Hausdorff drift of stationary sets.
-- MC-23: Bernoulli-return one-stock submodel is realizable by the stated Dirichlet actor and reference recursion.
-- MC-24: gradient map g(p) has derivative bounded below on a fixed interior p-interval.
-- MC-25: stopped adaptive transcript KL equals expected call count times one-call Bernoulli KL in the two-point submodel.
-- MC-26: Pinsker + nearest-target testing gives the Omega(B^-1) lower bound.
-- MC-27: finite expected estimator cost + 1/M risk gives the O(B^-1) upper bound.
+## Micro-claim inventory
 
-## Limit-Order Map
+- Compact theta and bounded features keep Dirichlet concentrations in a positive compact interval.
+- Dirichlet density derivatives admit an integrable log-polynomial envelope.
+- Policy-mediated likelihood structure turns the retained latent-action score into the required likelihood-ratio derivative.
+- Reference recursion is ((1-\eta_{min}))-Lipschitz under the reference-isolated common-wealth comparison.
+- The regularized CPT score identity follows from likelihood differentiation, dominated convergence, Fubini, and score centering.
+- Raw LOO admits a first-order influence term plus an (O_{L^2}(n^{-1})) remainder.
+- Full/half coupling cancels the common influence term, giving (E\|D_{n,\ell}\|^2=O(n^{-2}4^{-\ell})).
+- Centered and raw LOO share the same finite-sample mean; that mean differs from the target by (O(n^{-1})).
+- Untruncated randomized corrections telescope from the finite-sample mean to the exact frozen-target gradient.
+- (b<2) gives finite correction variance and (b>1) gives finite expected correction cost.
+- Normalized direction is (\vartheta^{-1})-Lipschitz; projection geometry yields the one-step ascent inequality.
+- Moving-objective increments telescope and are controlled by (2B_v+\mathcal V_K).
+- Estimator MSE plus moving-objective variation yields the average squared projected-residual bound.
+- Square-first DLR averages already-squared contemporaneous residuals; reindexing gives the fixed-window factor (W_{\rho,w}).
+- The local error bound, when imposed, converts residuals to stationary-set distance and controls set drift.
+- The one-stock Bernoulli submodel is realizable by the stated actor/reference recursion and supplies the fixed-dimensional minimax lower bound.
+- Cost-matched replication of the exact-unbiased estimator supplies the minimax upper bound.
 
-- M -> infinity: fixed target, fixed (n,varrho,b), fixed d; CLT and MSE scaling.
-- K -> infinity: fixed n, fixed gamma,vartheta, fixed finite w and rho; standing constants uniform over episodes; requires E V_K=o(K) and Cesaro estimator/simulator error -> 0.
-- B -> infinity: fixed d, fixed regularization, fixed model-class constants; minimax expected complete-trajectory budget.
+## Limit-order map
 
-
-## Precision-repair delta (2026-09-19)
-
-- I1–I2: define the theorem-visible survival, score and population gradient before use.
-- I3–I4: use G_x for a trajectory score and a single T_call for the oracle count.
-- I5–I7: explicit consecutive episodes, model/induced-law distinction, and uniform conditional true/simulator likelihood assumptions.
-- I8: remove unused B_J; B_v and all endpoint constants unchanged.
-- I9: one 16-row semantic-chain table, with (z_k,F_k,r_k) restored; estimator internals retain their local definitions.
-- I10: four metric names are distinct; every displayed metric definition is unchanged.
-
-MC-02, MC-03, MC-07 through MC-19 now explicitly inherit the simulator scope of Assumption trajectory. No dependency edge is reversed or added from an online result to the estimator. The fixed-target minimax chain remains separate from online tracking.
-
-The new full-source review may report preexisting obligations outside I1–I10. Consult PROOF_AUDIT.md for the scoped/full-paper verdict distinction; this ledger does not assert that such observations were silently repaired.
+- (M\to\infty): fixed target, fixed ((n,\varrho,b)), fixed dimension.
+- (K\to\infty): fixed (n,\gamma,\vartheta,w,\rho); standing constants uniform over episodes; (E\mathcal V_K=o(K)) and Cesaro estimator/simulator error vanish.
+- (mathsf B\to\infty): fixed dimension, regularization, and oracle model-class constants.
