@@ -14,7 +14,7 @@ where asset $0$ is cash, $X_u>0$ is normalized wealth, and $r_u\ge0$ is the refe
  -c_{\rm tc}\norm{\omega_u-\omega_{u-1}}_1\right),
  \qquad X_1=1.
 \end{equation}
-The conditional market transition law may vary with calendar time.  Conditional on the observed history and action, it has no explicit dependence on the policy parameter.
+The conditional market transition law may vary with calendar time.  The likelihood-structure restriction used for policy-gradient differentiation is stated separately in Assumption~\ref{ass:likelihood}.
 
 \subsection{Dynamic reference and terminal relative outcome}
 
@@ -39,7 +39,7 @@ All Monte Carlo learning trajectories for episode $k$ are generated conditionall
 
 \subsection{Dirichlet portfolio policy}
 
-For asset $i=0,\ldots,N$, let $q_{i,u}\in\R^d$ be a bounded feature vector.  For $\theta\in\Theta\subset\R^d$ define
+For asset $i=0,\ldots,N$, let $q_{i,u}\in\R^d$ be a feature vector.  For $\theta\in\Theta\subset\R^d$ define
 \begin{equation}\label{eq:dirichlet-policy}
  a_{i,u}(\theta)=\exp(\theta^\top q_{i,u}),
  \qquad
@@ -47,7 +47,7 @@ For asset $i=0,\ldots,N$, let $q_{i,u}\in\R^d$ be a bounded feature vector.  For
  \pi_\theta(\cdot\mid s_u)
  =\Dir\!\left(a_{0,u}(\theta),\ldots,a_{N,u}(\theta)\right).
 \end{equation}
-A parameter-independent feasibility map $\mathsf M_u:\Delta_N\to\Delta_N$ and a fixed trade fraction $\chi\in(0,1]$ generate the executed portfolio
+A feasibility map $\mathsf M_u:\Delta_N\to\Delta_N$ and a fixed trade fraction $\chi\in(0,1]$ generate the executed portfolio
 \begin{equation}\label{eq:action-map}
  \omega_u=(1-\chi)\omega_{u-1}+\chi\,\mathsf M_u(\widetilde\omega_u).
 \end{equation}
@@ -85,13 +85,13 @@ For a frozen episode environment/model $P$ and context $(z,r)$, let $P_\theta$ d
  S_{P,z,r,\theta}^{\pm}(y)
  =P_\theta\{v_\pm(Y)>y\}.
 \]
-On the bounded analysis domain, $v_\pm(Y)\in[0,B_v]$.  Define
+Under Assumption~\ref{ass:trajectory}, $v_\pm(Y)\in[0,B_v]$ on the analyzed domain.  Define
 \begin{equation}\label{eq:generic-cpt-objective}
  J(P,z,r;\theta)
  =\int_0^{B_v}w_+^\eps\!\left(S_{P,z,r,\theta}^{+}(y)\right)dy
  -\int_0^{B_v}w_-^\eps\!\left(S_{P,z,r,\theta}^{-}(y)\right)dy.
 \end{equation}
-Let $P_k$ denote the true conditional episode-$k$ model and $\widetilde P_k$ its frozen simulator model.  Both are fixed when differentiating with respect to $\theta$; their induced trajectory laws depend on $\theta$ through the policy.  Then
+Let $P_k$ denote the true conditional episode-$k$ model and $\widetilde P_k$ its frozen simulator model.  For fixed-target analysis, the episode context and model are conditioned upon before fresh trajectories are drawn; Assumption~\ref{ass:likelihood} specifies how $\theta$ enters the resulting trajectory law.  Then
 \begin{equation}\label{eq:true-sim-objectives}
  J_k(\theta,r_k):=J(P_k,z_k,r_k;\theta),
  \qquad
