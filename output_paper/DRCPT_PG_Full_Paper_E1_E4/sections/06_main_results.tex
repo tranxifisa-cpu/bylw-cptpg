@@ -80,7 +80,7 @@ The same identity holds for the frozen simulator objective $\widetilde J$.
 The empirical survival probabilities entering \eqref{eq:cpt-multiplier} make a direct finite-sample plug-in gradient biased.  Appendix~\ref{app:estimator} shows that the leave-one-out base has $O(n^{-1})$ mean error and that the coupled full/half difference cancels the first-order influence term, leaving second moment $O(n^{-2}4^{-\ell})$.  These two properties are the mechanism behind the randomized correction in Algorithm~\ref{alg:cloo-rd}.
 
 \begin{theorem}[Exact unbiasedness, finite variance, and finite expected cost]\label{thm:estimator}
-Let $Z_n^{\db}$ be defined by \eqref{eq:debiased-output}, with $n\ge2$, $\varrho\in(0,1]$, and $1<b<2$.  Put
+Let $Z_n^{\db}$ be defined by \eqref{eq:debiased-output}, with $n\ge2$, $\varrho\in(0,1]$, and $1<b<2$.  Let $C_U$ and $C_{\rm rem}$ denote the finite constants established by \Cref{lem:level-cancellation}.  Put
 \begin{equation}\label{eq:level-series-constants}
  \Xi_b
  :=\sum_{\ell\ge1}\frac{4^{-\ell}}{\nu_\ell}
