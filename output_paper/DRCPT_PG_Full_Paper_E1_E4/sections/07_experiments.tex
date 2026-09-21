@@ -1,12 +1,12 @@
 \section{Experimental Design and Evidence}\label{sec:experiments}
 
 \subsection{Experimental roadmap}\label{sec:exp-roadmap}
-The experiments follow the argument developed in the theory.  E1 isolates the path-dependent reference mechanism and its decision consequence.  E2 evaluates the frozen-target gradient estimator in the shared semi-synthetic setup.  E3 releases the same setup as a continuous slow-variation process and tests online first-order tracking, while E4 maps the robustness of that tracking result over reference, horizon, and optimizer perturbations.  E5 then moves to a time-ordered real A-share replay under common trading constraints.  E6 holds real investor decisions, controls, chronological split, and predictive model fixed while changing only the reference representation.  E7 replays the E5 recommendations through investor types calibrated from E6 and historical behavior, separating recommendation adoption from satisfaction after adoption.  \Cref{fig:evidence-map} summarizes the theory-aligned core and these three external-validity layers.
+The experiments follow the argument developed in the theory.  E1 isolates the path-dependent reference mechanism and its decision consequence.  E2 evaluates the frozen-target gradient estimator in the shared semi-synthetic setup.  E3 releases the same setup as a continuous slow-variation process and tests online first-order tracking, while E4 combines a structured ablation of the reference mechanism with horizon and optimizer robustness checks.  E5 then moves to a time-ordered real A-share replay under common trading constraints.  E6 holds real investor decisions, controls, chronological split, and predictive model fixed while changing only the reference representation.  E7 replays the E5 recommendations through investor types calibrated from E6 and historical behavior, separating recommendation adoption from satisfaction after adoption.  \Cref{fig:evidence-map} summarizes the theory-aligned core and these three external-validity layers.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.96\textwidth]{figures/experiment_evidence_map.pdf}
-    \caption{Experimental evidence map for the theory-aligned core.  E1 establishes the decision consequence of path-dependent reference formation; E2 evaluates the frozen-target gradient estimator; E3 measures continuous first-order tracking; and E4 maps robustness.  E5--E7 follow this core as external-validity layers for market, behavior, and interaction, while keeping their estimands separate from the E2--E4 statistical and tracking diagnostics.}
+    \caption{Experimental evidence map for the theory-aligned core.  E1 establishes the decision consequence of path-dependent reference formation; E2 evaluates the frozen-target gradient estimator; E3 measures continuous first-order tracking; and E4 separates reference-mechanism ablation from horizon and optimizer robustness.  E5--E7 follow this core as external-validity layers for market, behavior, and interaction, while keeping their estimands separate from the E2--E4 statistical and tracking diagnostics.}
     \label{fig:evidence-map}
 \end{figure}
 \FloatBarrier
@@ -142,16 +142,16 @@ The tail behavior strengthens this interpretation.  After the exogenous return l
 
 \FloatBarrier
 
-\subsection{E4: Robustness of online tracking}\label{sec:e4}
+\subsection{E4: Reference-mechanism ablation and robustness of online tracking}\label{sec:e4}
 \paragraph{Design.}
-E4 tests whether the E3 closed-loop tracking advantage persists when the reference dynamics, decision horizon, and optimizer scale are perturbed.  Because each perturbation changes the induced objective sequence, absolute DLR values are not compared across configurations.  For configuration $c$ and paired seed $s$, we form the matched-control ratio
+E4 first asks how the reference-update mechanism changes the E3 tracking advantage, then tests whether the same advantage persists across decision horizons and optimizer scales.  Because each perturbation changes the induced objective sequence, absolute DLR values are not compared across configurations.  For configuration $c$ and paired seed $s$, we form the matched-control ratio
 \[
 \mathrm{Ratio}_{\mathrm{DLR}}(c,s)
 =\frac{\mathrm{DLR}^{\rm post}_{\rm online}(c,s)}{\mathrm{DLR}^{\rm post}_{\rm frozen}(c,s)},
 \]
 where the post-change interval begins at the first regime change.  Figures show the mean of the seed-level ratios with paired-seed bootstrap intervals, rather than the ratio of two across-seed mean DLR values.  A ratio below one means that continued updating accumulates less DLR than freezing $\theta$ on that matched trajectory.
 
-Panel A evaluates the full $9\times9$ reference grid
+Panel A is a structured reference-mechanism ablation over the full $9\times9$ grid
 \[
 \eta_+,\eta_-\in\{0,0.05,0.10,\ldots,0.40\}.
 \]
@@ -174,15 +174,15 @@ Here $L_{\rm diag}$ defines the displayed grid and is distinct from the uniform 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/e4_robustness.pdf}
-    \caption{Robustness of the online-tracking advantage measured by the configuration-matched post-change DLR ratio $\mathrm{Ratio}_{\mathrm{DLR}}$.  \textbf{A}: reference-adaptation surface over the simulated $9\times9$ grid; the black contour marks a ratio of one, the diagonal marks $\eta_+=\eta_-$, and the star marks the default asymmetric rule.  \textbf{B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$.  \textbf{C}: diagnostically screened $(\gamma,\vartheta)$ grid; blank cells lie outside $\gamma L_{\rm diag}\le\vartheta$, and the star marks the E3 default.}
+    \caption{Reference-mechanism ablation and robustness of the online-tracking advantage, measured by the configuration-matched post-change DLR ratio $\mathrm{Ratio}_{\mathrm{DLR}}$.  \textbf{A}: structured ablation over the $9\times9$ reference-update grid; $(0,0)$ removes reference adaptation, the diagonal $\eta_+=\eta_-$ removes gain--loss asymmetry while retaining adaptation, and the off-diagonal regions test asymmetric updating.  The black contour marks a ratio of one and the star marks the default rule.  \textbf{B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$.  \textbf{C}: diagnostically screened $(\gamma,\vartheta)$ grid; blank cells lie outside $\gamma L_{\rm diag}\le\vartheta$, and the star marks the E3 default.}
     \label{fig:e4-robustness}
 \end{figure}
 \FloatBarrier
 
 \paragraph{Results.}
-E4 asks whether the E3 separation is a property of the mechanism or an accident of one tuning choice.  The reference sweep gives the clearest answer.  Continued updating has lower post-change DLR in $76$ of $81$ reference configurations, and all $36$ gain-dominant asymmetric settings with $\eta_+>\eta_-$ lie below the matched-control boundary; $33$ of those have paired 95\% intervals entirely below one.  The default rule has $\mathrm{Ratio}_{\mathrm{DLR}}=0.458$ with interval $[0.332,0.621]$.  The surface also identifies a coherent boundary of the phenomenon: strongly loss-dominant adaptation can reverse the comparison, as at $(\eta_+,\eta_-)=(0.05,0.40)$ where the ratio is $1.403$ with interval $[1.224,1.552]$ (\Cref{fig:e4-robustness}A).  The robustness region therefore follows the qualitative reference dynamics rather than looking like isolated favorable cells.
+Panel A provides a structured ablation of the reference mechanism rather than a generic sensitivity sweep.  Removing reference adaptation altogether, $(\eta_+,\eta_-)=(0,0)$, does not eliminate the benefit of online updating: the matched DLR ratio remains $0.716$.  Likewise, all eight positive symmetric-adaptation settings on the diagonal, $\eta_+=\eta_->0$, remain below one, with a mean ratio of $0.715$ and six paired 95\% intervals entirely below one.  Asymmetric reference adaptation is therefore not a necessary condition for online tracking itself.  What changes systematically is the strength of the tracking advantage.  Across all $36$ gain-dominant configurations with $\eta_+>\eta_-$, the mean ratio falls to $0.511$, every configuration remains below one, and $33$ intervals lie entirely below one.  The loss-dominant region is weaker on average, with mean ratio $0.826$, and sufficiently strong reversal of the asymmetry can overturn the comparison: at $(\eta_+,\eta_-)=(0.05,0.40)$ the ratio is $1.403$ with interval $[1.224,1.552]$ (\Cref{fig:e4-robustness}A).  Panel A thus identifies gain-dominant asymmetric reference adaptation as an amplifying and structuring mechanism for online tracking, rather than a prerequisite for adaptation to work at all.
 
-The other two sweeps test whether the effect is tied to discretization or optimizer tuning.  Mean ratios are below one at all $11$ horizons, with $10$ intervals entirely below one; only the $h=50$ interval crosses one, so the E3 result is not specific to the five-day episode length (\Cref{fig:e4-robustness}B).  Across the $48$ screened $(\gamma,\vartheta)$ pairs, $47$ mean ratios are below one and $45$ intervals are entirely below one; the lone point estimate above one has interval $[0.876,1.342]$ and is unresolved from the matched control.  Taken together, the sweeps map a broad region in which continued adaptation improves first-order tracking.  This is stronger evidence than a single default run because it shows that the E3 separation survives changes to the behavioral state dynamics, the temporal aggregation scale, and the optimizer itself.
+Panels B and C address distinct robustness questions.  Mean ratios are below one at all $11$ horizons, with $10$ intervals entirely below one; only the $h=50$ interval crosses one, so the E3 result is not specific to the five-day episode length (\Cref{fig:e4-robustness}B).  Across the $48$ screened $(\gamma,\vartheta)$ pairs, $47$ mean ratios are below one and $45$ intervals are entirely below one; the lone point estimate above one has interval $[0.876,1.342]$ and is unresolved from the matched control.  E4 therefore separates mechanism from implementation robustness: Panel A shows how reference dynamics strengthen or weaken the tracking advantage, while Panels B--C show that the E3 separation is not an artifact of one temporal scale or optimizer setting.
 
 \FloatBarrier
 
