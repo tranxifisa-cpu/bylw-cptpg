@@ -128,7 +128,7 @@ which proves \eqref{eq:dynamic-local-regret-bound}.  Taking expectations and div
 \subsection{Stationary-set consequences}
 
 \begin{proof}[Proof of \Cref{cor:stationary-tracking}]
-Assumption \ref{ass:error-bound} gives pointwise
+Condition \eqref{eq:error-bound} gives pointwise
 \[
  \dist^2(\theta_k,\Sta_k)
  \le\kappa^2\norm{Q_k(\theta_k)}_2^2
@@ -147,7 +147,7 @@ The normalized direction map is $\vartheta^{-1}$-Lipschitz because it is the Euc
  \norm{\mathsf d(g_{k+1}(\theta))-\mathsf d(g_k(\theta))}_2\\
  &\le\frac{\delta_k^g}{\vartheta}.
 \end{align*}
-If $\theta\in\Sta_k$, then $Q_k(\theta)=0$, so Assumption \ref{ass:error-bound} applied to episode $k+1$ gives
+If $\theta\in\Sta_k$, then $Q_k(\theta)=0$, so \eqref{eq:error-bound} applied to episode $k+1$ gives
 \[
  \dist(\theta,\Sta_{k+1})
  \le\kappa\norm{Q_{k+1}(\theta)}_2
