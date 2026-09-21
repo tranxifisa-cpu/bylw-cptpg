@@ -120,24 +120,24 @@ Since $\abs{J_k}\le B_v$ and the second line is bounded above by $\cV_K$,
 Summing \eqref{eq:online-one-step}, applying \eqref{eq:true-gradient-mse} and \eqref{eq:telescope-upper}, and dividing by $\vartheta\gamma K/8$ gives exactly \eqref{eq:online-residual-bound}.
 \end{proof}
 
-\subsection{Discounted dynamic local regret}
+\subsection{Square-first dynamic local regret}
 
 \begin{proof}[Proof of \Cref{cor:dynamic-local-regret}]
-Write $W=W_{\rho,w}$.  With the convention $Q_t(\theta_t)=0$ for $t\le0$, the coefficients $\rho^j/W$, $j=0,\ldots,w-1$, are nonnegative and sum to one.  Convexity of $q\mapsto\norm{q}_2^2$ therefore gives
-\begin{align*}
- \norm{\bar Q_k}_2^2
- &\le \frac1W\sum_{j=0}^{w-1}\rho^j
-       \norm{Q_{k-j}(\theta_{k-j})}_2^2.
-\end{align*}
-Summing over $k\le K$ and reindexing,
+By definition,
+\[
+ \Reg_{\rho,w}(K)
+ =\sum_{k=1}^{K}\frac{1}{W_{\rho,m_k}}
+   \sum_{j=0}^{m_k-1}\rho^j\zeta_{k-j}.
+\]
+All terms are nonnegative and $W_{\rho,m_k}\ge1$.  Reindexing by the episode $t=k-j$ that generated each squared residual therefore gives
 \begin{align*}
  \Reg_{\rho,w}(K)
  &\le
  \sum_{t=1}^{K}\zeta_t
- \left\{\frac1W\sum_{j=0}^{\min\{w-1,K-t\}}\rho^j\right\}
- \le \sum_{t=1}^{K}\zeta_t,
+ \sum_{j=0}^{\min\{w-1,K-t\}}\rho^j\notag\\
+ &\le W_{\rho,w}\sum_{t=1}^{K}\zeta_t.
 \end{align*}
-which proves \eqref{eq:dynamic-local-regret-bound}.  Taking expectations and dividing by $K$ gives \eqref{eq:average-dynamic-local-regret-bound}.
+This proves \eqref{eq:dynamic-local-regret-bound}.  Taking expectations and dividing by $K$ gives \eqref{eq:average-dynamic-local-regret-bound}.  The factor $W_{\rho,w}$ is fixed whenever the window design $(w,\rho)$ is fixed, so it does not alter the vanishing-rate conclusion.
 \end{proof}
 
 \subsection{Stationary-set consequences}
