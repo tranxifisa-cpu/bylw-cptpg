@@ -80,7 +80,7 @@ The same identity holds for the frozen simulator objective $\widetilde J$.
 The empirical survival probabilities entering \eqref{eq:cpt-multiplier} make a direct finite-sample plug-in gradient biased.  Appendix~\ref{app:estimator} shows that the leave-one-out base has $O(n^{-1})$ mean error and that the coupled full/half difference cancels the first-order influence term, leaving second moment $O(n^{-2}4^{-\ell})$.  These two properties are the mechanism behind the randomized correction in Algorithm~\ref{alg:cloo-rd}.
 
 \begin{theorem}[Exact unbiasedness, finite variance, and finite expected cost]\label{thm:estimator}
-Let $Z_n^{\db}$ be defined by \eqref{eq:debiased-output}, with $n\ge2$, $\varrho\in(0,1]$, and $1<b<2$.  Let $C_U$ and $C_{\rm rem}$ denote the finite constants established by \Cref{lem:level-cancellation}.  Put
+Let $Z_n^{\db}$ be defined by \eqref{eq:debiased-output}, with $n\ge2$, $p_{\rm act}\in(0,1]$, and $1<b<2$.  Let $C_U$ and $C_{\rm rem}$ denote the finite constants established by \Cref{lem:level-cancellation}.  Put
 \begin{equation}\label{eq:level-series-constants}
  \Xi_b
  :=\sum_{\ell\ge1}\frac{4^{-\ell}}{\nu_\ell}
@@ -97,12 +97,12 @@ Then
 \begin{equation}\label{eq:single-output-variance}
  \tr\Cov(Z_n^{\db})
  \le C_{\rm var}(n)
- :=\frac{C_U}{n}+\frac{9C_{\rm rem}\Xi_b}{\varrho n^2}<\infty,
+ :=\frac{C_U}{n}+\frac{9C_{\rm rem}\Xi_b}{p_{\rm act} n^2}<\infty,
 \end{equation}
 and the expected number of complete trajectories is
 \begin{equation}\label{eq:expected-estimator-cost}
- C_{\rm cost}(n,\varrho,b)
- =n(1+\varrho\Upsilon_b)<\infty.
+ C_{\rm cost}(n,p_{\rm act},b)
+ =n(1+p_{\rm act}\Upsilon_b)<\infty.
 \end{equation}
 For $M$ independent outputs,
 \begin{equation}\label{eq:estimator-mse}
@@ -114,7 +114,7 @@ For $M$ independent outputs,
 \end{theorem}
 
 \begin{theorem}[Fixed-target asymptotic normality]\label{thm:clt}
-Under \Cref{thm:estimator}, fix $(n,\varrho,b)$ and let $\Sigma_n=\Cov(Z_n^{\db})$.  Then
+Under \Cref{thm:estimator}, fix $(n,p_{\rm act},b)$ and let $\Sigma_n=\Cov(Z_n^{\db})$.  Then
 \begin{equation}\label{eq:clt}
  \sqrt M\,(\widehat g_{M,n}^{\db}-g)
  \rightsquigarrow \mathcal N(0,\Sigma_n).
