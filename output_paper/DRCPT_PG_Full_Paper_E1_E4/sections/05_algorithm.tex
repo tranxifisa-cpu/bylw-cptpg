@@ -98,7 +98,7 @@ The parameter update is
     \State $\widehat g_k^{\db}\gets M_k^{-1}\sum_{m=1}^{M_k}Z_{k,m}^{\db}$
     \For{$u=t_k,\ldots,t_k+h-1$}
         \State $a_{i,u}\gets\exp(\theta_k^\top q_{i,u})$ for $i=0,\ldots,N$; \quad $\widetilde\omega_u\sim\Dir(a_{0,u},\ldots,a_{N,u})$
-        \State $\omega_u\gets(1-\chi)\omega_{u-1}+\chi\mathsf M_u(\widetilde\omega_u)$
+        \State $\omega_u\gets(1-\chi)\omega_{u-1}+\chi\mathsf M_u(\widetilde\omega_u\mid s_u)$
         \State $X_{u+1}\gets X_u\{1+\omega_u^\top R_{u+1}-c_{\rm tc}\norm{\omega_u-\omega_{u-1}}_1\}$; \quad $r_{u+1}\gets\Phi(r_u,X_{u+1})$
     \EndFor
     \State $\theta_{k+1}\gets\Pi_\Theta\{\theta_k+\gamma\mathsf d(\widehat g_k^{\db})\}$
