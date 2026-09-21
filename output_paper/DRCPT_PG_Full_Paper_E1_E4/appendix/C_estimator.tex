@@ -6,6 +6,28 @@ For a realization $x=(V^+,V^-,G_x)$, write $I_{x,\sigma}(y)=\1\{V^\sigma>y\}$.
 
 \subsection{Second-order expansion and full/half coupling}
 
+\begin{lemma}[Coupled full/half cancellation]\label{lem:level-cancellation}
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix one frozen target and parameter and write $g:=\nabla J(\theta)$.  There exist a measurable $\mathfrak h$ and constants $C_{\rm rem},C_U<\infty$ such that
+\begin{equation}\label{eq:loo-expansion}
+ U_n^{\rm raw}-g
+ =\frac1n\sum_{i=1}^{n}\mathfrak h(\mathsf X_i)+\mathcal B_n,
+ \qquad
+ \E\mathfrak h(\mathsf X_i)=0,
+ \qquad
+ \E\norm{\mathcal B_n}_2^2\le\frac{C_{\rm rem}}{n^2},
+\end{equation}
+and consequently
+\begin{equation}\label{eq:level-second-moment}
+ \E\norm{D_{n,\ell}^{\rm raw}}_2^2
+ \le\frac{9C_{\rm rem}}{n^2}2^{-2\ell},
+ \qquad \ell\ge1,
+\end{equation}
+while
+\begin{equation}\label{eq:centered-loo-variance}
+ \tr\Cov(U_n^{\rm cen})\le\frac{C_U}{n}.
+\end{equation}
+\end{lemma}
+
 \begin{proof}[Proof of \Cref{lem:level-cancellation}]
 To prove \eqref{eq:loo-expansion}, it is enough to isolate the first-order Hoeffding projection and show that both the degenerate two-sample term and the Taylor remainder are $O_{L^2}(n^{-1})$.  For a side $\sigma$ and threshold $y$, write
 \[
@@ -144,6 +166,18 @@ with $C_U=C_E/2$.  This completes the proof.
 
 
 \subsection{Centering and finite-sample bias}
+
+\begin{lemma}[Centering and finite-sample bias]\label{lem:centering-expectation}
+For $n\ge2$,
+\begin{equation}\label{eq:centered-raw-mean}
+ \E U_n^{\rm cen}=\E U_n^{\rm raw}=: \mu_n,
+\end{equation}
+and there exists $C_{\rm bias}<\infty$ such that
+\begin{equation}\label{eq:loo-bias-order}
+ \norm{\mu_n-g}_2\le \frac{C_{\rm bias}}{n},
+ \qquad g:=\nabla J(\theta).
+\end{equation}
+\end{lemma}
 
 \begin{proof}[Proof of \Cref{lem:centering-expectation}]
 To compare the two LOO statistics, subtract \eqref{eq:centered-loo} from \eqref{eq:raw-loo}.  The difference is
