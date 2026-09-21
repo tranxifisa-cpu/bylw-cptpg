@@ -2,6 +2,21 @@
 
 \subsection{Normalized projected ascent}
 
+\begin{lemma}[One-step normalized projected ascent]\label{lem:projected-ascent}
+Let $J$ be $L$-smooth on the nonempty closed convex set $\Theta$.  Fix $x\in\Theta$, let $g=\nabla J(x)$ with $\norm{g}_2\le B_g$, and let $\widehat g$ be any finite vector.  Set
+\[
+ x^+=\Pi_\Theta\{x+\gamma\mathsf d(\widehat g)\},
+ \qquad
+ Q(x)=\gamma^{-1}[\Pi_\Theta\{x+\gamma\mathsf d(g)\}-x].
+\]
+If $\gamma L\le\vartheta$ and $C_g:=\max\{B_g,\vartheta\}$, then
+\begin{equation}\label{eq:one-step-ascent}
+ J(x^+)-J(x)
+ \ge\frac{\vartheta\gamma}{8}\norm{Q(x)}_2^2
+ -\frac{5C_g\gamma}{4\vartheta^2}\norm{\widehat g-g}_2^2.
+\end{equation}
+\end{lemma}
+
 \begin{proof}[Proof of \Cref{lem:projected-ascent}]
 The target is a lower bound in terms of the population projected residual $Q(x)$.  We first obtain a bound in terms of the actual displacement produced by $\widehat g$, then compare that displacement with the population displacement.
 
@@ -126,6 +141,19 @@ which proves \eqref{eq:dynamic-local-regret-bound}.  Taking expectations and div
 \end{proof}
 
 \subsection{Stationary-set consequences}
+
+\begin{lemma}[Drift of stationary sets]\label{lem:stationary-set-drift}
+If \eqref{eq:error-bound} holds, define
+\begin{equation}\label{eq:gradient-drift}
+ \delta_k^g:=\sup_{\theta\in\Theta}
+ \norm{g_{k+1}(\theta)-g_k(\theta)}_2.
+\end{equation}
+Then
+\begin{equation}\label{eq:stationary-set-drift}
+ \dH(\Sta_{k+1},\Sta_k)
+ \le\frac{\kappa}{\vartheta}\delta_k^g.
+\end{equation}
+\end{lemma}
 
 \begin{proof}[Proof of \Cref{cor:stationary-tracking}]
 Condition \eqref{eq:error-bound} gives pointwise
