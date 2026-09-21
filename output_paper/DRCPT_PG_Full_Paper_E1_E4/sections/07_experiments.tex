@@ -245,7 +245,7 @@ E7 adds an interaction layer without retraining the portfolio policies.  We cali
 
 For every method, the experiment exactly replays the full cash-plus-300-stock recommendations saved by E5.  At the beginning of each five-day episode, adoption is sampled from the current recommendation, calibrated investor history, compatibility, and lagged satisfaction before any return from the episode is observed.  If the recommendation is adopted, the agent executes that method for five days; otherwise it keeps the episode-start portfolio.  Both paths apply their own trading costs and reference updates.  Conditional satisfaction is the five-day normalized prospect-value improvement over the no-rebalance counterfactual, and interaction value multiplies that satisfaction by adoption so that rejected recommendations contribute zero.  Seed-level market paths and adoption draws are paired across methods, and population summaries are weighted by the empirical type shares.
 
-\begin{figure}[t]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{../../results/e7_heterogeneous_agents/figures/figure_E7_heterogeneous_agents.pdf}
     \caption{E7 calibrated heterogeneous-agent interaction.  \textbf{A}: standardized profiles of the four investor types.  \textbf{B}: simulated episode-level adoption by type and method.  \textbf{C}: five-day conditional satisfaction after adoption.  \textbf{D}: method-level adoption--satisfaction plane; bubble size encodes mean recommendation compatibility.  Adoption is decided before episode returns are revealed, and satisfaction is evaluated against a no-rebalance counterfactual with its own reference path.}
