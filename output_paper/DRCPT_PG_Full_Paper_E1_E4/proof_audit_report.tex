@@ -1,0 +1,119 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,longtable,tabularx,xcolor,hyperref}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\definecolor{before}{RGB}{145,35,35}
+\definecolor{after}{RGB}{20,100,60}
+\definecolor{scope}{RGB}{160,90,0}
+\newcommand{\before}[1]{\par\noindent\textcolor{before}{\textbf{Before:}} #1\par}
+\newcommand{\after}[1]{\par\noindent\textcolor{after}{\textbf{After:}} #1\par}
+\newcommand{\scope}[1]{\par\noindent\textcolor{scope}{\textbf{Scope / downstream effect:}} #1\par}
+\title{DRCPT-PG: Precision Repair and Proof Review}
+\author{Source anchor: Rebased\_99afee22}
+\date{19 September 2026}
+\begin{document}
+\maketitle
+\noindent\textbf{Authorized scope.} Resolve I1--I10 in the package-root proof audit and skeleton. Preserve unrelated content. The full original package, including data and historical audit evidence, is retained.
+\par\medskip
+\noindent\textbf{Assurance.} Proof-checker and proof-orchestrator were used with fresh source reviews. Reviews are same-family and provisional. The scoped repair result is distinct from unrestricted full-paper acceptance; preexisting reservations are recorded separately in the current PROOF\_AUDIT.md and the raw final review.
+\section*{Issue overview}
+\small
+\begin{longtable}{@{}p{0.05\textwidth}p{0.14\textwidth}p{0.48\textwidth}p{0.24\textwidth}@{}}
+\toprule ID & Severity & Issue & Repair strategy\\\midrule\endhead
+I1 & MINOR & Undefined survival and score shorthands & define existing object \\
+I2 & MINOR & Population gradient used before definition & define existing object \\
+I3 & MINOR & Trajectory score and population gradient shared g & rename alias \\
+I4 & MINOR & Two call-count representations & unify notation \\
+I5 & MINOR & Consecutive episode boundary was implicit & explicit interface \\
+I6 & MAJOR & Environment model confused with induced law & clarify model interface \\
+I7 & MAJOR & Simulator regularity was only implicit & strengthen assumption \\
+I8 & MINOR & Unused B\_J bound alias & remove unused alias \\
+I9 & MAJOR exposition & Global table obscured the semantic chain & simplify table \\
+I10 & MINOR & Residual aggregations had ambiguous names & unify terminology \\
+\bottomrule\end{longtable}\normalsize
+\subsection*{I1: Undefined survival and score shorthands}
+\noindent\textit{Location: sections/06\_main\_results.tex}
+\before{The gradient identity used undefined S\_\{k,theta\} and unidentified G\_theta.}
+\after{Define S\_theta directly from S\_\{P\_k,z\_k,r\_k,theta\}, and G\_theta from G\_\{k,theta\}.}
+\scope{No objective, score, or integral is changed.}
+\subsection*{I2: Population gradient used before definition}
+\noindent\textit{Location: sections/06\_main\_results.tex}
+\before{The full/half lemma used g before identifying its fixed target.}
+\after{Define g:=nabla J(theta) in the lemma before the expansion.}
+\scope{The existing cancellation proof and constants are unchanged.}
+\subsection*{I3: Trajectory score and population gradient shared g}
+\noindent\textit{Location: appendix/C\_estimator.tex}
+\before{A trajectory realization used g\_x and then renamed it G\_x.}
+\after{Write x=(v+,v-,G\_x) directly.}
+\scope{No random variable or estimator is replaced.}
+\subsection*{I4: Two call-count representations}
+\noindent\textit{Location: appendix/E\_minimax.tex}
+\before{The proof changed T\_call to a mathsf variant.}
+\after{Use T\_call consistently; identify its oracle-filtration stopping property.}
+\scope{The stopped KL argument and expected-call budget remain identical.}
+\subsection*{I5: Consecutive episode boundary was implicit}
+\noindent\textit{Location: sections/03\_problem\_setup.tex}
+\before{Algorithm 2 returned the next episode state without an explicit date bridge.}
+\after{State t\_\{k+1\}=t\_k+h for consecutive episodes.}
+\scope{No horizon, wealth recurrence, or experiment is changed.}
+\subsection*{I6: Environment model confused with induced law}
+\noindent\textit{Location: sections/03\_problem\_setup.tex}
+\before{P was called a trajectory law while P\_theta was immediately used.}
+\after{Identify P as the frozen episode model and P\_theta as the policy-induced augmented trajectory law.}
+\scope{Likelihood derivatives act on the policy; no extra persistent model notation is introduced.}
+\subsection*{I7: Simulator regularity was only implicit}
+\noindent\textit{Location: sections/04\_assumptions.tex}
+\before{The estimator and online proofs applied standing likelihood bounds under the frozen simulator without explicit quantification.}
+\after{Require the same bounds and parameter-independence conditions uniformly for every analyzed true and frozen-simulator model, conditional on the frozen context.}
+\scope{This is an explicit assumption-scope strengthening/clarification. It does not certify arbitrary simulators or unlimited-run bounded wealth.}
+\subsection*{I8: Unused B\_J bound alias}
+\noindent\textit{Location: sections/06\_main\_results.tex}
+\before{B\_J was defined but the theorem used the already established B\_v.}
+\after{Delete only the B\_J sentence.}
+\scope{The endpoint term remains 2 B\_v.}
+\subsection*{I9: Global table obscured the semantic chain}
+\noindent\textit{Location: appendix/A\_notation.tex}
+\before{Two tables mixed proof-local constants with core notation and omitted the information/context bridge.}
+\after{Replace them with one 16-row core table; retain all local estimator definitions and explicitly retain market state m\_u.}
+\scope{The final check caught and repaired the temporary loss of the m\_u explanation in this table. No analytic lemma below the table is edited.}
+\subsection*{I10: Residual aggregations had ambiguous names}
+\noindent\textit{Location: setup/results/experiments; Appendix D; Introduction}
+\before{Q, its square, its average expectation, and DLR were inconsistently named.}
+\after{Use projected residual, squared projected residual, average expected squared projected residual, and dynamic local regret (DLR).}
+\scope{Only names are changed; all metric definitions and experimental numerals remain intact. E3 A/B titles now include squared.}
+
+\section*{The substantive proof obligation: I7}
+The target is the conditional simulator-gradient identity and the estimator application used by the online theorem. It suffices to establish a theta-independent frozen nonpolicy kernel, a common likelihood-derivative envelope, and the finite moments used by the unchanged LOO proof.
+
+Compact policy parameters and bounded features place all Dirichlet concentrations in a positive compact interval. On a compact neighborhood, a common density/derivative envelope is proportional to
+\[
+\prod_{i=0}^{N}\widetilde\omega_i^{a_- -1}
+\left(1+\sum_{i=0}^{N}|\log\widetilde\omega_i|^2\right),\qquad a_->0.
+\]
+It is integrable over the simplex. A finite product handles the horizon; theta-independent market kernels integrate to one conditionally. DCT therefore yields the likelihood identities under each analyzed frozen simulator. Bounded weight derivatives and a finite integration interval permit CPT differentiation, and Fubini is justified by finite score first moment.
+
+The existing LOO cancellation and telescoping results then give, for the supplied replication schedule,
+\[
+\mathbb E[\widehat g_k^{\rm db}-\widetilde g_k(\theta_k)\mid\mathcal F_k]=0,
+\quad
+\mathbb E[\|\widehat g_k^{\rm db}-\widetilde g_k(\theta_k)\|^2\mid\mathcal F_k]
+\le C_{\rm var}(n)/M_k.
+\]
+The cross term with the frozen simulator-error vector vanishes. The unchanged projected-ascent and moving-objective telescope recover the original online inequality, with the same constants 8, 10 and $2B_v$. Thus the scope repair supplies the premise already required at the actual application site.
+
+\paragraph{Why the scope matters.}
+If a simulator were allowed a theta-dependent Bernoulli return kernel while policy features were zero, the recorded policy score would be zero but the simulator CPT objective could have nonzero derivative. The added parameter-independence condition excludes that construction. This is a verified illustration of the missing condition, not a counterexample to the repaired theorem.
+
+\section*{Proof-obligation delta and preserved content}
+Only the true/simulator scope of the standing regularity hypothesis is made stronger explicitly. The score identity, expansion, telescoping, variance, cost, CLT, projected ascent, DLR and minimax equations retain their values and mathematical content. The error-bound and minimax-oracle assumptions remain separate optional/specialized conditions. No new result or experiment has been claimed.
+
+All original labeled display equations were compared mechanically, allowing only the I4 call-count typography substitution. Experimental numerals, algorithm source, bibliography, manuscript preamble and discussion placeholder were unchanged. Internal references resolve, with no duplicate labels. The final manuscript compiles to 38 pages.
+
+The E3 PDF was edited only in two title text commands. At 108 dpi all changed pixels lie in title rows 10--28; every pixel below row 40 is identical to the source PDF. The source package's stale two-panel PNG/SVG exports were synchronized from the active four-panel PDF. No plotting data or confidence interval was recalculated for delivery. The plot script changes only the corresponding two title strings.
+
+\section*{Evidence and remaining reservations}
+See the current PROOF\_AUDIT.md for the separate scoped/full-manuscript verdicts and the final review in prompts/26091901-01/. Earlier root and nested audits remain historical evidence. The current file hashes and deterministic checks identify exactly what was reviewed. Newly identified preexisting issues outside I1--I10 remain separate; they are not concealed by a scoped repair pass.
+
+This report does not claim cross-family acceptance, unconditional simulator correctness, a stronger asymptotic regime, completed E5--E7 results, or a completed Discussion.
+\end{document}

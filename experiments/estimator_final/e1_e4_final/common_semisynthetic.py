@@ -6,12 +6,18 @@ import sys
 import numpy as np
 
 ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / 'vendor'))
+sys.path.insert(0, str(ROOT.parents[2]))
 
 from mvp_cpt_pg.paper_market import PaperPanel, FEATURES
 from mvp_cpt_pg.synthetic_env import _semi_synthetic_regime_parameters
 from mvp_cpt_pg.paper_experiments import PaperConfig, EpisodeLaw
 from mvp_cpt_pg.cpt_objective import CPTPreference
+from mvp_cpt_pg.external_validity import augment_quality_feature
+
+
+PROJECT_ROOT = ROOT.parents[2]
+DEFAULT_PANEL = PROJECT_ROOT / 'artifacts' / 'inputs' / 'paper_hs300_full.csv'
+DEFAULT_CACHE = PROJECT_ROOT / 'artifacts' / 'cache' / 'raw' / 'tushare'
 
 
 @dataclass(frozen=True)
@@ -116,8 +122,10 @@ class ThreeStagePaperMarket:
 
 
 def load_panel(input_csv: Path | None = None) -> PaperPanel:
-    path = input_csv or (ROOT / 'inputs' / 'paper_hs300.csv')
-    return PaperPanel.load(path, '20230301', '20260529')
+    path = input_csv or DEFAULT_PANEL
+    panel = PaperPanel.load(path, '20230301', '20260529')
+    augment_quality_feature(panel, DEFAULT_CACHE)
+    return panel
 
 
 def load_market(input_csv: Path | None = None,

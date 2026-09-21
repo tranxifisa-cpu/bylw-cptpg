@@ -1,0 +1,97 @@
+\subsection{Assumptions}\label{sec:assumptions}
+
+\subsubsection{Standing statistical assumptions}
+
+\begin{assumption}[Bounded analysis domain and likelihood regularity]\label{ass:trajectory}
+The parameter set $\Theta\subset\R^d$ is nonempty, compact, and convex, and is contained in an open set on which the policy is defined.  The horizon $h$ is finite and $N\ge1$.  There exist finite constants $Q_f,B_X,B_r,B_v$ such that, on the analyzed domain,
+\begin{equation}\label{eq:primitive-bounds}
+ \sup_{i,u}\norm{q_{i,u}}_2\le Q_f,
+ \qquad
+ 0<X_u\le B_X,
+ \qquad
+ 0\le r_u\le B_r,
+ \qquad
+ 0\le v_\pm(Y_k)\le B_v.
+\end{equation}
+Conditional on the observed history and action, the market transition kernel and the map $\mathsf M_u$ do not depend explicitly on $\theta$.  The latent Dirichlet proposals are retained in the augmented trajectory.  Hence all explicit $\theta$-dependence of the conditional trajectory law enters through the Dirichlet policy density in \eqref{eq:dirichlet-policy}.
+\end{assumption}
+
+\begin{assumption}[Fixed regularized CPT]\label{ass:cpt-regularity}
+The preference parameters in \eqref{eq:value-functions}--\eqref{eq:normalized-weight} are fixed.  The functions $w_\pm^\eps$ are strictly increasing and belong to $C^3([0,1])$, with
+\begin{equation}\label{eq:weight-derivative-bounds}
+ C_j:=\max_{\sigma\in\{+,-\}}\sup_{p\in[0,1]}
+ \abs{(w_\sigma^\eps)^{(j)}(p)}<\infty,
+ \qquad j=1,2,3.
+\end{equation}
+\end{assumption}
+
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, Appendix \ref{app:notation} derives finite uniform score moments and constants $B_g,L<\infty$ such that
+\begin{equation}\label{eq:gradient-smoothness-summary}
+ \sup_{k,\theta\in\Theta}\norm{g_k(\theta)}_2\le B_g,
+ \qquad
+ \norm{g_k(\theta)-g_k(\theta')}_2\le L\norm{\theta-\theta'}_2.
+\end{equation}
+
+\subsubsection{Online variation and optional geometric conditions}
+
+\begin{assumption}[Frozen-simulator error and objective variation]\label{ass:online-variation}
+For the queried parameter $\theta_k$ in episode $k$,
+\begin{equation}\label{eq:simulator-gradient-error}
+ \norm{\widetilde g_k(\theta_k)-g_k(\theta_k)}_2\le\beta_k,
+ \qquad
+ \E\beta_k^2<\infty,
+\end{equation}
+where $\beta_k$ is $\cF_k$-measurable.  Define
+\begin{equation}\label{eq:objective-variation}
+ \cV_K
+ :=\sum_{k=1}^{K-1}
+ \sup_{\theta\in\Theta}
+ \abs{J_{k+1}(\theta,r_{k+1})-J_k(\theta,r_k)}.
+\end{equation}
+For the finite horizon under study, $\E\cV_K<\infty$.
+\end{assumption}
+
+\begin{assumption}[Stationary-set error bound; optional]\label{ass:error-bound}
+There exists $\kappa<\infty$ such that, uniformly over the analyzed episodes,
+\begin{equation}\label{eq:error-bound}
+ \dist(\theta,\Sta_k)\le\kappa\norm{Q_k(\theta)}_2,
+ \qquad \theta\in\Theta.
+\end{equation}
+\end{assumption}
+
+\begin{assumption}[Reference-isolated coupling; optional]\label{ass:reference-coupling}
+When two episode-start references are compared, the market law, non-reference start state, and policy parameter are held fixed; the policy features and market transition kernel do not depend directly on the reference value.  The two trajectories can therefore be coupled with common policy and market random variables, yielding the same wealth and portfolio paths.
+\end{assumption}
+
+\subsubsection{Fixed-target minimax experiment}
+
+\begin{assumption}[Exact-trajectory minimax experiment]\label{ass:minimax-oracle}
+Fix $d$, an interior point $\theta_0=0\in\Theta$, finite upper bounds on $h$ and $N$, and the common constants in Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}.  Let $\mathfrak C$ be a class of conditional portfolio models satisfying these bounds and containing the Bernoulli-return submodel constructed in Appendix \ref{app:minimax}; assume $(w_+^\eps)'(0)>0$.
+
+An estimator may adaptively query any $\theta\in\Theta$.  Each oracle call returns one fresh complete augmented trajectory from the queried policy under the unknown $P\in\mathfrak C$.  The procedure may randomize and stop at a data-dependent call count $T_{\rm call}$, subject to
+\begin{equation}\label{eq:minimax-budget}
+ \sup_{P\in\mathfrak C}\E_P T_{\rm call}\le \mathsf B.
+\end{equation}
+No additional observation of the unknown market law is available.  The target is $g_P=\nabla J_P(\theta_0)$, while $d$ and all domain constants remain fixed as $\mathsf B\to\infty$.
+\end{assumption}
+
+\subsubsection{Assumption roles and scope}
+
+\begin{table}[t]
+\centering
+\caption{Role, verification route, and scope fallback of the assumptions.  The fallback column states which conclusion is retained when the corresponding optional or asymptotic condition is unavailable.}
+\label{tab:assumption-roles}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.16\textwidth}p{0.27\textwidth}p{0.27\textwidth}X@{}}
+\toprule
+Assumption & Role & Verification route & If unavailable \\
+\midrule
+\ref{ass:trajectory} & score identity, moments, smoothness & parameter box; bounded factors; Appendix \ref{app:notation} & re-establish the required likelihood moments on the enlarged domain \\
+\ref{ass:cpt-regularity} & Taylor expansion and fixed-target debiasing & analytic derivatives of the fixed regularized weights & change the regularization or prove a replacement remainder bound \\
+\ref{ass:online-variation} & true-target online residual bound & simulator validation for $\beta_k$; direct objective-difference bound for $\cV_K$ & finite-horizon theorem remains with the observed error terms; vanishing tracking is not asserted \\
+\ref{ass:error-bound} & residual $\Rightarrow$ distance to $\Sta_k$ & objective-specific geometry or a proved local error bound & retain residual and DLR conclusions only \\
+\ref{ass:reference-coupling} & explicit reference-only sensitivity decomposition & verify that features and market kernel do not use $r$ directly & retain the general variation budget $\cV_K$ without the reference-only split \\
+\ref{ass:minimax-oracle} & fixed-$d$ minimax information rate & check that the information source and budget match the oracle experiment & omit the minimax claim for richer-information settings \\
+\bottomrule
+\end{tabularx}
+\end{table}

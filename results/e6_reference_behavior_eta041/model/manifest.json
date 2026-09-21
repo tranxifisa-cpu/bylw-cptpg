@@ -1,0 +1,36 @@
+{
+  "experiment": 6,
+  "status": "complete",
+  "rows": 306444,
+  "opportunities_source": "results\\e6_behavior_eta041\\opportunities.parquet",
+  "train_end": "2021-06-11",
+  "validation_end": "2022-07-07",
+  "test_rows": 71854,
+  "references": [
+    "none",
+    "static",
+    "symmetric",
+    "asymmetric"
+  ],
+  "eta_gain": 0.4,
+  "eta_loss": 0.1,
+  "primary_outcome": "held-stock target weight decrease at the next rebalance",
+  "behavior_statistics": [
+    "reference-conditioned gain reduction rate",
+    "reference-conditioned loss reduction rate",
+    "gain-minus-loss reduction gap"
+  ],
+  "comparison": "same decisions, controls, chronological split and logistic model; only the reference representation changes",
+  "common_controls": [
+    "holding age",
+    "event count",
+    "previous weight",
+    "price",
+    "proactive",
+    "prior investor reduction rate",
+    "prior opportunity count",
+    "lagged market/holding/social aggregates"
+  ],
+  "bootstrap": "paired investor-cluster bootstrap",
+  "interpretation": "supports behavioral alignment only if asymmetric improves out-of-sample decision prediction and yields a stable positive reference-conditioned disposition gap; no causal claim"
+}

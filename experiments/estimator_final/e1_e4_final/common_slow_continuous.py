@@ -6,7 +6,7 @@ import sys
 import numpy as np
 
 ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / 'vendor'))
+sys.path.insert(0, str(ROOT.parents[2]))
 
 from mvp_cpt_pg.paper_market import PaperPanel, FEATURES
 from mvp_cpt_pg.synthetic_env import _semi_synthetic_regime_parameters

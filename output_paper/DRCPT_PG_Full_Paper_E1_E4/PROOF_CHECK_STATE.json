@@ -1,0 +1,28 @@
+{
+  "status": "completed_scoped_repair",
+  "rounds": 2,
+  "review_agent_ids": [
+    "/root/proof_review_before",
+    "/root/proof_review_final"
+  ],
+  "closed_issues": [
+    "I1",
+    "I2",
+    "I3",
+    "I4",
+    "I5",
+    "I6",
+    "I7",
+    "I8",
+    "I9",
+    "I10"
+  ],
+  "scope_acceptance_gate": "PASS",
+  "full_manuscript_verdict": "WARN",
+  "full_notation_gate": "AUDIT_FAILED",
+  "review_independence": "same-family",
+  "acceptance_status": "provisional",
+  "compile": "PASS",
+  "render_html": "SKIPPED_NONBLOCKING_SKILL_UNAVAILABLE",
+  "timestamp": "2026-09-19T09:08:12.919746+00:00"
+}

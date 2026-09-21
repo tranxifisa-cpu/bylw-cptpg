@@ -1,0 +1,28 @@
+{
+  "experiment": 7,
+  "status": "complete",
+  "methods": [
+    "dynamic",
+    "symmetric",
+    "static",
+    "expected",
+    "exponential",
+    "equal_weight"
+  ],
+  "simulated_agents": 64,
+  "agents_per_type": 16,
+  "advisor_eta_gain": 0.2,
+  "advisor_eta_loss": 0.05,
+  "investor_eta_gain": 0.4,
+  "investor_eta_loss": 0.1,
+  "interaction_horizon": 5,
+  "adoption_frequency": "once per E5 episode",
+  "loop": "episode-start recommendation -> compatibility -> simulated adoption -> h-day execution -> terminal satisfaction/reference update",
+  "adoption_information": "episode-start recommendation, calibrated history and lagged satisfaction only; all episode returns excluded",
+  "satisfaction": "conditional h-day normalized prospect-value improvement versus a no-rebalance counterfactual with its own reference path",
+  "interaction_value": "adoption-weighted satisfaction with rejected recommendations contributing zero",
+  "paired_market_paths": "seed-level E5 paths and common adoption draws retained across methods",
+  "type_aggregation": "overall results weighted by empirical calibrated-user prevalence",
+  "recommendation": "full cash-plus-300-stock E5 portfolio action",
+  "limitation": "simulated adoption and satisfaction are calibrated counterfactual quantities, not observed user outcomes"
+}

@@ -1,0 +1,174 @@
+\section{Notation and Analytic Preliminaries}\label{app:notation}
+
+All fixed-target statistical statements condition on the episode-start information, the queried parameter, and the frozen simulator before new Monte Carlo trajectories are drawn.  Conditional independence is always with respect to this law.  Limits in $M$ fix the target and estimator design $(n,\varrho,b)$; limits in $K$ require the constants in the stated assumptions to be uniform over episodes; the minimax limit fixes $d$ and all model-class constants while $\mathsf B\to\infty$.
+
+\subsection{Main notation}
+
+\begin{table}[h]
+\centering
+\caption{State, policy, objective, and first-order notation.}
+\label{tab:notation-core}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.22\textwidth}p{0.18\textwidth}X@{}}
+\toprule
+Symbol & Type & Meaning \\
+\midrule
+$k,u,h$ & indices / integer & episode, calendar time, and finite episode horizon \\
+$s_u=(m_u,X_u,r_u,\omega_{u-1})$ & state & market state, wealth, reference, previous portfolio \\
+$\omega_u,\widetilde\omega_u$ & $\Delta_N$ & executed portfolio and latent Dirichlet proposal \\
+$q_{i,u}$ & $\R^d$ & asset-$i$ feature vector \\
+$\theta,\Theta$ & $\R^d$, set & policy parameter and compact convex parameter set \\
+$a_{i,u}(\theta)$ & $\R_{++}$ & Dirichlet concentration for asset $i$ \\
+$\eta_+,\eta_-$ & $[0,1)$ & gain- and loss-side reference adaptation rates \\
+$\chi,\mathsf M_u$ & scalar / map & trade fraction and parameter-independent feasibility map \\
+$Y_k$ & $\R$ & terminal relative outcome $X_{t_k+h}-r_{t_k+h}$ \\
+$P_k,\widetilde P_k$ & laws & true and frozen-simulator episode laws \\
+$J_k,\widetilde J_k$ & scalar functions & true and frozen-simulator CPT objectives \\
+$\alpha_+,\alpha_-,\lambda,\eps_v,\eps$ & scalars & fixed CPT value and weight regularization parameters \\
+$w_\pm^\eps,v_\pm$ & functions & regularized probability weights and gain/loss value maps \\
+$g_k,\widetilde g_k$ & $\R^d$ & gradients of $J_k$ and $\widetilde J_k$ \\
+$G_{k,\theta}(\tau)$ & $\R^d$ & complete-trajectory score \\
+$\vartheta,\gamma$ & $\R_{++}$ & gradient-normalization floor and parameter step size \\
+$Q_k(\theta)$ & $\R^d$ & normalized projected first-order residual \\
+$\Sta_k$ & subset of $\Theta$ & constrained first-order stationary set \\
+$\zeta_k$ & $\R_+$ & periodwise residual square $\norm{Q_k(\theta_k)}_2^2$ \\
+$\cE_K$ & $\R_+$ & average expected periodwise residual square \\
+$W_{\rho,w},\bar Q_k$ & scalar / $\R^d$ & full-window exponential mass and smoothed projected residual \\
+$\Reg_{\rho,w}(K)$ & $\R_+$ & discounted dynamic local regret \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Estimator, online-error, and minimax notation.}
+\label{tab:notation-estimator}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.22\textwidth}p{0.18\textwidth}X@{}}
+\toprule
+Symbol & Type & Meaning \\
+\midrule
+$n,\varrho,b$ & design parameters & base size, correction activation probability, and level-tail exponent \\
+$U_n^{\rm cen},U_n^{\rm raw}$ & $\R^d$ & centered and raw leave-one-out base statistics \\
+$\nu_\ell$ & probability & randomized correction level probability \\
+$D_{n,\ell}^{\rm raw}$ & $\R^d$ & raw coupled full/half level difference \\
+$Z_n^{\db}$ & $\R^d$ & one complete unbiased debiased output \\
+$M_k$ & integer & number of independent complete outputs in episode $k$ \\
+$\widehat g_k^{\db}$ & $\R^d$ & episode-$k$ averaged gradient estimate \\
+$C_{\rm var}(n)$ & scalar & uniform one-output variance upper bound \\
+$\rho,w$ & scalar / integer & DLR discount and window length \\
+$\beta_k$ & scalar & frozen-simulator gradient error at $\theta_k$ \\
+$\cV_K$ & scalar & cumulative true-objective variation budget \\
+$\kappa$ & scalar & optional residual error-bound constant \\
+$\mathfrak C$ & model class & fixed-dimensional minimax portfolio-law class \\
+$T_{\rm call},\mathsf B$ & integer / scalar & oracle trajectory count and expected trajectory budget \\
+$\mathfrak R_{\mathsf B}$ & scalar & minimax squared-gradient estimation risk \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Dirichlet score moments}
+
+\begin{lemma}[Uniform moments of the augmented trajectory score]\label{lem:dirichlet-moments}
+Under Assumption \ref{ass:trajectory}, there exist $0<\underline a\le\overline a<\infty$ such that
+\begin{equation}\label{eq:concentration-compactness}
+ \underline a\le a_{i,u}(\theta)\le\overline a
+\end{equation}
+uniformly in $i,u,\theta$.  For every fixed $p<\infty$,
+\begin{equation}\label{eq:score-moment-bound}
+ \sup_{k,\theta}\E\norm{G_{k,\theta}}_2^p<\infty.
+\end{equation}
+The trajectory log-likelihood Hessian $\mathcal H_{k,\theta}$ also satisfies
+\begin{equation}\label{eq:hessian-moment-bound}
+ \sup_{k,\theta}\E\norm{\mathcal H_{k,\theta}}_{\op}<\infty.
+\end{equation}
+Moreover, for every bounded measurable trajectory functional $F$, differentiation under the conditional trajectory law is valid up to order two:
+\begin{equation}\label{eq:likelihood-ratio-identities}
+ \nabla_\theta\E_\theta F=\E_\theta(FG_{k,\theta}),
+ \qquad
+ \nabla_\theta^2\E_\theta F
+ =\E_\theta\{F(G_{k,\theta}G_{k,\theta}^\top+\mathcal H_{k,\theta})\}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Compactness of $\Theta$ and boundedness of $q_{i,u}$ imply \eqref{eq:concentration-compactness}.  Every Dirichlet coordinate has a Beta marginal with parameters in a compact subset of $(0,\infty)^2$.  Hence, for every finite $p$,
+\[
+ \sup_{\mathfrak a,\mathfrak b}\int_0^1
+ \abs{\log x}^p x^{\mathfrak a-1}(1-x)^{\mathfrak b-1}\,dx<\infty,
+\]
+where the supremum is over the induced compact parameter set.  The digamma and polygamma terms are bounded on the same positive compact interval.  Equation \eqref{eq:trajectory-score}, bounded features, and finite $(h,N)$ therefore give \eqref{eq:score-moment-bound}; differentiating the score once more gives \eqref{eq:hessian-moment-bound}.  The market kernel and $\mathsf M_u$ contribute no likelihood derivative by Assumption \ref{ass:trajectory}.
+
+To justify differentiation under the trajectory integral, enlarge $\Theta$ slightly while keeping it compactly contained in the policy domain.  On this neighborhood the Dirichlet concentrations remain in $[a_-,a_+]$ for some $a_->0$.  For one latent action $\widetilde\omega$, the Dirichlet density and its first two $\theta$-derivatives are bounded, up to constants independent of $\theta$, by
+\[
+ \prod_{i=0}^{N}\widetilde\omega_i^{a_- -1}
+ \left(1+\sum_{i=0}^{N}|\log\widetilde\omega_i|^2\right).
+\]
+This envelope is integrable on the simplex for $a_->0$.  Taking the finite product over the $h$ latent actions gives an integrable trajectory envelope; the parameter-independent market kernels integrate to one conditionally at each step.  Hence bounded $F$ times either derivative is dominated by a common integrable function.  Dominated convergence yields \eqref{eq:likelihood-ratio-identities}.
+\end{proof}
+
+\subsection{Smoothness of the CPT objective}
+
+\begin{lemma}[Uniform gradient and smoothness bounds]\label{lem:cpt-smoothness}
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, there exist $B_g,L<\infty$ such that
+\begin{equation}\label{eq:uniform-gradient-smoothness}
+ \sup_{k,\theta\in\Theta}\norm{g_k(\theta)}_2\le B_g,
+ \qquad
+ \norm{g_k(\theta)-g_k(\theta')}_2\le L\norm{\theta-\theta'}_2.
+\end{equation}
+With
+\[
+ C_{G,2}:=\sup_{k,\theta}\E\norm{G_{k,\theta}}_2^2,
+ \qquad
+ C_H:=\sup_{k,\theta}\E\norm{\mathcal H_{k,\theta}}_{\op},
+\]
+one admissible choice is
+\begin{equation}\label{eq:smoothness-constant}
+ B_g=2B_vC_1\sqrt{C_{G,2}},
+ \qquad
+ L=2B_v\{C_2C_{G,2}+C_1(C_{G,2}+C_H)\}.
+\end{equation}
+Moreover $\abs{J_k(\theta,r_k)}\le B_v$.
+\end{lemma}
+
+\begin{proof}
+For one side $\sigma$ and threshold $y$, the likelihood-score identity and Lemma \ref{lem:dirichlet-moments} give
+\[
+ \nabla S_\theta^\sigma(y)=\E\{I_\sigma(y)G_\theta\},
+ \qquad
+ \nabla^2S_\theta^\sigma(y)
+ =\E\{I_\sigma(y)(G_\theta G_\theta^\top+\mathcal H_\theta)\}.
+\]
+The bounded indicator and the moment bounds provide an integrable dominating function, so the derivative--expectation interchange is justified by dominated convergence.  Consequently
+\[
+ \norm{\nabla S_\theta^\sigma(y)}_2\le\sqrt{C_{G,2}},
+ \qquad
+ \norm{\nabla^2S_\theta^\sigma(y)}_{\op}\le C_{G,2}+C_H.
+\]
+Differentiating the CPT integral twice and using Assumption \ref{ass:cpt-regularity} gives
+\[
+ \nabla^2\!\int_0^{B_v}w_\sigma^\eps(S_\theta^\sigma(y))dy
+ =\int_0^{B_v}
+ \{(w_\sigma^\eps)''(S)\nabla S\nabla S^\top
+ +(w_\sigma^\eps)'(S)\nabla^2S\}dy.
+\]
+The integrand is uniformly dominated by the constants above, giving \eqref{eq:smoothness-constant}.  The first-derivative bound is analogous.  Finally $0\le w_\sigma^\eps\le1$ and the two integrals have common length $B_v$, so $\abs{J_k}\le B_v$.
+\end{proof}
+
+\subsection{Projected residual and constrained stationarity}
+
+\begin{lemma}[Projected residual characterizes first-order stationarity]\label{lem:residual-stationarity}
+For closed convex $\Theta$, $\gamma,\vartheta>0$, and $g\in\R^d$,
+\begin{equation}\label{eq:projection-stationarity-equivalence}
+ \Pi_\Theta\{\theta+\gamma\mathsf d(g)\}=\theta
+ \quad\Longleftrightarrow\quad
+ \ip{g}{u-\theta}\le0\quad\forall u\in\Theta.
+\end{equation}
+Hence the two definitions in \eqref{eq:stationary-set} coincide.
+\end{lemma}
+
+\begin{proof}
+The projection variational inequality gives
+$x=\Pi_\Theta(y)$ iff $\ip{y-x}{u-x}\le0$ for every $u\in\Theta$.  Substitute $y=\theta+\gamma\mathsf d(g)$ and use
+$\mathsf d(g)=g/\max\{\norm g_2,\vartheta\}$, a positive scalar multiple of $g$.
+\end{proof}

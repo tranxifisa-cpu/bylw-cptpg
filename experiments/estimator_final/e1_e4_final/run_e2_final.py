@@ -9,7 +9,7 @@ import numpy as np
 
 ROOT=Path(__file__).resolve().parent
 import sys
-sys.path.insert(0,str(ROOT/'vendor'))
+sys.path.insert(0,str(ROOT.parents[2]))
 from mvp_cpt_pg.cpt_objective import CPTPreference
 from estimators import chunked_draw, v5_weight, quantile_weight
 from loo_controls import loo_components

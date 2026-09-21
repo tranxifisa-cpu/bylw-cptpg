@@ -12,11 +12,11 @@ import pandas as pd
 from scipy.special import digamma, logsumexp
 
 from .controlled_cpt import quantile_weight
-from .cpt_objective import CPTPreference, pooled_gradient
+from .cpt_objective import CPTPreference
 
 
 METHODS = ["dynamic", "symmetric", "static", "expected", "exponential", "equal_weight"]
-ESTIMATORS = ["reuse", "plugin"]
+ESTIMATORS = ["hybrid", "plugin"]
 
 
 @dataclass(frozen=True)
@@ -37,6 +37,8 @@ class PaperConfig:
     exponential_risk: float = 2.0
     trajectory_budget: int = 512
     trade_fraction: float = .2
+    policy_sharpness: float = 1.0
+    dirichlet_scale: float = 1.0
     smoothness_bound: float | None = None
 
     def __post_init__(self):
@@ -53,12 +55,15 @@ class PaperConfig:
                     self.gamma * self.smoothness_bound > self.a0):
                 raise ValueError("The certified step requires gamma * L <= a0")
         scalars = [self.gamma, self.a0, self.theta_radius, self.eta_gain, self.eta_loss,
-                   self.cost, self.rho, self.trade_fraction, self.exponential_risk]
+                   self.cost, self.rho, self.trade_fraction, self.exponential_risk,
+                   self.policy_sharpness]
         if not np.isfinite(scalars).all() or min(self.gamma, self.a0, self.theta_radius, self.exponential_risk) <= 0:
             raise ValueError("Invalid finite algorithm parameters")
         if not (0 <= self.eta_gain < 1 and 0 <= self.eta_loss < 1 and 0 <= self.cost < .25
                 and 0 < self.rho <= 1):
             raise ValueError("Invalid adaptation, cost or window settings")
+        if not np.isfinite(self.dirichlet_scale) or self.dirichlet_scale <= 0:
+            raise ValueError("Dirichlet concentration scale must be positive")
 
 
 def method_config(config, method):
@@ -76,6 +81,12 @@ def rng_for(seed, episode, stream):
     return np.random.default_rng(np.random.SeedSequence([int(seed), int(episode), int(stream)]))
 
 
+def training_repetitions(episode, horizon=5):
+    """Final-paper schedule for independent complete gradient outputs."""
+    equivalent_episode = max(1, int(math.ceil(int(episode) * int(horizon) / 5.0)))
+    return max(4, math.isqrt(equivalent_episode - 1) + 1)
+
+
 def update_reference(wealth, reference, config):
     eta = np.where(wealth >= reference, config.eta_gain, config.eta_loss)
     return reference + eta * (wealth - reference)
@@ -89,15 +100,22 @@ def policy_features(features, previous, dimension):
     return result[..., :dimension]
 
 
-def policy(theta, features, rng=None):
-    alpha = np.exp(features @ theta)
+def policy(theta, features, rng=None, sharpness=1.0, concentration_scale=1.0):
+    logits = sharpness * (features @ theta)
+    # A common multiplier changes Dirichlet sampling variance, not the mean portfolio.
+    alpha = concentration_scale * np.exp(logits)
+    mean = alpha / alpha.sum(axis=-1, keepdims=True)
     if rng is None:
-        return alpha / alpha.sum(axis=-1, keepdims=True), None
+        return mean, None
     # Gamma(a+1)*U**(1/a) evaluated in log space avoids tiny-shape underflow.
     log_gamma = np.log(rng.gamma(alpha + 1)) - rng.exponential(size=alpha.shape) / alpha
     log_weight = log_gamma - logsumexp(log_gamma, axis=-1, keepdims=True)
-    score = np.einsum("...i,...id->...d", alpha * (log_weight - digamma(alpha) +
-                     digamma(alpha.sum(axis=-1, keepdims=True))), features)
+    score = sharpness * np.einsum(
+        "...i,...id->...d",
+        alpha * (log_weight - digamma(alpha) +
+                 digamma(alpha.sum(axis=-1, keepdims=True))),
+        features,
+    )
     return np.exp(log_weight), score
 
 
@@ -183,10 +201,14 @@ class EpisodeLaw:
             if self.market.semi:
                 features = self.market.panel.features[self.day + offset]
             else:
-                features = (self.market.panel.features[self.day] if offset == 0 else
-                            self.market.panel.features[starts + offset])
+                # Keep every bootstrapped state paired with its own historical
+                # return and tradability mask. Mixing the current state with a
+                # past return would destroy the factor-return relationship.
+                features = self.market.panel.features[starts + offset]
             features = policy_features(features, previous, c.dimension)
-            weights, score = policy(theta, features, rng)
+            weights, score = policy(
+                theta, features, rng, c.policy_sharpness, c.dirichlet_scale
+            )
             scores += score
             if self.market.semi:
                 # Factors are a prescribed exogenous path; returns are newly sampled.
@@ -213,9 +235,73 @@ def plugin(law, theta, rng, n, m):
     return estimate, n + m
 
 
-def reuse(law, theta, rng, budget):
-    utilities, scores, _ = law.draw(theta, rng, budget)
-    return pooled_gradient(utilities, scores, law.cpt), budget
+def _loo_components(utilities, scores, preference):
+    """Return the raw CPT score and its two centered LOO controls.
+
+    This is the same order-statistic decomposition used by the finalized E2
+    estimator.  Keeping the decomposition here avoids routing E5 through the
+    historical plug-in implementation.
+    """
+    u = np.asarray(utilities, float)
+    g = np.asarray(scores, float)
+    if g.ndim == 1:
+        g = g[:, None]
+    n = len(u)
+    if n < 2 or u.shape != (n, 2) or g.shape[0] != n:
+        raise ValueError("Expected utilities with shape (n, 2) and matching scores")
+    if not np.isfinite(u).all() or not np.isfinite(g).all() or (u < 0).any():
+        raise ValueError("LOO estimator requires finite nonnegative utilities")
+    out = np.zeros((3, g.shape[1]))
+    k = n - np.arange(n)
+    p_yes = (k - 1) / (n - 1)
+    p_no = k[1:] / (n - 1)
+    for side, sign in ((0, 1.0), (1, -1.0)):
+        order = np.argsort(u[:, side], kind="stable")
+        gaps = np.diff(np.r_[0.0, u[order, side]])
+        weights = preference.weight_prime(p_yes, side)
+        raw = np.cumsum(gaps * weights)
+        control = np.cumsum(gaps * weights * p_yes)
+        upper = np.zeros(n)
+        upper[1:] = gaps[1:] * preference.weight_prime(p_no, side) * p_no
+        control += upper.sum() - np.cumsum(upper)
+        out[0] += sign * np.mean(raw[:, None] * g[order], axis=0)
+        out[1 + side] = sign * np.mean(control[:, None] * g[order], axis=0)
+    return out
+
+
+def _hybrid_design(budget):
+    """Choose the E2 randomized-correction design under an expected budget."""
+    budget = int(budget)
+    decay = 2.0 ** -1.5
+    kappa = 2.0 * (1.0 - decay) / (1.0 - 2.0 * decay)
+    for n in range(budget, 1, -1):
+        activation = n ** -0.5
+        if n + activation * kappa * n <= budget:
+            return n, activation, decay
+    raise ValueError("trajectory_budget is too small for the hybrid estimator")
+
+
+def hybrid(law, theta, rng, budget):
+    """Centered LOO base plus an independent randomized debiasing correction."""
+    n, activation, decay = _hybrid_design(budget)
+    base_rng, control_rng, correction_rng = [
+        np.random.default_rng(seed) for seed in rng.integers(0, 2**63 - 1, size=3)
+    ]
+    utilities, scores, _ = law.draw(theta, base_rng, n)
+    parts = _loo_components(utilities, scores, law.cpt)
+    estimate = parts[0] - parts[1:].sum(axis=0)
+    if control_rng.random() >= activation:
+        return estimate, n
+    level = int(control_rng.geometric(1.0 - decay))
+    correction_count = n * (1 << level)
+    utilities, scores, _ = law.draw(theta, correction_rng, correction_count)
+    half = correction_count // 2
+    raw_full = _loo_components(utilities, scores, law.cpt)[0]
+    raw_first = _loo_components(utilities[:half], scores[:half], law.cpt)[0]
+    raw_second = _loo_components(utilities[half:], scores[half:], law.cpt)[0]
+    probability = (1.0 - decay) * decay ** (level - 1)
+    correction = (raw_full - 0.5 * (raw_first + raw_second)) / (activation * probability)
+    return estimate + correction, n + correction_count
 
 
 def estimate_gradient(law, theta, rng, method, estimator):
@@ -227,13 +313,13 @@ def estimate_gradient(law, theta, rng, method, estimator):
         gradient = ((utility - utility.mean())[:, None] * score).sum(axis=0) / (count - 1)
         return gradient, count
     selected = "plugin" if method == "plugin" else estimator
-    if selected == "reuse":
-        return reuse(law, theta, rng, count)
+    if selected == "hybrid":
+        return hybrid(law, theta, rng, count)
     if selected == "plugin":
         if not 0 < c.n < count:
             raise ValueError("For plug-in, inner n must be strictly between 0 and total budget")
         return plugin(law, theta, rng, c.n, count - c.n)
-    raise ValueError("Active estimator must be reuse or plugin; old multilevel is archived")
+    raise ValueError("Active estimator must be hybrid or plugin")
 
 
 def evaluate(law, theta, rng, method):
@@ -251,8 +337,8 @@ def evaluate(law, theta, rng, method):
     return j, g
 
 
-def run_online(market, config, seeds, methods, steps, start_day=0, estimator="reuse",
-               common_probe=False):
+def run_online(market, config, seeds, methods, steps, start_day=0, estimator="hybrid",
+               common_probe=False, average_training_outputs=False):
     if start_day + steps > len(market.panel.dates) or steps % config.horizon:
         raise ValueError("Steps must fit the panel and be divisible by horizon")
     rows, daily_rows = [], []
@@ -272,8 +358,19 @@ def run_online(market, config, seeds, methods, steps, start_day=0, estimator="re
                 if method != "equal_weight":
                     if method == "frozen":
                         gradient, calls = np.zeros_like(theta), 0
+                        training_repeats = 0
                     else:
-                        gradient, calls = estimate_gradient(law, theta, rng_for(seed, episode, 10), method, estimator)
+                        training_repeats = (training_repetitions(episode, c.horizon)
+                                            if average_training_outputs else 1)
+                        training_rng = rng_for(seed, episode, 10)
+                        gradients = []
+                        calls = 0
+                        for _ in range(training_repeats):
+                            estimate, estimate_calls = estimate_gradient(
+                                law, theta, training_rng, method, estimator)
+                            gradients.append(estimate)
+                            calls += estimate_calls
+                        gradient = np.mean(gradients, axis=0)
                     objective_value, diagnostic = evaluate(law, theta, rng_for(seed, episode, 20), method)
                     _, second = evaluate(law, theta, rng_for(seed, episode, 21), method)
                     q = (projected_update(theta, diagnostic, c) - theta) / c.gamma
@@ -299,25 +396,34 @@ def run_online(market, config, seeds, methods, steps, start_day=0, estimator="re
                 else:
                     gradient = np.zeros_like(theta)
                     objective_value, q, diagnostic_gap = np.nan, np.full_like(theta, np.nan), np.nan
-                    calls = 0
+                    calls, training_repeats = 0, 0
                 for offset in range(c.horizon):
                     index = day + offset
                     if method == "equal_weight":
                         target = np.r_[0.0, np.full(len(previous) - 1, 1 / (len(previous) - 1))]
                     else:
                         features = policy_features(market.panel.features[index], previous, c.dimension)
-                        target, _ = policy(theta, features, rng_for(seed, index, 40))
+                        target, _ = policy(
+                            theta, features, rng_for(seed, index, 40),
+                            c.policy_sharpness, c.dirichlet_scale,
+                        )
                     target = action_map(previous, target, market.panel.tradable[index], c.trade_fraction)
                     old_wealth = wealth
                     wealth, fee, turnover = next_wealth(wealth, previous, target, execution[index], c)
                     reference = float(update_reference(wealth, reference, c))
                     cumulative_fee += float(fee)
                     peak = max(peak, wealth)
+                    risky = target[1:]
+                    risky_total = float(risky.sum())
+                    effective_holdings = (risky_total ** 2 / float(risky @ risky)
+                                          if float(risky @ risky) > 0 else 0.0)
                     daily_rows.append(dict(seed=seed, method=method, episode=episode, day=index,
                         date=str(market.panel.dates[index]), regime=market.regime(index), wealth=float(wealth),
                         reference=reference, net_return=float(wealth / old_wealth - 1),
                         drawdown=float(1 - wealth / peak), cash=float(target[0]), turnover=float(turnover),
-                        fee=float(fee), cumulative_fee=cumulative_fee))
+                        fee=float(fee), cumulative_fee=cumulative_fee,
+                        effective_holdings=effective_holdings,
+                        max_stock_weight=float(risky.max(initial=0.0))))
                     previous = target
                 new_theta = theta if method in ("equal_weight", "frozen") else projected_update(theta, gradient, c)
                 record = dict(seed=seed, method=method, episode=episode, day=day,
@@ -329,7 +435,8 @@ def run_online(market, config, seeds, methods, steps, start_day=0, estimator="re
                     average_dynamic_local_regret=dlr / episode if method != "equal_weight" else np.nan,
                     diagnostic_gradient_gap=diagnostic_gap, gradient_squared=float(gradient @ gradient),
                     theta_norm=float(np.linalg.norm(theta)), update_norm=float(np.linalg.norm(new_theta - theta)),
-                    training_trajectories=calls, training_steps=calls * c.horizon,
+                    training_repeats=training_repeats, training_trajectories=calls,
+                    training_steps=calls * c.horizon,
                     evaluation_trajectories=0 if method == "equal_weight" else
                         (4 if common_probe else 2) * (c.evaluation_n + c.evaluation_m))
                 for i in range(c.dimension):

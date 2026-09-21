@@ -1,0 +1,42 @@
+{
+  "source": "behavior/regression_afterholiday.pkl + profile/network tables",
+  "e6_opportunities": "D:\\project\\bylw\\results\\e6_behavior_eta041\\opportunities.parquet",
+  "e6_model": "D:\\project\\bylw\\results\\e6_reference_behavior_eta041\\model",
+  "e6_training_calibration": true,
+  "e6_eta_gain": 0.4,
+  "e6_eta_loss": 0.1,
+  "e6_user_calibration": {
+    "train_end": "2021-06-11",
+    "shrinkage": 20.0,
+    "training_rows": 188988,
+    "holdout_rows": 117456,
+    "priors": {
+      "gain": 0.7515953453453453,
+      "loss": 0.5434162328899171,
+      "overall": 0.6373208880987152
+    }
+  },
+  "e6_global_coefficients_used_for_clustering": false,
+  "cluster_features": [
+    "e6_pgr",
+    "e6_plr",
+    "e6_disposition",
+    "e6_reduce_rate",
+    "transnum",
+    "stknum",
+    "sentiment_balance",
+    "lag_num_posts",
+    "following_count"
+  ],
+  "clusters": 4,
+  "calibrated_users": 3481,
+  "agent_type_names": {
+    "0": "Moderate-frequency focused investors",
+    "1": "Low-frequency diversified investors",
+    "2": "Disposition-effect investors",
+    "3": "Active diversified investors"
+  },
+  "behavior_train_cut": "2021-04-29",
+  "social_timestamp_available": false,
+  "social_timestamp_note": "lagged daily aggregates and static network counts only"
+}

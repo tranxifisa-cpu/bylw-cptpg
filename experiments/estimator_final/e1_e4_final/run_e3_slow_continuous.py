@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 ROOT=Path(__file__).resolve().parent
-sys.path.insert(0,str(ROOT/'vendor'))
+sys.path.insert(0,str(ROOT.parents[2]))
 
 from mvp_cpt_pg.paper_experiments import action_map,next_wealth,policy,policy_features,projected_update,update_reference
 from common_slow_continuous import SlowVariationSpec, SlowEpisodeLaw, load_slow_market, slow_config, relax_state

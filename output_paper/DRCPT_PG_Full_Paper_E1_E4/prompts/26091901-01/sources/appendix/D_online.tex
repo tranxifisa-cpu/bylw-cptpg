@@ -1,0 +1,165 @@
+\section{Proofs for the Online Residual and Tracking Results}\label{app:online}
+
+\subsection{Normalized projected ascent}
+
+\begin{proof}[Proof of \Cref{lem:projected-ascent}]
+The target is a lower bound in terms of the population projected residual $Q(x)$.  We first obtain a bound in terms of the actual displacement produced by $\widehat g$, then compare that displacement with the population displacement.
+
+Let
+\[
+ s=x^+-x,
+ \qquad
+ c_g=\max\{\norm{g}_2,\vartheta\},
+ \qquad
+ \mathfrak e=\mathsf d(\widehat g)-\mathsf d(g).
+\]
+The projection variational inequality with the feasible comparison point $x$ gives
+\begin{equation}\label{eq:projection-vi}
+ \langle\mathsf d(\widehat g),s\rangle\ge\frac{\norm{s}_2^2}{\gamma}.
+\end{equation}
+Since $g=c_g\mathsf d(g)$, the $L$-smooth lower quadratic bound and \eqref{eq:projection-vi} imply
+\begin{align}
+ J(x+s)-J(x)
+ &\ge \langle g,s\rangle-\frac L2\norm{s}_2^2\notag\\
+ &=c_g\langle\mathsf d(\widehat g)-\mathfrak e,s\rangle
+ -\frac L2\norm{s}_2^2\notag\\
+ &\ge\left(\frac{c_g}{\gamma}-\frac L2\right)\norm{s}_2^2
+ -c_g\norm{\mathfrak e}_2\norm{s}_2\notag\\
+ &\ge\left(\frac{3c_g}{4\gamma}-\frac L2\right)\norm{s}_2^2
+ -c_g\gamma\norm{\mathfrak e}_2^2\notag\\
+ &\ge\frac{c_g}{4\gamma}\norm{s}_2^2
+ -c_g\gamma\norm{\mathfrak e}_2^2.
+ \label{eq:actual-displacement-ascent}
+\end{align}
+The penultimate line uses
+$uv\le u^2/(4\gamma)+\gamma v^2$, and the last line uses
+$\gamma L\le \vartheta\le c_g$.
+
+Now let
+\[
+ t=\Pi_\Theta\{x+\gamma\mathsf d(g)\}-x=\gamma Q(x).
+\]
+Nonexpansiveness of Euclidean projection gives
+$\norm{s-t}_2\le\gamma\norm{\mathfrak e}_2$.  From
+$\norm{t}_2^2\le2\norm{s}_2^2+2\norm{s-t}_2^2$,
+\[
+ \norm{s}_2^2\ge\frac12\norm{t}_2^2-\gamma^2\norm{\mathfrak e}_2^2.
+\]
+Substituting into \eqref{eq:actual-displacement-ascent} yields
+\[
+ J(x^+)-J(x)
+ \ge\frac{c_g\gamma}{8}\norm{Q(x)}_2^2
+ -\frac{5c_g\gamma}{4}\norm{\mathfrak e}_2^2.
+\]
+Finally,
+$\mathsf d(g)=\Pi_{\{u:\norm{u}_2\le1\}}(g/\vartheta)$, so nonexpansiveness of the unit-ball projection implies
+\[
+ \norm{\mathfrak e}_2\le \vartheta^{-1}\norm{\widehat g-g}_2.
+\]
+Using $c_g\ge \vartheta$ in the positive term and
+$c_g\le C_g=\max(B_g,\vartheta)$ in the negative term proves \eqref{eq:one-step-ascent}.
+\end{proof}
+
+\subsection{Average periodwise residual}
+
+\begin{proof}[Proof of \Cref{thm:online-residual}]
+We first connect the final estimator to the true gradient.  Conditional on $\cF_k$, \Cref{thm:estimator} gives
+\[
+ \E(\widehat g_k^{\db}-\widetilde g_k(\theta_k)\mid\cF_k)=0,
+ \qquad
+ \E(\norm{\widehat g_k^{\db}-\widetilde g_k(\theta_k)}_2^2\mid\cF_k)
+ \le\frac{C_{\rm var}(n)}{M_k}.
+\]
+The cross term with the deterministic conditional vector
+$\widetilde g_k(\theta_k)-g_k(\theta_k)$ therefore vanishes.  Hence
+\begin{align*}
+ \E\norm{\widehat g_k^{\db}-g_k(\theta_k)}_2^2
+ &=\E\norm{\widehat g_k^{\db}-\widetilde g_k(\theta_k)}_2^2
+ +\E\norm{\widetilde g_k(\theta_k)-g_k(\theta_k)}_2^2\\
+ &\le\frac{C_{\rm var}(n)}{M_k}+\E\beta_k^2,
+\end{align*}
+which is \eqref{eq:true-gradient-mse}.
+
+We next apply \Cref{lem:projected-ascent} to the true episode objective $J_k$ at $x=\theta_k$ and $\widehat g=\widehat g_k^{\db}$.  Let
+\[
+ \mathfrak j_k=J_k(\theta_{k+1})-J_k(\theta_k).
+\]
+After taking expectations,
+\begin{equation}\label{eq:online-one-step}
+ \frac{\vartheta\gamma}{8}\E\zeta_k
+ \le\E \mathfrak j_k
+ +\frac{5C_g\gamma}{4\vartheta^2}
+ \E\norm{\widehat g_k^{\db}-g_k(\theta_k)}_2^2.
+\end{equation}
+The objective increments telescope across moving objectives as the pathwise identity
+\begin{align}\label{eq:moving-objective-telescope}
+ \sum_{k=1}^{K}\mathfrak j_k
+ ={}&J_K(\theta_{K+1})-J_1(\theta_1)\notag\\
+ &+\sum_{k=1}^{K-1}
+ \{J_k(\theta_{k+1})-J_{k+1}(\theta_{k+1})\}.
+\end{align}
+Since $\abs{J_k}\le B_v$ and the second line is bounded above by $\cV_K$,
+\begin{equation}\label{eq:telescope-upper}
+ \sum_{k=1}^{K}\mathfrak j_k\le2B_v+\cV_K.
+\end{equation}
+Summing \eqref{eq:online-one-step}, applying \eqref{eq:true-gradient-mse} and \eqref{eq:telescope-upper}, and dividing by $\vartheta\gamma K/8$ gives exactly \eqref{eq:online-residual-bound}.
+\end{proof}
+
+\subsection{Discounted dynamic local regret}
+
+\begin{proof}[Proof of \Cref{cor:dynamic-local-regret}]
+Write $W=W_{\rho,w}$.  With the convention $Q_t(\theta_t)=0$ for $t\le0$, the coefficients $\rho^j/W$, $j=0,\ldots,w-1$, are nonnegative and sum to one.  Convexity of $q\mapsto\norm{q}_2^2$ therefore gives
+\begin{align*}
+ \norm{\bar Q_k}_2^2
+ &\le \frac1W\sum_{j=0}^{w-1}\rho^j
+       \norm{Q_{k-j}(\theta_{k-j})}_2^2.
+\end{align*}
+Summing over $k\le K$ and reindexing,
+\begin{align*}
+ \Reg_{\rho,w}(K)
+ &\le
+ \sum_{t=1}^{K}\zeta_t
+ \left\{\frac1W\sum_{j=0}^{\min\{w-1,K-t\}}\rho^j\right\}
+ \le \sum_{t=1}^{K}\zeta_t,
+\end{align*}
+which proves \eqref{eq:dynamic-local-regret-bound}.  Taking expectations and dividing by $K$ gives \eqref{eq:average-dynamic-local-regret-bound}.
+\end{proof}
+
+\subsection{Stationary-set consequences}
+
+\begin{proof}[Proof of \Cref{cor:stationary-tracking}]
+Assumption \ref{ass:error-bound} gives pointwise
+\[
+ \dist^2(\theta_k,\Sta_k)
+ \le\kappa^2\norm{Q_k(\theta_k)}_2^2
+ =\kappa^2\zeta_k.
+\]
+Taking expectations and averaging over $k$ proves \eqref{eq:stationary-tracking}.  Substitution of \eqref{eq:online-residual-bound} yields the stated finite-horizon control.
+\end{proof}
+
+\begin{proof}[Proof of \Cref{lem:stationary-set-drift}]
+The normalized direction map is $\vartheta^{-1}$-Lipschitz because it is the Euclidean projection of $g/\vartheta$ onto the closed unit ball.  Using nonexpansiveness of $\Pi_\Theta$ in \eqref{eq:projected-residual},
+\begin{align*}
+ \sup_{\theta\in\Theta}
+ \norm{Q_{k+1}(\theta)-Q_k(\theta)}_2
+ &\le
+ \sup_{\theta\in\Theta}
+ \norm{\mathsf d(g_{k+1}(\theta))-\mathsf d(g_k(\theta))}_2\\
+ &\le\frac{\delta_k^g}{\vartheta}.
+\end{align*}
+If $\theta\in\Sta_k$, then $Q_k(\theta)=0$, so Assumption \ref{ass:error-bound} applied to episode $k+1$ gives
+\[
+ \dist(\theta,\Sta_{k+1})
+ \le\kappa\norm{Q_{k+1}(\theta)}_2
+ \le\frac{\kappa\delta_k^g}{\vartheta}.
+\]
+Taking the supremum over $\theta\in\Sta_k$ gives one directed Hausdorff bound.  Interchanging $k$ and $k+1$ gives the reverse bound because the same uniform gradient-difference bound is symmetric.  Taking the maximum proves \eqref{eq:stationary-set-drift}.
+\end{proof}
+
+\begin{proof}[Proof of \Cref{cor:vanishing-tracking}]
+In \eqref{eq:online-residual-bound}, the endpoint term is $O(K^{-1})$.  The assumption $\E\cV_K=o(K)$ makes the variation term vanish after division by $K$.  Since $C_{\rm var}(n)$ is fixed,
+\[
+ \frac1K\sum_{k=1}^{K}\left(\frac{C_{\rm var}(n)}{M_k}+\E\beta_k^2\right)\to0
+\]
+by the assumed Ces\`aro condition.  Therefore $\cE_K\to0$.  Equation \eqref{eq:average-dynamic-local-regret-bound} gives the DLR conclusion, and \eqref{eq:stationary-tracking} gives the stationary-set conclusion when Assumption \ref{ass:error-bound} is imposed.
+\end{proof}

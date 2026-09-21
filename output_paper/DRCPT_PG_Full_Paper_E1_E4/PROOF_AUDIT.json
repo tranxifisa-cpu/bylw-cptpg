@@ -1,0 +1,184 @@
+{
+  "audit_skill": "proof-checker",
+  "verdict": "WARN",
+  "reason_code": "scoped_repairs_complete_preexisting_out_of_scope_reservations",
+  "summary": "I1-I10 scoped PASS, provisional. Core conditional proof chain coherent; full manuscript WARN due to preexisting empirical bridges and strict notation gate. User scope forbids unrelated edits.",
+  "scoped_verdict": "PASS",
+  "audited_input_hashes": {
+    "main.tex": "sha256:18cdee67f089373a87a2d01e8fe11248dc5387bac947aadfd786e47a926bf3f9",
+    "sections/01_introduction.tex": "sha256:27c9952fec31136ade20b97adfbebc4fa0cb6264f6dccdfcb38c7d639601c205",
+    "sections/02_related_work.tex": "sha256:a105de27b5c41b547d284ba17df9d3e488581f35797723801d31ae16b544d4ea",
+    "sections/03_problem_setup.tex": "sha256:6b0c61aa562ea1454fddc30be2e36b1c7d4a7d553b3cbb7ad7a8b9bb9f9a0e89",
+    "sections/04_assumptions.tex": "sha256:349f9ba305e7c3d09f1918fc722cb398e3165573f77688e61d415c1a56a76dfd",
+    "sections/05_algorithm.tex": "sha256:9a8d1b74132034cdc479da8fcc8d04718d5e7a3c197a7bffa7ada946960c21dc",
+    "sections/06_main_results.tex": "sha256:62b711c20c33354b61171e0f6d3c266424d0324ce174665732aeae8df1375702",
+    "sections/07_experiments.tex": "sha256:b3cde21a0361ab53acd9c5ed1b702839791fdad5e9ee279be92209d862ed2c47",
+    "appendix/A_notation.tex": "sha256:96f841d9c69927bce82efa0ce62a4a32b7baf8483873e81fe3c1ad48c0da19ca",
+    "appendix/B_reference_and_gradient.tex": "sha256:38265975a3c2dbc279d70a06f97e8daf9bfce83795f99ac3e4d36a5dbb00f111",
+    "appendix/C_estimator.tex": "sha256:647727ff19eeaf7369026b08810f258c77359e275baa3068a8b907cda019189e",
+    "appendix/D_online.tex": "sha256:ca338671e464de4658e3185bd6488a37c56a68a0359a037415a31242a5466853",
+    "appendix/E_minimax.tex": "sha256:884600dd85466ad9394d6f82a08d3915148d3d153d36392ce11ab75041f181e1"
+  },
+  "trace_path": "prompts/26091901-01/",
+  "thread_id": "/root",
+  "executor_family": "openai",
+  "reviewer_model": "gpt-6-astra",
+  "reviewer_family": "openai",
+  "reviewer_tasks": [
+    "/root/proof_review_before",
+    "/root/proof_review_final"
+  ],
+  "review_independence": "same-family",
+  "acceptance_status": "provisional",
+  "reviewer_reasoning": "ultra",
+  "generated_at": "2026-09-19T09:08:12.919746+00:00",
+  "details": {
+    "theorems_audited": 17,
+    "authorized_issues": [
+      {
+        "id": "I1",
+        "severity": "MINOR",
+        "strategy": "DEFINE_EXISTING_OBJECT",
+        "location": "sections/06_main_results.tex",
+        "title": "Undefined survival and score shorthands",
+        "before": "The gradient identity used undefined S_{k,theta} and unidentified G_theta.",
+        "after": "Define S_theta directly from S_{P_k,z_k,r_k,theta}, and G_theta from G_{k,theta}.",
+        "scope": "No objective, score, or integral is changed.",
+        "status": "CLOSED"
+      },
+      {
+        "id": "I2",
+        "severity": "MINOR",
+        "strategy": "DEFINE_EXISTING_OBJECT",
+        "location": "sections/06_main_results.tex",
+        "title": "Population gradient used before definition",
+        "before": "The full/half lemma used g before identifying its fixed target.",
+        "after": "Define g:=nabla J(theta) in the lemma before the expansion.",
+        "scope": "The existing cancellation proof and constants are unchanged.",
+        "status": "CLOSED"
+      },
+      {
+        "id": "I3",
+        "severity": "MINOR",
+        "strategy": "RENAME_ALIAS",
+        "location": "appendix/C_estimator.tex",
+        "title": "Trajectory score and population gradient shared g",
+        "before": "A trajectory realization used g_x and then renamed it G_x.",
+        "after": "Write x=(v+,v-,G_x) directly.",
+        "scope": "No random variable or estimator is replaced.",
+        "status": "CLOSED"
+      },
+      {
+        "id": "I4",
+        "severity": "MINOR",
+        "strategy": "UNIFY_NOTATION",
+        "location": "appendix/E_minimax.tex",
+        "title": "Two call-count representations",
+        "before": "The proof changed T_call to a mathsf variant.",
+        "after": "Use T_call consistently; identify its oracle-filtration stopping property.",
+        "scope": "The stopped KL argument and expected-call budget remain identical.",
+        "status": "CLOSED"
+      },
+      {
+        "id": "I5",
+        "severity": "MINOR",
+        "strategy": "EXPLICIT_INTERFACE",
+        "location": "sections/03_problem_setup.tex",
+        "title": "Consecutive episode boundary was implicit",
+        "before": "Algorithm 2 returned the next episode state without an explicit date bridge.",
+        "after": "State t_{k+1}=t_k+h for consecutive episodes.",
+        "scope": "No horizon, wealth recurrence, or experiment is changed.",
+        "status": "CLOSED"
+      },
+      {
+        "id": "I6",
+        "severity": "MAJOR",
+        "strategy": "CLARIFY_MODEL_INTERFACE",
+        "location": "sections/03_problem_setup.tex",
+        "title": "Environment model confused with induced law",
+        "before": "P was called a trajectory law while P_theta was immediately used.",
+        "after": "Identify P as the frozen episode model and P_theta as the policy-induced augmented trajectory law.",
+        "scope": "Likelihood derivatives act on the policy; no extra persistent model notation is introduced.",
+        "status": "CLOSED"
+      },
+      {
+        "id": "I7",
+        "severity": "MAJOR",
+        "strategy": "STRENGTHEN_ASSUMPTION",
+        "location": "sections/04_assumptions.tex",
+        "title": "Simulator regularity was only implicit",
+        "before": "The estimator and online proofs applied standing likelihood bounds under the frozen simulator without explicit quantification.",
+        "after": "Require the same bounds and parameter-independence conditions uniformly for every analyzed true and frozen-simulator model, conditional on the frozen context.",
+        "scope": "This is an explicit assumption-scope strengthening/clarification. It does not certify arbitrary simulators or unlimited-run bounded wealth.",
+        "status": "CLOSED"
+      },
+      {
+        "id": "I8",
+        "severity": "MINOR",
+        "strategy": "REMOVE_UNUSED_ALIAS",
+        "location": "sections/06_main_results.tex",
+        "title": "Unused B_J bound alias",
+        "before": "B_J was defined but the theorem used the already established B_v.",
+        "after": "Delete only the B_J sentence.",
+        "scope": "The endpoint term remains 2 B_v.",
+        "status": "CLOSED"
+      },
+      {
+        "id": "I9",
+        "severity": "MAJOR exposition",
+        "strategy": "SIMPLIFY_TABLE",
+        "location": "appendix/A_notation.tex",
+        "title": "Global table obscured the semantic chain",
+        "before": "Two tables mixed proof-local constants with core notation and omitted the information/context bridge.",
+        "after": "Replace them with one 16-row core table; retain all local estimator definitions and explicitly retain market state m_u.",
+        "scope": "The final check caught and repaired the temporary loss of the m_u explanation in this table. No analytic lemma below the table is edited.",
+        "status": "CLOSED"
+      },
+      {
+        "id": "I10",
+        "severity": "MINOR",
+        "strategy": "UNIFY_TERMINOLOGY",
+        "location": "setup/results/experiments; Appendix D; Introduction",
+        "title": "Residual aggregations had ambiguous names",
+        "before": "Q, its square, its average expectation, and DLR were inconsistently named.",
+        "after": "Use projected residual, squared projected residual, average expected squared projected residual, and dynamic local regret (DLR).",
+        "scope": "Only names are changed; all metric definitions and experimental numerals remain intact. E3 A/B titles now include squared.",
+        "status": "CLOSED"
+      }
+    ],
+    "issues": [
+      {
+        "id": "O1",
+        "severity": "MAJOR",
+        "category": "empirical_theorem_bridge",
+        "location": "sections/07_experiments.tex:103-120",
+        "note": "State-step budget does not itself establish sublinear objective variation; preexisting, outside authorized fixes."
+      },
+      {
+        "id": "O2",
+        "severity": "MAJOR",
+        "category": "nonlinear_evaluation_bias",
+        "location": "sections/07_experiments.tex:126",
+        "note": "Independent cross products do not alone establish population projected-residual unbiasedness; preexisting, out of scope."
+      },
+      {
+        "id": "O3",
+        "severity": "MINOR",
+        "category": "notation",
+        "location": "whole manuscript",
+        "note": "Strict whole-artifact symbol collision gate remains unsatisfied; original I1-I10 notation defects are closed."
+      },
+      {
+        "id": "O4",
+        "severity": "MINOR",
+        "category": "evidence_scope",
+        "location": "sections/07_experiments.tex; main.tex Discussion",
+        "note": "E5-E7 remain designs and Discussion remains placeholder; intentionally unchanged."
+      }
+    ],
+    "open_fatal": 0,
+    "open_critical": 0,
+    "global_notation_gate": "AUDIT_FAILED",
+    "top_down_derivation_structure": "PASS"
+  }
+}
