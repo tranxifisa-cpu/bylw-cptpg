@@ -104,6 +104,22 @@ with gradients
  \widetilde g_k(\theta):=\nabla_\theta\widetilde J_k(\theta,r_k).
 \end{equation}
 
+\subsection{Online approximation and variation budgets}
+
+At the realized iterate, define the frozen-simulator gradient discrepancy
+\begin{equation}\label{eq:simulator-gradient-error}
+ \beta_k
+ :=\norm{\widetilde g_k(\theta_k)-g_k(\theta_k)}_2,
+\end{equation}
+and the cumulative variation of the true episode objectives
+\begin{equation}\label{eq:objective-variation}
+ \cV_K
+ :=\sum_{k=1}^{K-1}
+ \sup_{\theta\in\Theta}
+ \abs{J_{k+1}(\theta,r_{k+1})-J_k(\theta,r_k)}.
+\end{equation}
+These are quantities to be controlled or measured, not additional modeling assumptions.  The bounded-domain conditions below make them finite for every finite $K$; asymptotic tracking only requires the rate conditions stated with the corresponding corollary.
+
 \subsection{Projected residual and dynamic local regret}
 
 Fix a normalization floor $\vartheta>0$ and a step size $\gamma>0$.  Define
