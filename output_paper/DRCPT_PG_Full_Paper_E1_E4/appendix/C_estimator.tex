@@ -213,18 +213,18 @@ Thus \eqref{eq:loo-bias-order} holds with $C_{\rm bias}=\sqrt{C_{\rm rem}}$.
 We first prove exact unbiasedness.  By \Cref{lem:centering-expectation}, the centered base has mean $\bar U_n$.  For the raw correction,
 \begin{equation}\label{eq:delta-mean}
  \E D_{n,\ell}^{\rm raw}
- =\mu_{n2^\ell}-\mu_{n2^{\ell-1}}.
+ =\bar U_{n2^\ell}-\bar U_{n2^{\ell-1}}.
 \end{equation}
 The level bound \eqref{eq:level-second-moment} implies
 \[
  \sum_{\ell\ge1}\E\norm{D_{n,\ell}^{\rm raw}}_2
  \le\frac{3\sqrt{C_{\rm rem}}}{n}\sum_{\ell\ge1}2^{-\ell}<\infty,
 \]
-so the expectation can be interchanged with the infinite randomized series.  Since \eqref{eq:loo-bias-order} gives $\mu_{n2^{\ell_{\max}}}\to g$,
+so the expectation can be interchanged with the infinite randomized series.  Since \eqref{eq:loo-bias-order} gives $\bar U_{n2^{\ell_{\max}}}\to g$,
 \begin{align*}
  \E Z_n^{\db}
  &=\bar U_n+\sum_{\ell\ge1}\E D_{n,\ell}^{\rm raw}\\
- &=\bar U_n+\lim_{\ell_{\max}\to\infty}(\mu_{n2^{\ell_{\max}}}-\bar U_n)
+ &=\bar U_n+\lim_{\ell_{\max}\to\infty}(\bar U_{n2^{\ell_{\max}}}-\bar U_n)
  =g.
 \end{align*}
 This proves \eqref{eq:estimator-unbiased}.
