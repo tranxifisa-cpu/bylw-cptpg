@@ -102,15 +102,15 @@ The four frozen targets show where this distinction matters for the full gradien
 
 \subsection{E3: Continuous slow-variation online tracking}\label{sec:e3}
 \paragraph{Design.}
-E3 releases the market setup introduced in E2 as one continuous online process.  No account state is reset.  If a five-day episode starting from $(X_k,r_k,\omega_k)$ produces the terminal state $(\widetilde X_{k+1},\widetilde r_{k+1},\omega_{k+1}^{\mathrm{end}})$, the next episode starts from the diminishing-gain transition
+E3 releases the market setup introduced in E2 as one continuous online process.  No account state is reset.  Let $(X_k^{\rm raw},r_k^{\rm raw},\omega_k^{\rm raw})$ denote the raw terminal account state produced by episode $k$ before the cross-episode relaxation.  The next episode starts from
 \[
 \begin{aligned}
-\log X_{k+1}
-&=(1-\varpi_k)\log X_k+\varpi_k\log\widetilde X_{k+1},\\
+\log X_{t_{k+1}}
+&=(1-\varpi_k)\log X_{t_k}+\varpi_k\log X_k^{\rm raw},\\
 r_{k+1}
-&=(1-\varpi_k)r_k+\varpi_k\widetilde r_{k+1},\\
-\omega_{k+1}
-&=(1-\varpi_k)\omega_k+\varpi_k\omega_{k+1}^{\mathrm{end}},
+&=(1-\varpi_k)r_k+\varpi_k r_k^{\rm raw},\\
+\omega_{t_{k+1}-1}
+&=(1-\varpi_k)\omega_{t_k-1}+\varpi_k\omega_k^{\rm raw},
 \qquad
 \varpi_k=k^{-3/4}.
 \end{aligned}
