@@ -145,14 +145,17 @@ Because $J_k$ is continuously differentiable on compact convex $\Theta$, each $J
  \cE_K:=\frac1K\sum_{k=1}^{K}\E\zeta_k.
 \end{equation}
 
-For window length $w\ge1$ and discount $\rho\in(0,1]$, set
+For window length $w\ge1$ and discount $\rho\in(0,1]$, let
 \begin{equation}\label{eq:dynamic-window-residual}
- W_{\rho,w}:=\sum_{j=0}^{w-1}\rho^j,
+ m_k:=\min\{w,k\},
  \qquad
- \bar Q_k:=W_{\rho,w}^{-1}\sum_{j=0}^{w-1}\rho^j Q_{k-j}(\theta_{k-j}),
+ W_{\rho,m_k}:=\sum_{j=0}^{m_k-1}\rho^j,
+ \qquad
+ \bar\zeta_k
+ :=W_{\rho,m_k}^{-1}\sum_{j=0}^{m_k-1}\rho^j\zeta_{k-j}.
 \end{equation}
-with $Q_t(\theta_t):=0$ for $t\le0$.  The dynamic local regret (DLR) is
+The dynamic local regret (DLR) is the cumulative square-first windowed residual
 \begin{equation}\label{eq:dynamic-regret}
- \Reg_{\rho,w}(K):=\sum_{k=1}^{K}\norm{\bar Q_k}_2^2.
+ \Reg_{\rho,w}(K):=\sum_{k=1}^{K}\bar\zeta_k.
 \end{equation}
-Here $Q_k$ is the projected residual, $\zeta_k$ is the squared projected residual, and $\cE_K$ is the average expected squared projected residual.  Each projected residual is evaluated at its contemporaneous iterate before the residual vectors are exponentially averaged over the recent window.  This is the dynamic local-regret object used to evaluate online adaptation below.
+Thus $Q_k$ is the contemporaneous projected residual, $\zeta_k=\norm{Q_k(\theta_k)}_2^2$ measures its magnitude before any temporal smoothing, and $\bar\zeta_k$ averages these squared magnitudes over the recent window.  This square-first definition matches the online evaluation used below and keeps the periodwise residual and its smoothed accumulation conceptually distinct.
