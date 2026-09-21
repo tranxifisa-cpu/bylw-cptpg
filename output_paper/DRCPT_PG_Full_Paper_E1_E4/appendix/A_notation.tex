@@ -26,7 +26,8 @@ $Q_k;\gamma,\vartheta$ & vector / scalars & projected residual; step size and no
 $\Sta_k$ & subset of $\Theta$ & constrained first-order stationary set \\
 $\zeta_k$ & $\R_+$ & squared projected residual $\norm{Q_k(\theta_k)}_2^2$ \\
 $\cE_K$ & $\R_+$ & average expected squared projected residual \\
-$\Reg_{\rho,w}(K);\rho,w$ & scalar / parameters & dynamic local regret (DLR); discount and window length \\
+$m_k,W_{\rho,m_k},\bar\zeta_k$ & integer / scalars & active window length, exponential mass, and square-first windowed residual \\
+$\Reg_{\rho,w}(K);\rho,w$ & scalar / parameters & cumulative square-first DLR; discount and maximum window length \\
 $\beta_k,\cV_K$ & $\R_+$ & simulator-gradient error bound and cumulative true-objective variation \\
 $T_{\rm call},\mathsf B$ & integer / scalar & oracle trajectory count and expected trajectory budget \\
 \bottomrule
