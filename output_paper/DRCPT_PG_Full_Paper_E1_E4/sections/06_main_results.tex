@@ -26,7 +26,7 @@ If the right-hand side is nonzero, the two paths have different regularized CPT 
 \end{proposition}
 
 \begin{proposition}[Reference sensitivity]\label{prop:reference-sensitivity}
-Under Assumptions \ref{ass:trajectory}, \ref{ass:cpt-regularity}, and \ref{ass:reference-coupling}, set
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix $(P,z,\theta)$.  For this comparison only, suppose the policy features and market transition kernel are reference-isolated, so that changing the episode-start reference from $r$ to $r'$ while using common policy and market random variables leaves the wealth and portfolio paths unchanged.  Set
 \begin{equation}\label{eq:reference-constants}
  \eta_{\min}=\min(\etaP,\etaM),
  \qquad
@@ -176,7 +176,7 @@ If $\gamma L\le\vartheta$ and $C_g:=\max\{B_g,\vartheta\}$, then
 \end{lemma}
 
 \begin{theorem}[Average expected squared projected residual bound]\label{thm:online-residual}
-Suppose Assumptions \ref{ass:trajectory}--\ref{ass:online-variation} hold and $\gamma L\le\vartheta$.  Let $\widehat g_k^{\db}$ be defined by \eqref{eq:gradient-average} and target $\widetilde g_k(\theta_k)$.  Then
+Suppose Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity} hold and $\gamma L\le\vartheta$.  Let $\widehat g_k^{\db}$ be defined by \eqref{eq:gradient-average} and target $\widetilde g_k(\theta_k)$.  Then
 \begin{equation}\label{eq:true-gradient-mse}
  \E\norm{\widehat g_k^{\db}-g_k(\theta_k)}_2^2
  \le\frac{C_{\rm var}(n)}{M_k}+\E\beta_k^2,
@@ -207,8 +207,17 @@ and therefore
 \end{equation}
 \end{corollary}
 
+\paragraph{Stationary-set geometry.}
+The online theorem controls the projected first-order residual directly.  To translate that residual into parameter distance, impose only for the next two statements the uniform error-bound condition
+\begin{equation}\label{eq:error-bound}
+ \dist(\theta,\Sta_k)
+ \le \kappa\norm{Q_k(\theta)}_2,
+ \qquad \theta\in\Theta,
+\end{equation}
+for some $\kappa<\infty$ and all analyzed episodes.
+
 \begin{corollary}[Moving stationary-set tracking]\label{cor:stationary-tracking}
-If Assumption \ref{ass:error-bound} also holds, then
+If \eqref{eq:error-bound} holds, then
 \begin{equation}\label{eq:stationary-tracking}
  \frac1K\sum_{k=1}^{K}
  \E\dist^2(\theta_k,\Sta_k)
@@ -217,7 +226,7 @@ If Assumption \ref{ass:error-bound} also holds, then
 \end{corollary}
 
 \begin{lemma}[Drift of stationary sets]\label{lem:stationary-set-drift}
-Under Assumption \ref{ass:error-bound}, define
+If \eqref{eq:error-bound} holds, define
 \begin{equation}\label{eq:gradient-drift}
  \delta_k^g:=\sup_{\theta\in\Theta}
  \norm{g_{k+1}(\theta)-g_k(\theta)}_2.
@@ -243,12 +252,26 @@ then
  \qquad
  K^{-1}\E\Reg_{\rho,w}(K)\to0.
 \end{equation}
-Under Assumption \ref{ass:error-bound}, the left-hand side of \eqref{eq:stationary-tracking} also converges to zero.
+If \eqref{eq:error-bound} holds, the left-hand side of \eqref{eq:stationary-tracking} also converges to zero.
 \end{corollary}
 
 \subsection{Fixed-dimension minimax information rate}
 
-Under Assumption \ref{ass:minimax-oracle}, define
+\begin{definition}[Complete-trajectory oracle experiment]\label{def:minimax-oracle}
+Fix $d$, $\theta_0=0\in\operatorname{int}(\Theta)$, common finite bounds on $h$ and $N$, and the constants in Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}.  Let $\mathfrak C$ be a model class satisfying these bounds, containing the Bernoulli-return submodel constructed in Appendix \ref{app:minimax}, with $(w_+^\eps)'(0)>0$.  Under $P\in\mathfrak C$, an adaptive query $\theta_t\in\Theta$ returns one fresh complete augmented trajectory
+\[
+ \tau_t\mid\mathcal H_{t-1}\sim P_{\theta_t},
+ \qquad
+ \mathcal H_t:=\sigma\{(\theta_j,\tau_j):j\le t\}.
+\]
+An admissible procedure chooses a stopping time $T_{\rm call}$ and an $\mathcal H_{T_{\rm call}}$-measurable estimator $\widehat g$ such that
+\begin{equation}\label{eq:minimax-budget}
+ \sup_{P\in\mathfrak C}\E_P T_{\rm call}\le\mathsf B,
+\end{equation}
+with target $g_P:=\nabla J_P(\theta_0)$.
+\end{definition}
+
+The corresponding minimax risk is
 \begin{equation}\label{eq:minimax-risk}
  \mathfrak R_{\mathsf B}
  :=\inf_{\widehat g:\,\sup_{P\in\mathfrak C}\E_P T_{\rm call}\le\mathsf B}
@@ -257,7 +280,7 @@ Under Assumption \ref{ass:minimax-oracle}, define
 \end{equation}
 
 \begin{theorem}[Minimax-optimal fixed-dimension trajectory-budget rate]\label{thm:minimax}
-Under Assumption \ref{ass:minimax-oracle}, there exist constants
+For the oracle experiment in Definition \ref{def:minimax-oracle}, there exist constants
 $c_{\rm lb},C_{\rm ub},\mathsf B_0\in(0,\infty)$, independent of $\mathsf B$, such that for all $\mathsf B\ge\mathsf B_0$,
 \begin{equation}\label{eq:minimax-rate}
  \frac{c_{\rm lb}}{\mathsf B}
