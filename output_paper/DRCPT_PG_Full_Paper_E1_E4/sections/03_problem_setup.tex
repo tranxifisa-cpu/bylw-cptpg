@@ -41,7 +41,7 @@ Hereafter, $r_k$ denotes the episode-start reference, whereas $r_u$ denotes the 
 
 \subsection{Dirichlet portfolio policy}
 
-For asset $i=0,\ldots,N$, let $q_{i,u}\in\R^d$ be a feature vector.  For $\theta\in\Theta\subset\R^d$ define
+For asset $i=0,\ldots,N$, let $q_{i,u}\in\R^d$ be the actor feature vector constructed from the current market information and previous holdings represented in $s_u$.  For $\theta\in\Theta\subset\R^d$ define
 \begin{equation}\label{eq:dirichlet-policy}
  a_{i,u}(\theta)=\exp(\theta^\top q_{i,u}),
  \qquad
