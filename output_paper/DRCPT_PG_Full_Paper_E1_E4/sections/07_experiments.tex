@@ -1,12 +1,12 @@
 \section{Experimental Design and Evidence}\label{sec:experiments}
 
 \subsection{Experimental roadmap}\label{sec:exp-roadmap}
-The experiments follow the argument developed in the theory.  E1 isolates the path-dependent reference mechanism and its decision consequence.  E2 evaluates the frozen-target gradient estimator in the shared semi-synthetic setup.  E3 releases the same setup as a continuous slow-variation process and tests online first-order tracking, while E4 combines a structured ablation of the reference mechanism with horizon and optimizer robustness checks.  E5 then moves to a time-ordered real A-share replay under common trading constraints.  E6 holds real investor decisions, controls, chronological split, and predictive model fixed while changing only the reference representation.  E7 replays the E5 recommendations through investor types calibrated from E6 and historical behavior, separating recommendation adoption from satisfaction after adoption.  \Cref{fig:evidence-map} summarizes the theory-aligned core and these three external-validity layers.
+The empirical study proceeds in two layers.  E1--E4 examine path-dependent reference formation, frozen-target gradient estimation, online first-order tracking, and ablation/robustness in controlled settings.  E5--E7 then evaluate chronological A-share performance, held-out investor behavior, and heterogeneous-agent interaction.  \Cref{fig:evidence-map} summarizes the links among the seven studies.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.96\textwidth]{figures/experiment_evidence_map.pdf}
-    \caption{Experimental evidence map for the theory-aligned core.  E1 establishes the decision consequence of path-dependent reference formation; E2 evaluates the frozen-target gradient estimator; E3 measures continuous first-order tracking; and E4 separates reference-mechanism ablation from horizon and optimizer robustness.  E5--E7 follow this core as external-validity layers for market, behavior, and interaction, while keeping their estimands separate from the E2--E4 statistical and tracking diagnostics.}
+    \caption{Empirical roadmap of the paper.  E1--E4 establish path-dependent reference formation, finite-sample gradient estimation, online first-order tracking, and ablation/robustness in controlled settings.  E5--E7 then extend the evaluation to chronological A-share performance, held-out investor behavior, and heterogeneous-agent interaction.}
     \label{fig:evidence-map}
 \end{figure}
 \FloatBarrier
@@ -52,10 +52,10 @@ The key result is a rank reversal under a matched current state.  The two accoun
 Beginning with E2, we use a common $30$-stock-plus-cash semi-synthetic market built from a frozen empirical A-share factor-block library.  Factor blocks are sampled from a time-invariant empirical distribution, while the return law follows a pre-specified path across episodes.  For risky asset $i$ in episode $k$,
 \[
 R_{i,k,u}=0.08\,\tanh\!\left(
-\frac{\mu_k+2.5\,b_k^\top f_{i,u}+\xi^{\rm com}_{k,u}+\xi^{\rm id}_{i,k,u}}{0.08}
+\frac{\mu_k^{\rm ret}+2.5\,(\phi_k^{\rm ret})^\top f_{i,u}+\xi^{\rm com}_{k,u}+\xi^{\rm id}_{i,k,u}}{0.08}
 \right),
 \]
-where the common and idiosyncratic shocks have standard deviations $0.006s_k$ and $0.009s_k$, respectively.  Episodes $1$--$40$ use the stable momentum law, episodes $41$--$60$ use the reversal law, episodes $61$--$120$ interpolate to the terminal low-volatility/value/quality law, and the exogenous return law is fixed thereafter.  E2 standardizes the account context to
+where the common and idiosyncratic shocks have standard deviations $0.006\sigma_k^{\rm ret}$ and $0.009\sigma_k^{\rm ret}$, respectively; $(\mu_k^{\rm ret},\phi_k^{\rm ret},\sigma_k^{\rm ret})$ denotes the episode-specific return-law coefficients.  Episodes $1$--$40$ use the stable momentum law, episodes $41$--$60$ use the reversal law, episodes $61$--$120$ interpolate to the terminal low-volatility/value/quality law, and the exogenous return law is fixed thereafter.  E2 standardizes the account context to
 \[
 (X,r,\omega,\theta)=(1,1,e_{\rm cash},0)
 \]
@@ -102,30 +102,30 @@ The four frozen targets show where this distinction matters for the full gradien
 
 \subsection{E3: Continuous slow-variation online tracking}\label{sec:e3}
 \paragraph{Design.}
-E3 releases the market setup introduced in E2 as one continuous online process.  No account state is reset.  If a five-day episode starting from $(X_k,r_k,\omega_k)$ produces the terminal state $(\widetilde X_{k+1},\widetilde r_{k+1},\omega_{k+1}^{\mathrm{end}})$, the next episode starts from the diminishing-gain transition
+E3 releases the market setup introduced in E2 as one continuous online process.  No account state is reset.  Let $(X_k^{\rm raw},r_k^{\rm raw},\omega_k^{\rm raw})$ denote the raw terminal account state produced by episode $k$ before the cross-episode relaxation.  The next episode starts from
 \[
 \begin{aligned}
-\log X_{k+1}
-&=(1-\alpha_k)\log X_k+\alpha_k\log\widetilde X_{k+1},\\
+\log X_{t_{k+1}}
+&=(1-\varpi_k)\log X_{t_k}+\varpi_k\log X_k^{\rm raw},\\
 r_{k+1}
-&=(1-\alpha_k)r_k+\alpha_k\widetilde r_{k+1},\\
-\omega_{k+1}
-&=(1-\alpha_k)\omega_k+\alpha_k\omega_{k+1}^{\mathrm{end}},
+&=(1-\varpi_k)r_k+\varpi_k r_k^{\rm raw},\\
+\omega_{t_{k+1}-1}
+&=(1-\varpi_k)\omega_{t_k-1}+\varpi_k\omega_k^{\rm raw},
 \qquad
-\alpha_k=k^{-3/4}.
+\varpi_k=k^{-3/4}.
 \end{aligned}
 \]
-The within-episode reference update remains the asymmetric mechanism in \eqref{eq:reference-update} with $(\eta_+,\eta_-)=(0.20,0.05)$.  Under the bounded analysis domain of Assumption~\ref{ass:trajectory} and the bounded semi-synthetic returns, the episode-start state increments are $O(\alpha_k)$, with
+The within-episode reference update remains the asymmetric mechanism in \eqref{eq:reference-update} with $(\eta_+,\eta_-)=(0.20,0.05)$.  Under the bounded analysis domain of Assumption~\ref{ass:trajectory} and the bounded semi-synthetic returns, the episode-start state increments are $O(\varpi_k)$, with
 \[
-\sum_{k\le K}\alpha_k=O(K^{1/4})=o(K).
+\sum_{k\le K}\varpi_k=O(K^{1/4})=o(K).
 \]
-The factor-block distribution is time invariant, the exogenous return coefficients follow the E2 phase path through episode $120$, and remain fixed for episodes $121$--$300$.  The finite-horizon sensitivity argument in Appendix~\ref{app:online} then converts these state increments into $\cV_K\le C\sum_{k<K}\alpha_k+C'=O(K^{1/4})$ on this common domain.  This identifies the objective-level condition behind the slow-variation setting without removing the dynamic reference's path dependence.
+The factor-block distribution is time invariant, the exogenous return coefficients follow the E2 phase path through episode $120$, and remain fixed for episodes $121$--$300$.  Appendix~\ref{app:online} shows how this schedule induces $\cV_K=O(K^{1/4})$ whenever the frozen objective is uniformly Lipschitz in the episode-start account variables and return-law coefficients on the analyzed compact domain.  E3 therefore controls the design-side quantities that enter the theorem's variation budget while retaining the dynamic reference's path dependence.
 
 The comparison uses $20$ independent test trajectories.  The online learner and frozen control share the complete path through episode $40$.  Thereafter the online learner continues Algorithm~\ref{alg:drcptpg}, whereas the control freezes $\theta$ but continues to propagate wealth, reference, and holdings under the same slow transition.  We fix $(\gamma,\vartheta)=(0.08,0.05)$ before the E3 test runs and use the growing replication schedule
 \[
 M_k=\max\{4,\lceil\sqrt{k}\rceil\},
 \]
-for which $M_k\ge\sqrt{k}$ and $K^{-1}\sum_{k=1}^{K}M_k^{-1}\le(2\sqrt K-1)/K=O(K^{-1/2})$.  DLR follows \eqref{eq:dynamic-regret} with $w=5$ and $\rho=0.9$.  Two independent evaluation streams estimate both the squared projected residual and the squared norm of the window-averaged projected residual by cross-stream products, preventing the ordinary self-square noise term from entering the evaluation.
+for which $M_k\ge\sqrt{k}$ and $K^{-1}\sum_{k=1}^{K}M_k^{-1}\le(2\sqrt K-1)/K=O(K^{-1/2})$.  DLR follows \eqref{eq:dynamic-regret} with $W=5$ and $\rho=0.9$.  Two independent evaluation streams form cross-products of the projected-residual estimates, both periodwise and after the same exponential vector smoothing used in \eqref{eq:dynamic-window-residual}.  Independence removes the ordinary self-square noise term, while \eqref{eq:cross-stream-residual-error} and \eqref{eq:cross-stream-dlr-error} bound the remaining discrepancies from the population periodwise residual and DLR terms in terms of the evaluation-gradient MSE.
 
 \begin{figure}[H]
     \centering
@@ -138,7 +138,7 @@ for which $M_k\ge\sqrt{k}$ and $K^{-1}\sum_{k=1}^{K}M_k^{-1}\le(2\sqrt K-1)/K=O(
 \paragraph{Results.}
 Continued adaptation changes the accumulation of first-order tracking error, not merely the terminal portfolio outcome.  From episodes $41$--$300$, the online learner accumulates $0.684$ squared projected residual versus $1.427$ for the frozen control, a reduction of about $52\%$; cumulative DLR is $0.687$ versus $1.369$, a reduction of about $50\%$.  The corresponding seed-paired 95\% bootstrap intervals for the differences are $[-0.834,-0.650]$ and $[-0.738,-0.622]$, and by episode $300$ the average DLR is $2.411\times10^{-3}$ online versus $4.685\times10^{-3}$ frozen (\Cref{fig:e3-tracking}).  Because the two policies generate different endogenous wealth, reference, and holding paths after episode $40$, the frozen arm is deliberately a closed-loop control rather than a common-objective optimizer comparison.  The relevant question is whether continued updating keeps each induced system closer to its own contemporaneous first-order condition, which is exactly what the projected residual and DLR measure.
 
-The tail behavior strengthens this interpretation.  After the exogenous return law becomes fixed, episodes $121$--$300$ still contain slow endogenous state variation.  Over this interval, cumulative DLR grows with empirical log--log slope $0.704$ under continued updating but $0.968$ under freezing; squared projected residual shows the same separation, $0.745$ versus $0.959$.  Thus updating changes error accumulation from a nearly linear frozen trajectory toward the sublinear direction predicted by \Cref{cor:dynamic-local-regret,cor:vanishing-tracking}.  The two independent evaluation streams also rule out the ordinary self-square noise term as an explanation for the separation.  E3 therefore supports the mechanism behind the online analysis: repeated first-order corrections absorb a slowly moving target rather than simply benefiting from a favorable realized account path.  Under the optional error-bound condition in \Cref{ass:error-bound}, the same residual control additionally translates into average squared distance to the contemporaneous stationary set through \Cref{cor:stationary-tracking}.
+The tail behavior strengthens this interpretation.  After the exogenous return law becomes fixed, episodes $121$--$300$ still contain slow endogenous state variation.  Over this interval, cumulative DLR grows with empirical log--log slope $0.704$ under continued updating but $0.968$ under freezing; squared projected residual shows the same separation, $0.745$ versus $0.959$.  Thus updating changes error accumulation from a nearly linear frozen trajectory toward the sublinear direction characterized by \Cref{cor:dynamic-local-regret,cor:vanishing-tracking}.  The two independent evaluation streams remove the ordinary self-square noise term, and the residual-map bounds in \eqref{eq:cross-stream-residual-error}--\eqref{eq:cross-stream-dlr-error} control the remaining nonlinear evaluation error through the gradient-estimation MSE.  E3 therefore supports the mechanism behind the online analysis: repeated first-order corrections absorb a slowly moving target rather than simply benefiting from a favorable realized account path.  When the local geometric condition \eqref{eq:error-bound} holds, the same residual control additionally translates into average squared distance to the contemporaneous stationary set through \Cref{cor:stationary-tracking}.
 
 \FloatBarrier
 
@@ -166,15 +166,15 @@ with the $200$-, $300$-, $600$-, and $1500$-day boundaries assigned to the neare
 \[
 \vartheta\in\{0.005,0.01,0.015,0.02,0.03,0.04,0.05,0.06\},
 \qquad
-\gamma L_{\rm diag}\le\vartheta,
-\quad L_{\rm diag}=0.31.
+\gamma c_{\rm scr}\le\vartheta,
+\quad c_{\rm scr}=0.31.
 \]
-Here $L_{\rm diag}$ defines the displayed grid and is distinct from the uniform smoothness constant $L$ in \Cref{thm:online-residual}.  The E3 defaults $(\eta_+,\eta_-)=(0.20,0.05)$, $h=5$, and $(\gamma,\vartheta)=(0.08,0.05)$ are marked but are not re-selected in E4.  Each configuration uses four independent paired trajectories and two independent evaluation streams.
+Here $c_{\rm scr}=0.31$ is a fixed diagnostic screen used only to define the displayed optimizer grid; it is not the uniform smoothness constant $L$ in \Cref{thm:online-residual}.  The E3 defaults $(\eta_+,\eta_-)=(0.20,0.05)$, $h=5$, and $(\gamma,\vartheta)=(0.08,0.05)$ are marked but are not re-selected in E4.  Each configuration uses four independent paired trajectories and two independent evaluation streams.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/e4_robustness.pdf}
-    \caption{Reference-mechanism ablation and robustness of the online-tracking advantage, measured by the configuration-matched post-change DLR ratio $\mathrm{Ratio}_{\mathrm{DLR}}$.  \textbf{A}: structured ablation over the $9\times9$ reference-update grid; $(0,0)$ removes reference adaptation, the diagonal $\eta_+=\eta_-$ removes gain--loss asymmetry while retaining adaptation, and the off-diagonal regions test asymmetric updating.  The black contour marks a ratio of one and the star marks the default rule.  \textbf{B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$.  \textbf{C}: diagnostically screened $(\gamma,\vartheta)$ grid; blank cells lie outside $\gamma L_{\rm diag}\le\vartheta$, and the star marks the E3 default.}
+    \caption{Reference-mechanism ablation and robustness of the online-tracking advantage, measured by the configuration-matched post-change DLR ratio $\mathrm{Ratio}_{\mathrm{DLR}}$.  \textbf{A}: structured ablation over the $9\times9$ reference-update grid; $(0,0)$ removes reference adaptation, the diagonal $\eta_+=\eta_-$ removes gain--loss asymmetry while retaining adaptation, and the off-diagonal regions test asymmetric updating.  The black contour marks a ratio of one and the star marks the default rule.  \textbf{B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$.  \textbf{C}: diagnostically screened $(\gamma,\vartheta)$ grid; blank cells lie outside $\gamma c_{\rm scr}\le\vartheta$, and the star marks the E3 default.}
     \label{fig:e4-robustness}
 \end{figure}
 \FloatBarrier

@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="2249.28pt" height="1206pt" viewBox="0 0 2249.28 1206" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-22T16:41:53.652300</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.6, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 1206 
+L 2249.28 1206 
+L 2249.28 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 125.28 82.8 
+L 684 82.8 
+Q 708.48 82.8 708.48 107.28 
+L 708.48 351.36 
+Q 708.48 375.84 684 375.84 
+L 125.28 375.84 
+Q 100.8 375.84 100.8 351.36 
+L 100.8 107.28 
+Q 100.8 82.8 125.28 82.8 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #f2f3f9; stroke: #2a6796; stroke-width: 3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 844.56 82.8 
+L 1403.28 82.8 
+Q 1427.76 82.8 1427.76 107.28 
+L 1427.76 351.36 
+Q 1427.76 375.84 1403.28 375.84 
+L 844.56 375.84 
+Q 820.08 375.84 820.08 351.36 
+L 820.08 107.28 
+Q 820.08 82.8 844.56 82.8 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #f2f3f9; stroke: #2a6796; stroke-width: 3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 1565.28 82.8 
+L 2124 82.8 
+Q 2148.48 82.8 2148.48 107.28 
+L 2148.48 351.36 
+Q 2148.48 375.84 2124 375.84 
+L 1565.28 375.84 
+Q 1540.8 375.84 1540.8 351.36 
+L 1540.8 107.28 
+Q 1540.8 82.8 1565.28 82.8 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #f5f5fb; stroke: #735095; stroke-width: 3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 346.32 479.52 
+L 970.56 479.52 
+Q 995.04 479.52 995.04 504 
+L 995.04 717.12 
+Q 995.04 741.6 970.56 741.6 
+L 346.32 741.6 
+Q 321.84 741.6 321.84 717.12 
+L 321.84 504 
+Q 321.84 479.52 346.32 479.52 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #edf8f6; stroke: #1f7d75; stroke-width: 3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 1277.28 479.52 
+L 1901.52 479.52 
+Q 1926 479.52 1926 504 
+L 1926 717.12 
+Q 1926 741.6 1901.52 741.6 
+L 1277.28 741.6 
+Q 1252.8 741.6 1252.8 717.12 
+L 1252.8 504 
+Q 1252.8 479.52 1277.28 479.52 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #edf8f6; stroke: #1f7d75; stroke-width: 3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 279.36 846.72 
+L 1968.48 846.72 
+Q 1992.96 846.72 1992.96 871.2 
+L 1992.96 1072.08 
+Q 1992.96 1096.56 1968.48 1096.56 
+L 279.36 1096.56 
+Q 254.88 1096.56 254.88 1072.08 
+L 254.88 871.2 
+Q 254.88 846.72 279.36 846.72 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #fbf4ea; stroke: #af6a16; stroke-width: 3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 690.323643 230.4 
+Q 761.760402 230.4 829.84306 230.4 
+" clip-path="url(#p0a55dc116d)" style="fill: none; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+    <path d="M 821.04306 226 
+L 829.84306 230.4 
+L 821.04306 234.8 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #687d91; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 1411.042742 230.4 
+Q 1482.120523 230.4 1549.844203 230.4 
+" clip-path="url(#p0a55dc116d)" style="fill: none; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+    <path d="M 1541.044203 226 
+L 1549.844203 230.4 
+L 1541.044203 234.8 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #687d91; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 1160.862149 360.509216 
+Q 916.199941 424.800016 674.781706 488.238384 
+" clip-path="url(#p0a55dc116d)" style="fill: none; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+    <path d="M 684.411008 490.257431 
+L 674.781706 488.238384 
+L 682.174525 481.746371 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #687d91; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 1827.033179 360.935376 
+Q 1706.401041 424.799449 1588.733218 487.094179 
+" clip-path="url(#p0a55dc116d)" style="fill: none; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+    <path d="M 1598.569257 486.865434 
+L 1588.733218 487.094179 
+L 1594.451845 479.0881 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #687d91; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 663.666449 732.345941 
+Q 714.599026 794.518811 763.406063 854.097056 
+" clip-path="url(#p0a55dc116d)" style="fill: none; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+    <path d="M 761.233081 844.50132 
+L 763.406063 854.097056 
+L 754.425685 850.078001 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #687d91; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 1582.760303 732.367332 
+Q 1533.601492 794.518114 1486.523439 854.038223 
+" clip-path="url(#p0a55dc116d)" style="fill: none; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+    <path d="M 1495.433616 849.865843 
+L 1486.523439 854.038223 
+L 1488.531641 844.406654 
+z
+" clip-path="url(#p0a55dc116d)" style="fill: #687d91; stroke: #687d91; stroke-width: 3; stroke-linecap: round"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 38px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #2a6796" x="151.2" y="172.485625" transform="rotate(-0 151.2 172.485625)">Behavioral motivation</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="151.2" y="229.546563" transform="rotate(-0 151.2 229.546563)">Adaptive and asymmetric reference</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="151.2" y="265.546563" transform="rotate(-0 151.2 265.546563)">updating</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="151.2" y="312.346563" transform="rotate(-0 151.2 312.346563)">Same wealth can imply different</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="151.2" y="348.346563" transform="rotate(-0 151.2 348.346563)">gain–loss domains</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 31.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #2a6796" x="870.48" y="170.568984" transform="rotate(-0 870.48 170.568984)">Dynamic-reference CPT model</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="870.48" y="236.746562" transform="rotate(-0 870.48 236.746562)">State: wealth, reference, and portfolio</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="870.48" y="287.146562" transform="rotate(-0 870.48 287.146562)">Dirichlet policy for long-only allocation</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 38px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #735095" x="1591.2" y="172.337188" transform="rotate(-0 1591.2 172.337188)">Learning method</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="1591.2" y="229.546563" transform="rotate(-0 1591.2 229.546563)">Unbiased frozen-target gradient</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="1591.2" y="265.546563" transform="rotate(-0 1591.2 265.546563)">estimator</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="1591.2" y="312.346563" transform="rotate(-0 1591.2 312.346563)">Normalized projected online update</text>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 38px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1f7d75" x="374.4" y="564.737188" transform="rotate(-0 374.4 564.737188)">Statistical guarantees</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="374.4" y="618.346563" transform="rotate(-0 374.4 618.346563)">Exact unbiasedness, finite variance, and CLT</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="374.4" y="665.146562" transform="rotate(-0 374.4 665.146562)">Fixed-dimensional minimax</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="374.4" y="701.146562" transform="rotate(-0 374.4 701.146562)">trajectory-budget rate</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 700; font-size: 38px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #1f7d75" x="1305.36" y="564.737188" transform="rotate(-0 1305.36 564.737188)">Online-tracking guarantees</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="1305.36" y="618.346563" transform="rotate(-0 1305.36 618.346563)">Projected residual and dynamic local regret</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="1305.36" y="665.146562" transform="rotate(-0 1305.36 665.146562)">Stationary-set tracking under an error bound</text>
+   </g>
+   <g id="text_20">
+    <text style="font-weight: 700; font-size: 42px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #af6a16" x="349.2" y="922.389375" transform="rotate(-0 349.2 922.389375)">Empirical validation</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="349.2" y="978.346563" transform="rotate(-0 349.2 978.346563)">E1–E4: mechanism, estimator diagnostics, online tracking, and ablation / robustness</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 23px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #33434f" x="349.2" y="1025.146563" transform="rotate(-0 349.2 1025.146563)">E5–E7: chronological A-share replay, held-out investor behavior, and heterogeneous-agent interaction</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p0a55dc116d">
+   <rect x="0" y="0" width="2249.28" height="1206"/>
+  </clipPath>
+ </defs>
+</svg>

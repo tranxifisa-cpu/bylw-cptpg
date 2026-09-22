@@ -34,7 +34,7 @@ The corresponding raw statistic is
  I_{i,\sigma}(y)\,dy.
 \end{equation}
 
-Choose $n\ge2$, activation probability $\varrho\in(0,1]$, and exponent $b\in(1,2)$.  Let
+Choose $n\ge2$, activation probability $p_{\rm act}\in(0,1]$, and exponent $b\in(1,2)$.  Let
 \begin{equation}\label{eq:level-probabilities}
  \nu_\ell=(1-2^{-b})2^{-b(\ell-1)},
  \qquad \ell=1,2,\ldots.
@@ -48,26 +48,26 @@ For $n_\ell=n2^\ell$, compute $U_{n_\ell}^{\rm raw}$ on one batch of $n_\ell$ tr
  +U_{n_{\ell-1}}^{\rm raw,(2)}
  \right).
 \end{equation}
-Let $\mathsf A\sim\operatorname{Bernoulli}(\varrho)$ and, conditional on $\mathsf A=1$, let $\ell^\star\sim\nu$; both are independent of the base sample and the correction batch.  One complete debiased output is
+Let $\mathsf A\sim\operatorname{Bernoulli}(p_{\rm act})$ and, conditional on $\mathsf A=1$, let $\ell^\star\sim\nu$; both are independent of the base sample and the correction batch.  One complete debiased output is
 \begin{equation}\label{eq:debiased-output}
  Z_n^{\db}
  =U_n^{\rm cen}
- +\frac{\mathsf A}{\varrho\nu_{\ell^\star}}D_{n,\ell^\star}^{\rm raw},
+ +\frac{\mathsf A}{p_{\rm act}\nu_{\ell^\star}}D_{n,\ell^\star}^{\rm raw},
 \end{equation}
 with the second term defined as zero when $\mathsf A=0$.
 
 \begin{algorithm}[H]
 \caption{One centered-LOO debiased CPT-gradient output}\label{alg:cloo-rd}
 \begin{algorithmic}[1]
-\Require $(z,r,\widetilde P,\theta)$, $n\ge2$, $\varrho\in(0,1]$, $b\in(1,2)$
+\Require $(z,r,\widetilde P,\theta)$, $n\ge2$, $p_{\rm act}\in(0,1]$, $b\in(1,2)$
 \State $\mathcal X_0\gets\{\mathsf X_i\}_{i=1}^{n}$ i.i.d. from the frozen law at $(z,r,\theta)$; \quad $U_0\gets U_n^{\rm cen}(\mathcal X_0)$
-\State $\mathsf A\sim\operatorname{Bernoulli}(\varrho)$
+\State $\mathsf A\sim\operatorname{Bernoulli}(p_{\rm act})$
 \If{$\mathsf A=0$}
     \State \Return $U_0$
 \EndIf
 \State $\ell\sim\nu$; \quad $\mathcal X_\ell\gets\{\mathsf X_i\}_{i=1}^{n2^\ell}$ i.i.d. from the same frozen law, independently of $\mathcal X_0$
 \State $D\gets U_{n2^\ell}^{\rm raw}(\mathcal X_\ell)-\tfrac12\{U_{n2^{\ell-1}}^{\rm raw}(\mathcal X_\ell^{(1)})+U_{n2^{\ell-1}}^{\rm raw}(\mathcal X_\ell^{(2)})\}$
-\State \Return $Z_n^{\db}=U_0+D/(\varrho\nu_\ell)$
+\State \Return $Z_n^{\db}=U_0+D/(p_{\rm act}\nu_\ell)$
 \end{algorithmic}
 \end{algorithm}
 
@@ -91,14 +91,14 @@ The parameter update is
 \begin{algorithm}[H]
 \caption{Dynamic-reference CPT policy gradient (\DRCPTPG)}\label{alg:drcptpg}
 \begin{algorithmic}[1]
-\Require $\theta_1\in\Theta$, $(X_1,r_1,\omega_0)$, $h,\chi,\gamma,\vartheta$, $(n,\varrho,b)$, $\{M_k\}_{k=1}^{K}$
+\Require $\theta_1\in\Theta$, $(X_1,r_1,\omega_0)$, $h,\chi,\gamma,\vartheta$, $(n,p_{\rm act},b)$, $\{M_k\}_{k=1}^{K}$
 \For{$k=1,\ldots,K$}
     \State fix $(z_k,r_k,\widetilde P_k)$ conditionally on $\cF_k$
     \State generate $Z_{k,1}^{\db},\ldots,Z_{k,M_k}^{\db}$ independently by Algorithm~\ref{alg:cloo-rd}
     \State $\widehat g_k^{\db}\gets M_k^{-1}\sum_{m=1}^{M_k}Z_{k,m}^{\db}$
     \For{$u=t_k,\ldots,t_k+h-1$}
         \State $a_{i,u}\gets\exp(\theta_k^\top q_{i,u})$ for $i=0,\ldots,N$; \quad $\widetilde\omega_u\sim\Dir(a_{0,u},\ldots,a_{N,u})$
-        \State $\omega_u\gets(1-\chi)\omega_{u-1}+\chi\mathsf M_u(\widetilde\omega_u)$
+        \State $\omega_u\gets(1-\chi)\omega_{u-1}+\chi\mathsf M_u(\widetilde\omega_u\mid s_u)$
         \State $X_{u+1}\gets X_u\{1+\omega_u^\top R_{u+1}-c_{\rm tc}\norm{\omega_u-\omega_{u-1}}_1\}$; \quad $r_{u+1}\gets\Phi(r_u,X_{u+1})$
     \EndFor
     \State $\theta_{k+1}\gets\Pi_\Theta\{\theta_k+\gamma\mathsf d(\widehat g_k^{\db})\}$

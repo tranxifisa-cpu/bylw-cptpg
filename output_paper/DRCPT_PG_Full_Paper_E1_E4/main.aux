@@ -1,0 +1,461 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{kahneman1979prospect,tversky1992advances}
+\citation{prashanth2016cumulative}
+\citation{lepel2026policygradients}
+\citation{arkes2008reference}
+\citation{he2019realization,qin2022realization}
+\citation{gao2024multiperiod}
+\citation{an2024portfolio}
+\citation{chen2025xueqiu}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\newlabel{sec:introduction}{{1}{1}{Introduction}{section.1}{}}
+\newlabel{sec:introduction@cref}{{[section][1][]1}{[1][1][]1}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Overall research framework of \ensuremath  {\mathrm  {DRCPT\mbox  {-}PG}}\xspace  . Adaptive reference formation motivates a dynamic-reference \ensuremath  {\mathrm  {CPT}}\xspace  portfolio model. The learning layer combines a debiased frozen-target gradient estimator with normalized projected online updates, leading to statistical and tracking guarantees that are evaluated in controlled, market, and behavioral experiments.}}{3}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:research-framework}{{1}{3}{Overall research framework of \DRCPTPG . Adaptive reference formation motivates a dynamic-reference \CPT portfolio model. The learning layer combines a debiased frozen-target gradient estimator with normalized projected online updates, leading to statistical and tracking guarantees that are evaluated in controlled, market, and behavioral experiments}{figure.caption.1}{}}
+\newlabel{fig:research-framework@cref}{{[figure][1][]1}{[1][2][]3}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Contributions.}{3}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Organization.}{3}{section*.3}\protected@file@percent }
+\citation{kahneman1979prospect,tversky1992advances}
+\citation{prashanth2016cumulative}
+\citation{lepel2026policygradients}
+\citation{luxenberg2024portfolio,cui2025decision,wu2026behavioral}
+\citation{arkes2008reference}
+\citation{he2019realization}
+\citation{qin2022realization}
+\citation{gao2024multiperiod}
+\citation{an2024portfolio}
+\citation{chen2025xueqiu}
+\citation{aydore2019dynamic}
+\citation{hallak2025sound}
+\citation{lan2026projected}
+\citation{feng2023nonstationary}
+\citation{lepel2026policygradients}
+\citation{rhee2015unbiased}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work and Positioning}{4}{section.2}\protected@file@percent }
+\newlabel{sec:related}{{2}{4}{Related Work and Positioning}{section.2}{}}
+\newlabel{sec:related@cref}{{[section][2][]2}{[1][4][]4}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{CPT optimization and reinforcement learning.}{4}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Adaptive references, path dependence, and investor behavior.}{4}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Nonstationary and nonconvex online optimization.}{4}{section*.6}\protected@file@percent }
+\citation{andre2020dirichlet}
+\citation{liu2024dynamicdatasets}
+\citation{hanauer2024factor}
+\citation{liu2025riskpreferences}
+\citation{takayanagi2025financialadvisors}
+\@writefile{toc}{\contentsline {paragraph}{Debiasing and statistical guarantees for the gradient oracle.}{5}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Portfolio and human-facing external validity.}{5}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Problem Setup}{5}{section.3}\protected@file@percent }
+\newlabel{sec:setup}{{3}{5}{Problem Setup}{section.3}{}}
+\newlabel{sec:setup@cref}{{[section][3][]3}{[1][5][]5}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Nonstationary episodic portfolio process}{5}{subsection.3.1}\protected@file@percent }
+\newlabel{eq:state-action}{{1}{5}{Nonstationary episodic portfolio process}{equation.1}{}}
+\newlabel{eq:state-action@cref}{{[equation][1][]1}{[1][5][]5}{}{}{}}
+\newlabel{eq:wealth-update}{{2}{5}{Nonstationary episodic portfolio process}{equation.2}{}}
+\newlabel{eq:wealth-update@cref}{{[equation][2][]2}{[1][5][]5}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Dynamic reference and terminal relative outcome}{5}{subsection.3.2}\protected@file@percent }
+\newlabel{eq:reference-update}{{3}{5}{Dynamic reference and terminal relative outcome}{equation.3}{}}
+\newlabel{eq:reference-update@cref}{{[equation][3][]3}{[1][5][]5}{}{}{}}
+\newlabel{eq:start-context}{{4}{6}{Dynamic reference and terminal relative outcome}{equation.4}{}}
+\newlabel{eq:start-context@cref}{{[equation][4][]4}{[1][5][]6}{}{}{}}
+\newlabel{eq:relative-outcome}{{5}{6}{Dynamic reference and terminal relative outcome}{equation.5}{}}
+\newlabel{eq:relative-outcome@cref}{{[equation][5][]5}{[1][5][]6}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Dirichlet portfolio policy}{6}{subsection.3.3}\protected@file@percent }
+\newlabel{eq:dirichlet-policy}{{6}{6}{Dirichlet portfolio policy}{equation.6}{}}
+\newlabel{eq:dirichlet-policy@cref}{{[equation][6][]6}{[1][6][]6}{}{}{}}
+\newlabel{eq:action-map}{{7}{6}{Dirichlet portfolio policy}{equation.7}{}}
+\newlabel{eq:action-map@cref}{{[equation][7][]7}{[1][6][]6}{}{}{}}
+\newlabel{eq:trajectory-score}{{8}{6}{Dirichlet portfolio policy}{equation.8}{}}
+\newlabel{eq:trajectory-score@cref}{{[equation][8][]8}{[1][6][]6}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Regularized CPT objective}{6}{subsection.3.4}\protected@file@percent }
+\newlabel{eq:value-functions}{{9}{6}{Regularized CPT objective}{equation.9}{}}
+\newlabel{eq:value-functions@cref}{{[equation][9][]9}{[1][6][]6}{}{}{}}
+\newlabel{eq:normalized-weight}{{10}{6}{Regularized CPT objective}{equation.10}{}}
+\newlabel{eq:normalized-weight@cref}{{[equation][10][]10}{[1][6][]6}{}{}{}}
+\newlabel{eq:generic-cpt-objective}{{11}{6}{Regularized CPT objective}{equation.11}{}}
+\newlabel{eq:generic-cpt-objective@cref}{{[equation][11][]11}{[1][6][]6}{}{}{}}
+\newlabel{eq:true-sim-objectives}{{12}{6}{Regularized CPT objective}{equation.12}{}}
+\newlabel{eq:true-sim-objectives@cref}{{[equation][12][]12}{[1][6][]6}{}{}{}}
+\newlabel{eq:true-sim-gradients}{{13}{6}{Regularized CPT objective}{equation.13}{}}
+\newlabel{eq:true-sim-gradients@cref}{{[equation][13][]13}{[1][6][]6}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Online approximation and variation budgets}{7}{subsection.3.5}\protected@file@percent }
+\newlabel{eq:simulator-gradient-error}{{14}{7}{Online approximation and variation budgets}{equation.14}{}}
+\newlabel{eq:simulator-gradient-error@cref}{{[equation][14][]14}{[1][6][]7}{}{}{}}
+\newlabel{eq:objective-variation}{{15}{7}{Online approximation and variation budgets}{equation.15}{}}
+\newlabel{eq:objective-variation@cref}{{[equation][15][]15}{[1][7][]7}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Projected residual and dynamic local regret}{7}{subsection.3.6}\protected@file@percent }
+\newlabel{eq:normalized-direction}{{16}{7}{Projected residual and dynamic local regret}{equation.16}{}}
+\newlabel{eq:normalized-direction@cref}{{[equation][16][]16}{[1][7][]7}{}{}{}}
+\newlabel{eq:projected-residual}{{17}{7}{Projected residual and dynamic local regret}{equation.17}{}}
+\newlabel{eq:projected-residual@cref}{{[equation][17][]17}{[1][7][]7}{}{}{}}
+\newlabel{eq:stationary-set}{{18}{7}{Projected residual and dynamic local regret}{equation.18}{}}
+\newlabel{eq:stationary-set@cref}{{[equation][18][]18}{[1][7][]7}{}{}{}}
+\newlabel{eq:periodwise-residual}{{19}{7}{Projected residual and dynamic local regret}{equation.19}{}}
+\newlabel{eq:periodwise-residual@cref}{{[equation][19][]19}{[1][7][]7}{}{}{}}
+\newlabel{eq:dynamic-window-residual}{{20}{7}{Projected residual and dynamic local regret}{equation.20}{}}
+\newlabel{eq:dynamic-window-residual@cref}{{[equation][20][]20}{[1][7][]7}{}{}{}}
+\newlabel{eq:dynamic-regret}{{21}{7}{Projected residual and dynamic local regret}{equation.21}{}}
+\newlabel{eq:dynamic-regret@cref}{{[equation][21][]21}{[1][7][]7}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}Assumptions}{8}{subsection.3.7}\protected@file@percent }
+\newlabel{sec:assumptions}{{3.7}{8}{Assumptions}{subsection.3.7}{}}
+\newlabel{sec:assumptions@cref}{{[subsection][7][3]3.7}{[1][7][]8}{}{}{}}
+\newlabel{ass:trajectory}{{3.1}{8}{Compact policy and trajectory domain}{theorem.3.1}{}}
+\newlabel{ass:trajectory@cref}{{[theorem][1][3]3.1}{[1][7][]8}{}{}{}}
+\newlabel{eq:primitive-bounds}{{22}{8}{Compact policy and trajectory domain}{equation.22}{}}
+\newlabel{eq:primitive-bounds@cref}{{[equation][22][]22}{[1][8][]8}{}{}{}}
+\newlabel{ass:likelihood}{{3.2}{8}{Policy-mediated likelihood structure}{theorem.3.2}{}}
+\newlabel{ass:likelihood@cref}{{[theorem][2][3]3.2}{[1][8][]8}{}{}{}}
+\newlabel{ass:cpt-regularity}{{3.3}{8}{Smooth regularized CPT weighting}{theorem.3.3}{}}
+\newlabel{ass:cpt-regularity@cref}{{[theorem][3][3]3.3}{[1][8][]8}{}{}{}}
+\newlabel{eq:weight-derivative-bounds}{{23}{8}{Smooth regularized CPT weighting}{equation.23}{}}
+\newlabel{eq:weight-derivative-bounds@cref}{{[equation][23][]23}{[1][8][]8}{}{}{}}
+\newlabel{eq:gradient-smoothness-summary}{{24}{8}{Assumptions}{equation.24}{}}
+\newlabel{eq:gradient-smoothness-summary@cref}{{[equation][24][]24}{[1][8][]8}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Algorithm}{9}{section.4}\protected@file@percent }
+\newlabel{sec:algorithm}{{4}{9}{Algorithm}{section.4}{}}
+\newlabel{sec:algorithm@cref}{{[section][4][]4}{[1][8][]9}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Centered leave-one-out base and raw randomized correction}{9}{subsection.4.1}\protected@file@percent }
+\newlabel{eq:trajectory-summary}{{25}{9}{Centered leave-one-out base and raw randomized correction}{equation.25}{}}
+\newlabel{eq:trajectory-summary@cref}{{[equation][25][]25}{[1][8][]9}{}{}{}}
+\newlabel{eq:loo-survival}{{26}{9}{Centered leave-one-out base and raw randomized correction}{equation.26}{}}
+\newlabel{eq:loo-survival@cref}{{[equation][26][]26}{[1][9][]9}{}{}{}}
+\newlabel{eq:centered-loo}{{27}{9}{Centered leave-one-out base and raw randomized correction}{equation.27}{}}
+\newlabel{eq:centered-loo@cref}{{[equation][27][]27}{[1][9][]9}{}{}{}}
+\newlabel{eq:raw-loo}{{28}{9}{Centered leave-one-out base and raw randomized correction}{equation.28}{}}
+\newlabel{eq:raw-loo@cref}{{[equation][28][]28}{[1][9][]9}{}{}{}}
+\newlabel{eq:level-probabilities}{{29}{9}{Centered leave-one-out base and raw randomized correction}{equation.29}{}}
+\newlabel{eq:level-probabilities@cref}{{[equation][29][]29}{[1][9][]9}{}{}{}}
+\newlabel{eq:raw-level-difference}{{30}{9}{Centered leave-one-out base and raw randomized correction}{equation.30}{}}
+\newlabel{eq:raw-level-difference@cref}{{[equation][30][]30}{[1][9][]9}{}{}{}}
+\newlabel{eq:debiased-output}{{31}{9}{Centered leave-one-out base and raw randomized correction}{equation.31}{}}
+\newlabel{eq:debiased-output@cref}{{[equation][31][]31}{[1][9][]9}{}{}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces One centered-LOO debiased CPT-gradient output}}{9}{algorithm.1}\protected@file@percent }
+\newlabel{alg:cloo-rd}{{1}{9}{One centered-LOO debiased CPT-gradient output}{algorithm.1}{}}
+\newlabel{alg:cloo-rd@cref}{{[algorithm][1][]1}{[1][9][]9}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Online update}{10}{subsection.4.2}\protected@file@percent }
+\newlabel{eq:gradient-average}{{32}{10}{Online update}{equation.32}{}}
+\newlabel{eq:gradient-average@cref}{{[equation][32][]32}{[1][10][]10}{}{}{}}
+\newlabel{eq:parameter-update}{{33}{10}{Online update}{equation.33}{}}
+\newlabel{eq:parameter-update@cref}{{[equation][33][]33}{[1][10][]10}{}{}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Dynamic-reference CPT policy gradient (\ensuremath  {\mathrm  {DRCPT\mbox  {-}PG}}\xspace  )}}{10}{algorithm.2}\protected@file@percent }
+\newlabel{alg:drcptpg}{{2}{10}{Dynamic-reference CPT policy gradient (\DRCPTPG )}{algorithm.2}{}}
+\newlabel{alg:drcptpg@cref}{{[algorithm][2][]2}{[1][10][]10}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Main Results}{10}{section.5}\protected@file@percent }
+\newlabel{sec:results}{{5}{10}{Main Results}{section.5}{}}
+\newlabel{sec:results@cref}{{[section][5][]5}{[1][10][]10}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Reference dependence}{10}{subsection.5.1}\protected@file@percent }
+\newlabel{prop:path-dependence}{{5.1}{10}{Same terminal wealth, different CPT value}{theorem.5.1}{}}
+\newlabel{prop:path-dependence@cref}{{[theorem][1][5]5.1}{[1][10][]10}{}{}{}}
+\newlabel{eq:path-reference-gap}{{34}{10}{Same terminal wealth, different CPT value}{equation.34}{}}
+\newlabel{eq:path-reference-gap@cref}{{[equation][34][]34}{[1][10][]10}{}{}{}}
+\newlabel{prop:reference-sensitivity}{{5.2}{11}{Reference sensitivity}{theorem.5.2}{}}
+\newlabel{prop:reference-sensitivity@cref}{{[theorem][2][5]5.2}{[1][11][]11}{}{}{}}
+\newlabel{eq:reference-constants}{{35}{11}{Reference sensitivity}{equation.35}{}}
+\newlabel{eq:reference-constants@cref}{{[equation][35][]35}{[1][11][]11}{}{}{}}
+\newlabel{eq:reference-contraction}{{36}{11}{Reference sensitivity}{equation.36}{}}
+\newlabel{eq:reference-contraction@cref}{{[equation][36][]36}{[1][11][]11}{}{}{}}
+\newlabel{eq:reference-value-sensitivity}{{37}{11}{Reference sensitivity}{equation.37}{}}
+\newlabel{eq:reference-value-sensitivity@cref}{{[equation][37][]37}{[1][11][]11}{}{}{}}
+\newlabel{eq:variation-decomposition}{{38}{11}{Reference sensitivity}{equation.38}{}}
+\newlabel{eq:variation-decomposition@cref}{{[equation][38][]38}{[1][11][]11}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Exact frozen-target gradient estimation}{11}{subsection.5.2}\protected@file@percent }
+\newlabel{thm:gradient-identity}{{5.3}{11}{Regularized CPT score-gradient identity}{theorem.5.3}{}}
+\newlabel{thm:gradient-identity@cref}{{[theorem][3][5]5.3}{[1][11][]11}{}{}{}}
+\newlabel{eq:cpt-multiplier}{{39}{11}{Regularized CPT score-gradient identity}{equation.39}{}}
+\newlabel{eq:cpt-multiplier@cref}{{[equation][39][]39}{[1][11][]11}{}{}{}}
+\newlabel{eq:score-gradient-identity}{{40}{11}{Regularized CPT score-gradient identity}{equation.40}{}}
+\newlabel{eq:score-gradient-identity@cref}{{[equation][40][]40}{[1][11][]11}{}{}{}}
+\newlabel{thm:estimator}{{5.4}{11}{Exact unbiasedness, finite variance, and finite expected cost}{theorem.5.4}{}}
+\newlabel{thm:estimator@cref}{{[theorem][4][5]5.4}{[1][11][]11}{}{}{}}
+\newlabel{eq:level-series-constants}{{41}{11}{Exact unbiasedness, finite variance, and finite expected cost}{equation.41}{}}
+\newlabel{eq:level-series-constants@cref}{{[equation][41][]41}{[1][11][]11}{}{}{}}
+\newlabel{eq:estimator-unbiased}{{42}{11}{Exact unbiasedness, finite variance, and finite expected cost}{equation.42}{}}
+\newlabel{eq:estimator-unbiased@cref}{{[equation][42][]42}{[1][11][]11}{}{}{}}
+\newlabel{eq:single-output-variance}{{43}{12}{Exact unbiasedness, finite variance, and finite expected cost}{equation.43}{}}
+\newlabel{eq:single-output-variance@cref}{{[equation][43][]43}{[1][11][]12}{}{}{}}
+\newlabel{eq:expected-estimator-cost}{{44}{12}{Exact unbiasedness, finite variance, and finite expected cost}{equation.44}{}}
+\newlabel{eq:expected-estimator-cost@cref}{{[equation][44][]44}{[1][11][]12}{}{}{}}
+\newlabel{eq:estimator-mse}{{45}{12}{Exact unbiasedness, finite variance, and finite expected cost}{equation.45}{}}
+\newlabel{eq:estimator-mse@cref}{{[equation][45][]45}{[1][12][]12}{}{}{}}
+\newlabel{thm:clt}{{5.5}{12}{Fixed-target asymptotic normality}{theorem.5.5}{}}
+\newlabel{thm:clt@cref}{{[theorem][5][5]5.5}{[1][12][]12}{}{}{}}
+\newlabel{eq:clt}{{46}{12}{Fixed-target asymptotic normality}{equation.46}{}}
+\newlabel{eq:clt@cref}{{[equation][46][]46}{[1][12][]12}{}{}{}}
+\newlabel{eq:studentized-clt}{{47}{12}{Fixed-target asymptotic normality}{equation.47}{}}
+\newlabel{eq:studentized-clt@cref}{{[equation][47][]47}{[1][12][]12}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Online first-order tracking under a moving CPT objective}{12}{subsection.5.3}\protected@file@percent }
+\newlabel{thm:online-residual}{{5.6}{12}{Average expected squared projected residual bound}{theorem.5.6}{}}
+\newlabel{thm:online-residual@cref}{{[theorem][6][5]5.6}{[1][12][]12}{}{}{}}
+\newlabel{eq:true-gradient-mse}{{48}{12}{Average expected squared projected residual bound}{equation.48}{}}
+\newlabel{eq:true-gradient-mse@cref}{{[equation][48][]48}{[1][12][]12}{}{}{}}
+\newlabel{eq:online-residual-bound}{{49}{12}{Average expected squared projected residual bound}{equation.49}{}}
+\newlabel{eq:online-residual-bound@cref}{{[equation][49][]49}{[1][12][]12}{}{}{}}
+\newlabel{cor:dynamic-local-regret}{{5.7}{12}{Dynamic local regret}{theorem.5.7}{}}
+\newlabel{cor:dynamic-local-regret@cref}{{[theorem][7][5]5.7}{[1][12][]12}{}{}{}}
+\newlabel{eq:dynamic-local-regret-bound}{{50}{12}{Dynamic local regret}{equation.50}{}}
+\newlabel{eq:dynamic-local-regret-bound@cref}{{[equation][50][]50}{[1][12][]12}{}{}{}}
+\newlabel{eq:average-dynamic-local-regret-bound}{{51}{12}{Dynamic local regret}{equation.51}{}}
+\newlabel{eq:average-dynamic-local-regret-bound@cref}{{[equation][51][]51}{[1][12][]12}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Stationary-set interpretation.}{13}{section*.9}\protected@file@percent }
+\newlabel{eq:error-bound}{{52}{13}{Stationary-set interpretation}{equation.52}{}}
+\newlabel{eq:error-bound@cref}{{[equation][52][]52}{[1][12][]13}{}{}{}}
+\newlabel{cor:stationary-tracking}{{5.8}{13}{Moving stationary-set tracking}{theorem.5.8}{}}
+\newlabel{cor:stationary-tracking@cref}{{[theorem][8][5]5.8}{[1][13][]13}{}{}{}}
+\newlabel{eq:stationary-tracking}{{53}{13}{Moving stationary-set tracking}{equation.53}{}}
+\newlabel{eq:stationary-tracking@cref}{{[equation][53][]53}{[1][13][]13}{}{}{}}
+\newlabel{cor:vanishing-tracking}{{5.9}{13}{Vanishing average expected squared projected residual and DLR}{theorem.5.9}{}}
+\newlabel{cor:vanishing-tracking@cref}{{[theorem][9][5]5.9}{[1][13][]13}{}{}{}}
+\newlabel{eq:vanishing-conditions}{{54}{13}{Vanishing average expected squared projected residual and DLR}{equation.54}{}}
+\newlabel{eq:vanishing-conditions@cref}{{[equation][54][]54}{[1][13][]13}{}{}{}}
+\newlabel{eq:vanishing-conclusion}{{55}{13}{Vanishing average expected squared projected residual and DLR}{equation.55}{}}
+\newlabel{eq:vanishing-conclusion@cref}{{[equation][55][]55}{[1][13][]13}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Fixed-dimension minimax information rate}{13}{subsection.5.4}\protected@file@percent }
+\newlabel{def:minimax-oracle}{{5.10}{13}{Complete-trajectory oracle experiment}{theorem.5.10}{}}
+\newlabel{def:minimax-oracle@cref}{{[theorem][10][5]5.10}{[1][13][]13}{}{}{}}
+\newlabel{eq:minimax-budget}{{56}{13}{Complete-trajectory oracle experiment}{equation.56}{}}
+\newlabel{eq:minimax-budget@cref}{{[equation][56][]56}{[1][13][]13}{}{}{}}
+\newlabel{eq:minimax-risk}{{57}{13}{Fixed-dimension minimax information rate}{equation.57}{}}
+\newlabel{eq:minimax-risk@cref}{{[equation][57][]57}{[1][13][]13}{}{}{}}
+\newlabel{thm:minimax}{{5.11}{14}{Minimax-optimal fixed-dimension trajectory-budget rate}{theorem.5.11}{}}
+\newlabel{thm:minimax@cref}{{[theorem][11][5]5.11}{[1][13][]14}{}{}{}}
+\newlabel{eq:minimax-rate}{{58}{14}{Minimax-optimal fixed-dimension trajectory-budget rate}{equation.58}{}}
+\newlabel{eq:minimax-rate@cref}{{[equation][58][]58}{[1][13][]14}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Experimental Design and Evidence}{14}{section.6}\protected@file@percent }
+\newlabel{sec:experiments}{{6}{14}{Experimental Design and Evidence}{section.6}{}}
+\newlabel{sec:experiments@cref}{{[section][6][]6}{[1][14][]14}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Experimental roadmap}{14}{subsection.6.1}\protected@file@percent }
+\newlabel{sec:exp-roadmap}{{6.1}{14}{Experimental roadmap}{subsection.6.1}{}}
+\newlabel{sec:exp-roadmap@cref}{{[subsection][1][6]6.1}{[1][14][]14}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Empirical roadmap of the paper. E1--E4 establish path-dependent reference formation, finite-sample gradient estimation, online first-order tracking, and ablation/robustness in controlled settings. E5--E7 then extend the evaluation to chronological A-share performance, held-out investor behavior, and heterogeneous-agent interaction.}}{14}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:evidence-map}{{2}{14}{Empirical roadmap of the paper. E1--E4 establish path-dependent reference formation, finite-sample gradient estimation, online first-order tracking, and ablation/robustness in controlled settings. E5--E7 then extend the evaluation to chronological A-share performance, held-out investor behavior, and heterogeneous-agent interaction}{figure.caption.10}{}}
+\newlabel{fig:evidence-map@cref}{{[figure][2][]2}{[1][14][]14}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}E1: Path dependence and portfolio choice}{15}{subsection.6.2}\protected@file@percent }
+\newlabel{sec:e1}{{6.2}{15}{E1: Path dependence and portfolio choice}{subsection.6.2}{}}
+\newlabel{sec:e1@cref}{{[subsection][2][6]6.2}{[1][14][]15}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Design.}{15}{section*.11}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Path dependence changes both the perceived domain and the portfolio ranking. \textbf  {A}: The two histories end at the same wealth but generate different asymmetric reference points. \textbf  {B}: The asymmetric rule places the rise--fall history below its reference and the fall--rise history above its reference; the symmetric and static rules provide mechanism controls. \textbf  {C--D}: Exact CPT values of the two feasible executed allocations as the probability $p$ of a $+4\%$ risky return varies. At $p=0.7$, the matched rise--fall account prefers $44\%$ risky whereas the matched fall--rise account prefers $56\%$ risky.}}{15}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:e1-path-choice}{{3}{15}{Path dependence changes both the perceived domain and the portfolio ranking. \textbf {A}: The two histories end at the same wealth but generate different asymmetric reference points. \textbf {B}: The asymmetric rule places the rise--fall history below its reference and the fall--rise history above its reference; the symmetric and static rules provide mechanism controls. \textbf {C--D}: Exact CPT values of the two feasible executed allocations as the probability $p$ of a $+4\%$ risky return varies. At $p=0.7$, the matched rise--fall account prefers $44\%$ risky whereas the matched fall--rise account prefers $56\%$ risky}{figure.caption.12}{}}
+\newlabel{fig:e1-path-choice@cref}{{[figure][3][]3}{[1][15][]15}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces E1 exact mechanism summary at $p=0.7$.}}{16}{table.caption.13}\protected@file@percent }
+\newlabel{tab:e1-summary}{{1}{16}{E1 exact mechanism summary at $p=0.7$}{table.caption.13}{}}
+\newlabel{tab:e1-summary@cref}{{[table][1][]1}{[1][15][]16}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Results.}{16}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}E2: Finite-sample gradient estimation}{16}{subsection.6.3}\protected@file@percent }
+\newlabel{sec:e2}{{6.3}{16}{E2: Finite-sample gradient estimation}{subsection.6.3}{}}
+\newlabel{sec:e2@cref}{{[subsection][3][6]6.3}{[1][16][]16}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Shared semi-synthetic setup.}{16}{section*.15}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Finite-sample gradient estimation in the shared semi-synthetic setup. \textbf  {A}: coordinate bias at the stable target. \textbf  {B}: trace covariance of averages of $M$ independent complete estimator outputs; the dotted reference has slope $-1$. \textbf  {C}: studentized normal-quantile diagnostic at $M=64$. \textbf  {D}: full-gradient MSE versus expected trajectory budget for $d\in \{2,4,8,10\}$; the dotted reference has slope $-1$. The corresponding unbiasedness, asymptotic normality, and fixed-dimensional minimax statements are given in \Cref  {thm:estimator,thm:clt,thm:minimax}.}}{17}{figure.caption.16}\protected@file@percent }
+\newlabel{fig:e2-estimator}{{4}{17}{Finite-sample gradient estimation in the shared semi-synthetic setup. \textbf {A}: coordinate bias at the stable target. \textbf {B}: trace covariance of averages of $M$ independent complete estimator outputs; the dotted reference has slope $-1$. \textbf {C}: studentized normal-quantile diagnostic at $M=64$. \textbf {D}: full-gradient MSE versus expected trajectory budget for $d\in \{2,4,8,10\}$; the dotted reference has slope $-1$. The corresponding unbiasedness, asymptotic normality, and fixed-dimensional minimax statements are given in \Cref {thm:estimator,thm:clt,thm:minimax}}{figure.caption.16}{}}
+\newlabel{fig:e2-estimator@cref}{{[figure][4][]4}{[1][16][]17}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Full-gradient MSE at expected trajectory budget $\mathsf  B=512$ across the four fixed targets. MSE entries are in units of $10^{-6}$. The last column gives a paired 95\% bootstrap interval for $\mathrm  {MSE}_{\rm  prop}-\mathrm  {MSE}_{\rm  v5}$ in the same units.}}{17}{table.caption.17}\protected@file@percent }
+\newlabel{tab:e2-period-mse}{{2}{17}{Full-gradient MSE at expected trajectory budget $\mathsf B=512$ across the four fixed targets. MSE entries are in units of $10^{-6}$. The last column gives a paired 95\% bootstrap interval for $\mathrm {MSE}_{\rm prop}-\mathrm {MSE}_{\rm v5}$ in the same units}{table.caption.17}{}}
+\newlabel{tab:e2-period-mse@cref}{{[table][2][]2}{[1][17][]17}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Results.}{17}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}E3: Continuous slow-variation online tracking}{18}{subsection.6.4}\protected@file@percent }
+\newlabel{sec:e3}{{6.4}{18}{E3: Continuous slow-variation online tracking}{subsection.6.4}{}}
+\newlabel{sec:e3@cref}{{[subsection][4][6]6.4}{[1][18][]18}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Design.}{18}{section*.19}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Continuous online tracking under slow variation. \textbf  {A--B}: cumulative squared projected residual and its average. \textbf  {C--D}: cumulative and average DLR. The two methods share the same trajectory through episode $40$; thereafter the frozen control holds $\theta $ fixed while both methods continue to propagate their own wealth, reference, and holdings. Dotted lines mark the abrupt change, the start of gradual drift, and the point after which the exogenous return law is fixed. Curves are means over $20$ independent trajectories and shaded bands are $1.96$ standard errors.}}{19}{figure.caption.20}\protected@file@percent }
+\newlabel{fig:e3-tracking}{{5}{19}{Continuous online tracking under slow variation. \textbf {A--B}: cumulative squared projected residual and its average. \textbf {C--D}: cumulative and average DLR. The two methods share the same trajectory through episode $40$; thereafter the frozen control holds $\theta $ fixed while both methods continue to propagate their own wealth, reference, and holdings. Dotted lines mark the abrupt change, the start of gradual drift, and the point after which the exogenous return law is fixed. Curves are means over $20$ independent trajectories and shaded bands are $1.96$ standard errors}{figure.caption.20}{}}
+\newlabel{fig:e3-tracking@cref}{{[figure][5][]5}{[1][18][]19}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Results.}{19}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}E4: Reference-mechanism ablation and robustness of online tracking}{20}{subsection.6.5}\protected@file@percent }
+\newlabel{sec:e4}{{6.5}{20}{E4: Reference-mechanism ablation and robustness of online tracking}{subsection.6.5}{}}
+\newlabel{sec:e4@cref}{{[subsection][5][6]6.5}{[1][20][]20}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Design.}{20}{section*.22}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Reference-mechanism ablation and robustness of the online-tracking advantage, measured by the configuration-matched post-change DLR ratio $\mathrm  {Ratio}_{\mathrm  {DLR}}$. \textbf  {A}: structured ablation over the $9\times 9$ reference-update grid; $(0,0)$ removes reference adaptation, the diagonal $\eta _+=\eta _-$ removes gain--loss asymmetry while retaining adaptation, and the off-diagonal regions test asymmetric updating. The black contour marks a ratio of one and the star marks the default rule. \textbf  {B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$. \textbf  {C}: diagnostically screened $(\gamma ,\vartheta )$ grid; blank cells lie outside $\gamma c_{\rm  scr}\le \vartheta $, and the star marks the E3 default.}}{21}{figure.caption.23}\protected@file@percent }
+\newlabel{fig:e4-robustness}{{6}{21}{Reference-mechanism ablation and robustness of the online-tracking advantage, measured by the configuration-matched post-change DLR ratio $\mathrm {Ratio}_{\mathrm {DLR}}$. \textbf {A}: structured ablation over the $9\times 9$ reference-update grid; $(0,0)$ removes reference adaptation, the diagonal $\eta _+=\eta _-$ removes gain--loss asymmetry while retaining adaptation, and the off-diagonal regions test asymmetric updating. The black contour marks a ratio of one and the star marks the default rule. \textbf {B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$. \textbf {C}: diagnostically screened $(\gamma ,\vartheta )$ grid; blank cells lie outside $\gamma c_{\rm scr}\le \vartheta $, and the star marks the E3 default}{figure.caption.23}{}}
+\newlabel{fig:e4-robustness@cref}{{[figure][6][]6}{[1][20][]21}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Results.}{21}{section*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}E5: Real-market portfolio evaluation}{21}{subsection.6.6}\protected@file@percent }
+\newlabel{sec:e5}{{6.6}{21}{E5: Real-market portfolio evaluation}{subsection.6.6}{}}
+\newlabel{sec:e5@cref}{{[subsection][6][6]6.6}{[1][21][]21}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Design.}{21}{section*.25}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces E5 chronological A-share evaluation. \textbf  {A}: median normalized wealth across the ten policy seeds, with seed dispersion bands. \textbf  {B}: drawdown and recovery over the same replay, with market-stage annotations used only for visualization. \textbf  {C}: terminal wealth versus maximum drawdown; bubble size represents turnover. \textbf  {D}: mean turnover and cumulative transaction cost. All five methods share the same fixed asset universe, point-in-time information set, transaction-cost rule, and stochastic execution protocol.}}{22}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:e5-market}{{7}{22}{E5 chronological A-share evaluation. \textbf {A}: median normalized wealth across the ten policy seeds, with seed dispersion bands. \textbf {B}: drawdown and recovery over the same replay, with market-stage annotations used only for visualization. \textbf {C}: terminal wealth versus maximum drawdown; bubble size represents turnover. \textbf {D}: mean turnover and cumulative transaction cost. All five methods share the same fixed asset universe, point-in-time information set, transaction-cost rule, and stochastic execution protocol}{figure.caption.26}{}}
+\newlabel{fig:e5-market@cref}{{[figure][7][]7}{[1][22][]22}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces E5 real-market summary. Entries are means across the ten policy seeds.}}{23}{table.caption.27}\protected@file@percent }
+\newlabel{tab:e5-market}{{3}{23}{E5 real-market summary. Entries are means across the ten policy seeds}{table.caption.27}{}}
+\newlabel{tab:e5-market@cref}{{[table][3][]3}{[1][22][]23}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Results.}{23}{section*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.7}E6: Investor behavior prediction}{23}{subsection.6.7}\protected@file@percent }
+\newlabel{sec:e6}{{6.7}{23}{E6: Investor behavior prediction}{subsection.6.7}{}}
+\newlabel{sec:e6@cref}{{[subsection][7][6]6.7}{[1][23][]23}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Design.}{23}{section*.29}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces E6 held-out behavioral alignment. \textbf  {A}: paired-bootstrap improvements in out-of-sample log loss and Brier score relative to the no-reference model. \textbf  {B}: observed reduction rates in gain and loss states defined separately by each reference. \textbf  {C}: reference-conditioned gain-minus-loss reduction gap. \textbf  {D}: log-loss improvement over the no-reference model across pre-test investor-history strata. Error bars in A--C are paired investor-cluster 95\% bootstrap intervals.}}{24}{figure.caption.30}\protected@file@percent }
+\newlabel{fig:e6-behavior}{{8}{24}{E6 held-out behavioral alignment. \textbf {A}: paired-bootstrap improvements in out-of-sample log loss and Brier score relative to the no-reference model. \textbf {B}: observed reduction rates in gain and loss states defined separately by each reference. \textbf {C}: reference-conditioned gain-minus-loss reduction gap. \textbf {D}: log-loss improvement over the no-reference model across pre-test investor-history strata. Error bars in A--C are paired investor-cluster 95\% bootstrap intervals}{figure.caption.30}{}}
+\newlabel{fig:e6-behavior@cref}{{[figure][8][]8}{[1][23][]24}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Results.}{24}{section*.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.8}E7: Simulated heterogeneous-investor interaction}{25}{subsection.6.8}\protected@file@percent }
+\newlabel{sec:e7}{{6.8}{25}{E7: Simulated heterogeneous-investor interaction}{subsection.6.8}{}}
+\newlabel{sec:e7@cref}{{[subsection][8][6]6.8}{[1][24][]25}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Design.}{25}{section*.32}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces E7 calibrated heterogeneous-agent interaction. \textbf  {A}: standardized profiles of the four investor types. \textbf  {B}: simulated episode-level adoption by type and method. \textbf  {C}: five-day conditional satisfaction after adoption. \textbf  {D}: method-level adoption--satisfaction plane; bubble size encodes mean recommendation compatibility. Adoption is decided before episode returns are revealed, and satisfaction is evaluated against a no-rebalance counterfactual with its own reference path.}}{25}{figure.caption.33}\protected@file@percent }
+\newlabel{fig:e7-agents}{{9}{25}{E7 calibrated heterogeneous-agent interaction. \textbf {A}: standardized profiles of the four investor types. \textbf {B}: simulated episode-level adoption by type and method. \textbf {C}: five-day conditional satisfaction after adoption. \textbf {D}: method-level adoption--satisfaction plane; bubble size encodes mean recommendation compatibility. Adoption is decided before episode returns are revealed, and satisfaction is evaluated against a no-rebalance counterfactual with its own reference path}{figure.caption.33}{}}
+\newlabel{fig:e7-agents@cref}{{[figure][9][]9}{[1][25][]25}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Results.}{26}{section*.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{26}{section.7}\protected@file@percent }
+\newlabel{sec:discussion}{{7}{26}{Discussion}{section.7}{}}
+\newlabel{sec:discussion@cref}{{[section][7][]7}{[1][26][]26}{}{}{}}
+\bibstyle{unsrtnat}
+\bibdata{references}
+\bibcite{kahneman1979prospect}{{1}{1979}{{Kahneman and Tversky}}{{}}}
+\bibcite{tversky1992advances}{{2}{1992}{{Tversky and Kahneman}}{{}}}
+\bibcite{prashanth2016cumulative}{{3}{2016}{{Prashanth et~al.}}{{Prashanth, Jie, Fu, Marcus, and Szepesv{\'a}ri}}}
+\bibcite{lepel2026policygradients}{{4}{2026}{{Lepel and Barakat}}{{}}}
+\bibcite{arkes2008reference}{{5}{2008}{{Arkes et~al.}}{{Arkes, Hirshleifer, Jiang, and Lim}}}
+\bibcite{he2019realization}{{6}{2019}{{He and Yang}}{{}}}
+\bibcite{qin2022realization}{{7}{2022}{{Qin et~al.}}{{Qin, Kong, and Yue}}}
+\bibcite{gao2024multiperiod}{{8}{2024}{{Gao et~al.}}{{Gao, Li, Shi, and Xie}}}
+\bibcite{an2024portfolio}{{9}{2024}{{An et~al.}}{{An, Engelberg, Henriksson, Wang, and Williams}}}
+\bibcite{chen2025xueqiu}{{10}{2025}{{Chen and Ren}}{{}}}
+\bibcite{luxenberg2024portfolio}{{11}{2024}{{Luxenberg et~al.}}{{Luxenberg, Schiele, and Boyd}}}
+\bibcite{cui2025decision}{{12}{2025}{{Cui et~al.}}{{Cui, Jiang, Shi, Xiao, and Yan}}}
+\bibcite{wu2026behavioral}{{13}{2026}{{Wu et~al.}}{{Wu, Yang, and De~Simone}}}
+\bibcite{aydore2019dynamic}{{14}{2019}{{Aydore et~al.}}{{Aydore, Zhu, and Foster}}}
+\bibcite{hallak2025sound}{{15}{2025}{{Hallak}}{{}}}
+\bibcite{lan2026projected}{{16}{2026}{{Lan et~al.}}{{Lan, Li, and Xu}}}
+\bibcite{feng2023nonstationary}{{17}{2023}{{Feng et~al.}}{{Feng, Yin, Huang, Wang, Yang, and Liang}}}
+\bibcite{rhee2015unbiased}{{18}{2015}{{Rhee and Glynn}}{{}}}
+\bibcite{andre2020dirichlet}{{19}{2020}{{Andr{\'e} and Coqueret}}{{}}}
+\bibcite{liu2024dynamicdatasets}{{20}{2024}{{Liu et~al.}}{{Liu, Xia, Yang, Gao, Zha, Zhu, Wang, Wang, and Guo}}}
+\bibcite{hanauer2024factor}{{21}{2024}{{Hanauer et~al.}}{{Hanauer, Jansen, Swinkels, and Zhou}}}
+\bibcite{liu2025riskpreferences}{{22}{2025}{{Liu et~al.}}{{Liu, Tang, Yang, and Tam}}}
+\bibcite{takayanagi2025financialadvisors}{{23}{2025}{{Takayanagi et~al.}}{{Takayanagi, Izumi, Sanz-Cruzado, McCreadie, and Ounis}}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Notation and Analytic Preliminaries}{30}{appendix.A}\protected@file@percent }
+\newlabel{app:notation}{{A}{30}{Notation and Analytic Preliminaries}{appendix.A}{}}
+\newlabel{app:notation@cref}{{[section][1][]A}{[1][30][]30}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Main notation}{30}{subsection.A.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Main notation along the state, objective, estimation, and online-evaluation chain. Estimator internals and proof-local constants are defined where they are used.}}{30}{table.caption.36}\protected@file@percent }
+\newlabel{tab:notation-core}{{4}{30}{Main notation along the state, objective, estimation, and online-evaluation chain. Estimator internals and proof-local constants are defined where they are used}{table.caption.36}{}}
+\newlabel{tab:notation-core@cref}{{[table][4][]4}{[1][30][]30}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Dirichlet score moments}{30}{subsection.A.2}\protected@file@percent }
+\newlabel{lem:dirichlet-moments}{{A.1}{30}{Uniform moments of the augmented trajectory score}{theorem.A.1}{}}
+\newlabel{lem:dirichlet-moments@cref}{{[theorem][1][1]A.1}{[1][30][]30}{}{}{}}
+\newlabel{eq:concentration-compactness}{{59}{30}{Uniform moments of the augmented trajectory score}{equation.59}{}}
+\newlabel{eq:concentration-compactness@cref}{{[equation][59][]59}{[1][30][]30}{}{}{}}
+\newlabel{eq:score-moment-bound}{{60}{30}{Uniform moments of the augmented trajectory score}{equation.60}{}}
+\newlabel{eq:score-moment-bound@cref}{{[equation][60][]60}{[1][30][]30}{}{}{}}
+\newlabel{eq:hessian-moment-bound}{{61}{31}{Uniform moments of the augmented trajectory score}{equation.61}{}}
+\newlabel{eq:hessian-moment-bound@cref}{{[equation][61][]61}{[1][30][]31}{}{}{}}
+\newlabel{eq:likelihood-ratio-identities}{{62}{31}{Uniform moments of the augmented trajectory score}{equation.62}{}}
+\newlabel{eq:likelihood-ratio-identities@cref}{{[equation][62][]62}{[1][31][]31}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Smoothness of the CPT objective}{31}{subsection.A.3}\protected@file@percent }
+\newlabel{lem:cpt-smoothness}{{A.2}{31}{Uniform gradient and smoothness bounds}{theorem.A.2}{}}
+\newlabel{lem:cpt-smoothness@cref}{{[theorem][2][1]A.2}{[1][31][]31}{}{}{}}
+\newlabel{eq:uniform-gradient-smoothness}{{63}{31}{Uniform gradient and smoothness bounds}{equation.63}{}}
+\newlabel{eq:uniform-gradient-smoothness@cref}{{[equation][63][]63}{[1][31][]31}{}{}{}}
+\newlabel{eq:smoothness-constant}{{64}{31}{Uniform gradient and smoothness bounds}{equation.64}{}}
+\newlabel{eq:smoothness-constant@cref}{{[equation][64][]64}{[1][31][]31}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.4}Projected residual and constrained stationarity}{32}{subsection.A.4}\protected@file@percent }
+\newlabel{lem:residual-stationarity}{{A.3}{32}{Projected residual characterizes first-order stationarity}{theorem.A.3}{}}
+\newlabel{lem:residual-stationarity@cref}{{[theorem][3][1]A.3}{[1][32][]32}{}{}{}}
+\newlabel{eq:projection-stationarity-equivalence}{{65}{32}{Projected residual characterizes first-order stationarity}{equation.65}{}}
+\newlabel{eq:projection-stationarity-equivalence@cref}{{[equation][65][]65}{[1][32][]32}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}Proofs for the Reference Mechanism and CPT Gradient}{32}{appendix.B}\protected@file@percent }
+\newlabel{app:reference-gradient}{{B}{32}{Proofs for the Reference Mechanism and CPT Gradient}{appendix.B}{}}
+\newlabel{app:reference-gradient@cref}{{[section][2][]B}{[1][32][]32}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.1}Same terminal wealth and path-dependent reference}{32}{subsection.B.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2}Reference contraction and CPT sensitivity}{33}{subsection.B.2}\protected@file@percent }
+\newlabel{eq:relative-reference-coupling}{{66}{33}{Reference contraction and CPT sensitivity}{equation.66}{}}
+\newlabel{eq:relative-reference-coupling@cref}{{[equation][66][]66}{[1][33][]33}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.3}Score representation of the CPT gradient}{33}{subsection.B.3}\protected@file@percent }
+\newlabel{eq:survival-score-derivative}{{67}{33}{Score representation of the CPT gradient}{equation.67}{}}
+\newlabel{eq:survival-score-derivative@cref}{{[equation][67][]67}{[1][33][]33}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {C}Proofs for the Debiased Estimator}{34}{appendix.C}\protected@file@percent }
+\newlabel{app:estimator}{{C}{34}{Proofs for the Debiased Estimator}{appendix.C}{}}
+\newlabel{app:estimator@cref}{{[section][3][]C}{[1][34][]34}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.1}Second-order expansion and full/half coupling}{34}{subsection.C.1}\protected@file@percent }
+\newlabel{lem:level-cancellation}{{C.1}{34}{Coupled full/half cancellation}{theorem.C.1}{}}
+\newlabel{lem:level-cancellation@cref}{{[theorem][1][3]C.1}{[1][34][]34}{}{}{}}
+\newlabel{eq:loo-expansion}{{68}{34}{Coupled full/half cancellation}{equation.68}{}}
+\newlabel{eq:loo-expansion@cref}{{[equation][68][]68}{[1][34][]34}{}{}{}}
+\newlabel{eq:level-second-moment}{{69}{34}{Coupled full/half cancellation}{equation.69}{}}
+\newlabel{eq:level-second-moment@cref}{{[equation][69][]69}{[1][34][]34}{}{}{}}
+\newlabel{eq:centered-loo-variance}{{70}{34}{Coupled full/half cancellation}{equation.70}{}}
+\newlabel{eq:centered-loo-variance@cref}{{[equation][70][]70}{[1][34][]34}{}{}{}}
+\newlabel{eq:weight-taylor}{{71}{34}{Second-order expansion and full/half coupling}{equation.71}{}}
+\newlabel{eq:weight-taylor@cref}{{[equation][71][]71}{[1][34][]34}{}{}{}}
+\newlabel{eq:ordered-hoeffding}{{72}{35}{Second-order expansion and full/half coupling}{equation.72}{}}
+\newlabel{eq:ordered-hoeffding@cref}{{[equation][72][]72}{[1][34][]35}{}{}{}}
+\newlabel{eq:degenerate-remainder}{{73}{35}{Second-order expansion and full/half coupling}{equation.73}{}}
+\newlabel{eq:degenerate-remainder@cref}{{[equation][73][]73}{[1][35][]35}{}{}{}}
+\newlabel{eq:bernoulli-fourth-moment}{{74}{35}{Second-order expansion and full/half coupling}{equation.74}{}}
+\newlabel{eq:bernoulli-fourth-moment@cref}{{[equation][74][]74}{[1][35][]35}{}{}{}}
+\newlabel{eq:taylor-remainder-bound}{{75}{35}{Second-order expansion and full/half coupling}{equation.75}{}}
+\newlabel{eq:taylor-remainder-bound@cref}{{[equation][75][]75}{[1][35][]35}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.2}Centering and finite-sample bias}{36}{subsection.C.2}\protected@file@percent }
+\newlabel{lem:centering-expectation}{{C.2}{36}{Centering and finite-sample bias}{theorem.C.2}{}}
+\newlabel{lem:centering-expectation@cref}{{[theorem][2][3]C.2}{[1][36][]36}{}{}{}}
+\newlabel{eq:centered-raw-mean}{{76}{36}{Centering and finite-sample bias}{equation.76}{}}
+\newlabel{eq:centered-raw-mean@cref}{{[equation][76][]76}{[1][36][]36}{}{}{}}
+\newlabel{eq:loo-bias-order}{{77}{36}{Centering and finite-sample bias}{equation.77}{}}
+\newlabel{eq:loo-bias-order@cref}{{[equation][77][]77}{[1][36][]36}{}{}{}}
+\newlabel{eq:centering-control}{{78}{37}{Centering and finite-sample bias}{equation.78}{}}
+\newlabel{eq:centering-control@cref}{{[equation][78][]78}{[1][36][]37}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.3}Unbiasedness, variance, cost, and the CLT}{37}{subsection.C.3}\protected@file@percent }
+\newlabel{eq:delta-mean}{{79}{37}{Unbiasedness, variance, cost, and the CLT}{equation.79}{}}
+\newlabel{eq:delta-mean@cref}{{[equation][79][]79}{[1][37][]37}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}Proofs for the Online Residual and Tracking Results}{38}{appendix.D}\protected@file@percent }
+\newlabel{app:online}{{D}{38}{Proofs for the Online Residual and Tracking Results}{appendix.D}{}}
+\newlabel{app:online@cref}{{[section][4][]D}{[1][38][]38}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.1}Normalized projected ascent}{38}{subsection.D.1}\protected@file@percent }
+\newlabel{lem:projected-ascent}{{D.1}{38}{One-step normalized projected ascent}{theorem.D.1}{}}
+\newlabel{lem:projected-ascent@cref}{{[theorem][1][4]D.1}{[1][38][]38}{}{}{}}
+\newlabel{eq:one-step-ascent}{{80}{38}{One-step normalized projected ascent}{equation.80}{}}
+\newlabel{eq:one-step-ascent@cref}{{[equation][80][]80}{[1][38][]38}{}{}{}}
+\newlabel{eq:projection-vi}{{81}{38}{Normalized projected ascent}{equation.81}{}}
+\newlabel{eq:projection-vi@cref}{{[equation][81][]81}{[1][38][]38}{}{}{}}
+\newlabel{eq:actual-displacement-ascent}{{82}{39}{Normalized projected ascent}{equation.82}{}}
+\newlabel{eq:actual-displacement-ascent@cref}{{[equation][82][]82}{[1][38][]39}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.2}Average expected squared projected residual}{39}{subsection.D.2}\protected@file@percent }
+\newlabel{eq:online-one-step}{{83}{40}{Average expected squared projected residual}{equation.83}{}}
+\newlabel{eq:online-one-step@cref}{{[equation][83][]83}{[1][39][]40}{}{}{}}
+\newlabel{eq:moving-objective-telescope}{{84}{40}{Average expected squared projected residual}{equation.84}{}}
+\newlabel{eq:moving-objective-telescope@cref}{{[equation][84][]84}{[1][39][]40}{}{}{}}
+\newlabel{eq:telescope-upper}{{85}{40}{Average expected squared projected residual}{equation.85}{}}
+\newlabel{eq:telescope-upper@cref}{{[equation][85][]85}{[1][40][]40}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.3}Dynamic local regret}{40}{subsection.D.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Independent-stream evaluation.}{40}{section*.37}\protected@file@percent }
+\newlabel{eq:residual-evaluation-lipschitz}{{86}{40}{Independent-stream evaluation}{equation.86}{}}
+\newlabel{eq:residual-evaluation-lipschitz@cref}{{[equation][86][]86}{[1][40][]40}{}{}{}}
+\newlabel{eq:cross-stream-residual-error}{{87}{40}{Independent-stream evaluation}{equation.87}{}}
+\newlabel{eq:cross-stream-residual-error@cref}{{[equation][87][]87}{[1][40][]40}{}{}{}}
+\newlabel{eq:cross-stream-dlr-error}{{88}{41}{Independent-stream evaluation}{equation.88}{}}
+\newlabel{eq:cross-stream-dlr-error@cref}{{[equation][88][]88}{[1][40][]41}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.4}Stationary-set consequences}{41}{subsection.D.4}\protected@file@percent }
+\newlabel{lem:stationary-set-drift}{{D.2}{41}{Drift of stationary sets}{theorem.D.2}{}}
+\newlabel{lem:stationary-set-drift@cref}{{[theorem][2][4]D.2}{[1][41][]41}{}{}{}}
+\newlabel{eq:gradient-drift}{{89}{41}{Drift of stationary sets}{equation.89}{}}
+\newlabel{eq:gradient-drift@cref}{{[equation][89][]89}{[1][41][]41}{}{}{}}
+\newlabel{eq:stationary-set-drift}{{90}{41}{Drift of stationary sets}{equation.90}{}}
+\newlabel{eq:stationary-set-drift@cref}{{[equation][90][]90}{[1][41][]41}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Objective variation in the semi-synthetic environment.}{42}{section*.38}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {E}Proof of the Fixed-Dimension Minimax Rate}{42}{appendix.E}\protected@file@percent }
+\newlabel{app:minimax}{{E}{42}{Proof of the Fixed-Dimension Minimax Rate}{appendix.E}{}}
+\newlabel{app:minimax@cref}{{[section][5][]E}{[1][42][]42}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 1: a CPT-realizable one-stock submodel.}{42}{section*.39}\protected@file@percent }
+\newlabel{eq:minimax-relative-outcome}{{91}{42}{Step 1: a CPT-realizable one-stock submodel}{equation.91}{}}
+\newlabel{eq:minimax-relative-outcome@cref}{{[equation][91][]91}{[1][42][]42}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 2: local separation of the CPT gradient.}{43}{section*.40}\protected@file@percent }
+\newlabel{eq:minimax-cpt-submodel}{{92}{43}{Step 2: local separation of the CPT gradient}{equation.92}{}}
+\newlabel{eq:minimax-cpt-submodel@cref}{{[equation][92][]92}{[1][42][]43}{}{}{}}
+\newlabel{eq:minimax-gradient-function}{{93}{43}{Step 2: local separation of the CPT gradient}{equation.93}{}}
+\newlabel{eq:minimax-gradient-function@cref}{{[equation][93][]93}{[1][42][]43}{}{}{}}
+\newlabel{eq:minimax-gradient-separation}{{94}{43}{Step 2: local separation of the CPT gradient}{equation.94}{}}
+\newlabel{eq:minimax-gradient-separation@cref}{{[equation][94][]94}{[1][43][]43}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 3: information in an adaptive stopped transcript.}{43}{section*.41}\protected@file@percent }
+\newlabel{eq:bernoulli-kl-bound}{{95}{43}{Step 3: information in an adaptive stopped transcript}{equation.95}{}}
+\newlabel{eq:bernoulli-kl-bound@cref}{{[equation][95][]95}{[1][43][]43}{}{}{}}
+\newlabel{eq:stopped-transcript-kl}{{96}{43}{Step 3: information in an adaptive stopped transcript}{equation.96}{}}
+\newlabel{eq:stopped-transcript-kl@cref}{{[equation][96][]96}{[1][43][]43}{}{}{}}
+\newlabel{eq:minimax-tv}{{97}{43}{Step 3: information in an adaptive stopped transcript}{equation.97}{}}
+\newlabel{eq:minimax-tv@cref}{{[equation][97][]97}{[1][43][]43}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 4: reduction from estimation to testing.}{44}{section*.42}\protected@file@percent }
+\newlabel{eq:minimax-target-distance}{{98}{44}{Step 4: reduction from estimation to testing}{equation.98}{}}
+\newlabel{eq:minimax-target-distance@cref}{{[equation][98][]98}{[1][43][]44}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 5: cost-matched upper bound.}{44}{section*.43}\protected@file@percent }
+\gdef \@abspage@last{44}

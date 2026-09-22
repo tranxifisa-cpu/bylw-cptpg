@@ -6,6 +6,28 @@ For a realization $x=(V^+,V^-,G_x)$, write $I_{x,\sigma}(y)=\1\{V^\sigma>y\}$.
 
 \subsection{Second-order expansion and full/half coupling}
 
+\begin{lemma}[Coupled full/half cancellation]\label{lem:level-cancellation}
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix one frozen target and parameter and write $g:=\nabla J(\theta)$.  There exist a measurable $\mathfrak h$ and constants $C_{\rm rem},C_U<\infty$ such that
+\begin{equation}\label{eq:loo-expansion}
+ U_n^{\rm raw}-g
+ =\frac1n\sum_{i=1}^{n}\mathfrak h(\mathsf X_i)+\mathcal B_n,
+ \qquad
+ \E\mathfrak h(\mathsf X_i)=0,
+ \qquad
+ \E\norm{\mathcal B_n}_2^2\le\frac{C_{\rm rem}}{n^2},
+\end{equation}
+and consequently
+\begin{equation}\label{eq:level-second-moment}
+ \E\norm{D_{n,\ell}^{\rm raw}}_2^2
+ \le\frac{9C_{\rm rem}}{n^2}2^{-2\ell},
+ \qquad \ell\ge1,
+\end{equation}
+while
+\begin{equation}\label{eq:centered-loo-variance}
+ \tr\Cov(U_n^{\rm cen})\le\frac{C_U}{n}.
+\end{equation}
+\end{lemma}
+
 \begin{proof}[Proof of \Cref{lem:level-cancellation}]
 To prove \eqref{eq:loo-expansion}, it is enough to isolate the first-order Hoeffding projection and show that both the degenerate two-sample term and the Taylor remainder are $O_{L^2}(n^{-1})$.  For a side $\sigma$ and threshold $y$, write
 \[
@@ -145,6 +167,18 @@ with $C_U=C_E/2$.  This completes the proof.
 
 \subsection{Centering and finite-sample bias}
 
+\begin{lemma}[Centering and finite-sample bias]\label{lem:centering-expectation}
+For $n\ge2$,
+\begin{equation}\label{eq:centered-raw-mean}
+ \E U_n^{\rm cen}=\E U_n^{\rm raw}=: \bar U_n,
+\end{equation}
+and there exists $C_{\rm bias}<\infty$ such that
+\begin{equation}\label{eq:loo-bias-order}
+ \norm{\bar U_n-g}_2\le \frac{C_{\rm bias}}{n},
+ \qquad g:=\nabla J(\theta).
+\end{equation}
+\end{lemma}
+
 \begin{proof}[Proof of \Cref{lem:centering-expectation}]
 To compare the two LOO statistics, subtract \eqref{eq:centered-loo} from \eqref{eq:raw-loo}.  The difference is
 \begin{equation}\label{eq:centering-control}
@@ -160,11 +194,11 @@ where
  \widehat S_{-i,n}^\sigma(y)\,dy.
 \]
 The coefficient $H_{-i}^{\rm ctr}$ depends only on trajectories with indices different from $i$.  It is therefore independent of $G_i$.  The score identity gives $\E G_i=0$, while Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity} make $G_iH_{-i}^{\rm ctr}$ integrable.  Hence every summand in \eqref{eq:centering-control} has mean zero and
-$\E U_n^{\rm cen}=\E U_n^{\rm raw}=\mu_n$.
+$\E U_n^{\rm cen}=\E U_n^{\rm raw}=\bar U_n$.
 
-It remains to control $\mu_n-g$.  This follows from the expansion in \Cref{lem:level-cancellation}.  Taking expectations in \eqref{eq:loo-expansion} and using $\E\mathfrak h(\mathsf X)=0$ yields
+It remains to control $\bar U_n-g$.  This follows from the expansion in \Cref{lem:level-cancellation}.  Taking expectations in \eqref{eq:loo-expansion} and using $\E\mathfrak h(\mathsf X)=0$ yields
 \[
- \norm{\mu_n-g}_2
+ \norm{\bar U_n-g}_2
  =\norm{\E \mathcal B_n}_2
  \le(\E\norm{\mathcal B_n}_2^2)^{1/2}
  \le\frac{\sqrt{C_{\rm rem}}}{n}.
@@ -176,41 +210,41 @@ Thus \eqref{eq:loo-bias-order} holds with $C_{\rm bias}=\sqrt{C_{\rm rem}}$.
 \subsection{Unbiasedness, variance, cost, and the CLT}
 
 \begin{proof}[Proof of \Cref{thm:estimator}]
-We first prove exact unbiasedness.  By \Cref{lem:centering-expectation}, the centered base has mean $\mu_n$.  For the raw correction,
+We first prove exact unbiasedness.  By \Cref{lem:centering-expectation}, the centered base has mean $\bar U_n$.  For the raw correction,
 \begin{equation}\label{eq:delta-mean}
  \E D_{n,\ell}^{\rm raw}
- =\mu_{n2^\ell}-\mu_{n2^{\ell-1}}.
+ =\bar U_{n2^\ell}-\bar U_{n2^{\ell-1}}.
 \end{equation}
 The level bound \eqref{eq:level-second-moment} implies
 \[
  \sum_{\ell\ge1}\E\norm{D_{n,\ell}^{\rm raw}}_2
  \le\frac{3\sqrt{C_{\rm rem}}}{n}\sum_{\ell\ge1}2^{-\ell}<\infty,
 \]
-so the expectation can be interchanged with the infinite randomized series.  Since \eqref{eq:loo-bias-order} gives $\mu_{n2^{\ell_{\max}}}\to g$,
+so the expectation can be interchanged with the infinite randomized series.  Since \eqref{eq:loo-bias-order} gives $\bar U_{n2^{\ell_{\max}}}\to g$,
 \begin{align*}
  \E Z_n^{\db}
- &=\mu_n+\sum_{\ell\ge1}\E D_{n,\ell}^{\rm raw}\\
- &=\mu_n+\lim_{\ell_{\max}\to\infty}(\mu_{n2^{\ell_{\max}}}-\mu_n)
+ &=\bar U_n+\sum_{\ell\ge1}\E D_{n,\ell}^{\rm raw}\\
+ &=\bar U_n+\lim_{\ell_{\max}\to\infty}(\bar U_{n2^{\ell_{\max}}}-\bar U_n)
  =g.
 \end{align*}
 This proves \eqref{eq:estimator-unbiased}.
 
 For the second moment of the correction, independence of the activation and level variables gives
 \begin{align*}
- \E\left\|\frac{\mathsf A}{\varrho\nu_{\ell^\star}}D_{n,\ell^\star}^{\rm raw}\right\|_2^2
- &=\frac1\varrho\sum_{\ell\ge1}
+ \E\left\|\frac{\mathsf A}{p_{\rm act}\nu_{\ell^\star}}D_{n,\ell^\star}^{\rm raw}\right\|_2^2
+ &=\frac1p_{\rm act}\sum_{\ell\ge1}
  \frac{\E\norm{D_{n,\ell}^{\rm raw}}_2^2}{\nu_\ell}\\
- &\le\frac{9C_{\rm rem}}{\varrho n^2}
+ &\le\frac{9C_{\rm rem}}{p_{\rm act} n^2}
  \sum_{\ell\ge1}\frac{4^{-\ell}}{\nu_\ell}
- =\frac{9C_{\rm rem}\Xi_b}{\varrho n^2}.
+ =\frac{9C_{\rm rem}\Xi_b}{p_{\rm act} n^2}.
 \end{align*}
 The series $\Xi_b$ is finite because $b<2$.  The base sample and correction sample are independent, so their covariance is zero.  Combining the correction bound with \eqref{eq:centered-loo-variance} gives \eqref{eq:single-output-variance}.
 
 One base output costs exactly $n$ complete trajectories.  Conditional on activation and level $\ell$, the correction uses one fresh batch of $n2^\ell$ trajectories; the two halves reuse this same batch.  Hence
 \begin{align*}
  \E\operatorname{cost}(Z_n^{\db})
- &=n+\varrho n\sum_{\ell\ge1}\nu_\ell2^\ell
- =n(1+\varrho \Upsilon_b),
+ &=n+p_{\rm act} n\sum_{\ell\ge1}\nu_\ell2^\ell
+ =n(1+p_{\rm act} \Upsilon_b),
 \end{align*}
 where $\Upsilon_b<\infty$ because $b>1$.  Direct summation of the geometric series gives the closed forms in \eqref{eq:level-series-constants}.
 
@@ -224,7 +258,7 @@ This is \eqref{eq:estimator-mse}.
 \end{proof}
 
 \begin{proof}[Proof of \Cref{thm:clt}]
-For fixed target and fixed $(n,\varrho,b)$, \Cref{thm:estimator} gives iid vectors $Z_{n,r}^{\db}$ with mean $g$ and finite covariance $\Sigma_n$.  For any fixed $t\in\R^d$, the scalar variables
+For fixed target and fixed $(n,p_{\rm act},b)$, \Cref{thm:estimator} gives iid vectors $Z_{n,r}^{\db}$ with mean $g$ and finite covariance $\Sigma_n$.  For any fixed $t\in\R^d$, the scalar variables
 $t^\top(Z_{n,r}^{\db}-g)$ are iid with finite variance.  The classical scalar central limit theorem therefore gives
 \[
  \sqrt M\,t^\top(\widehat g_{M,n}^{\db}-g)

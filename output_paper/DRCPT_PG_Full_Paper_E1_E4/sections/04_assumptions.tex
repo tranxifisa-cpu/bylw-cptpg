@@ -1,9 +1,9 @@
 \subsection{Assumptions}\label{sec:assumptions}
 
-\subsubsection{Standing statistical assumptions}
+The analysis rests on three standing conditions.  They separate the regularity needed for uniform control, the structural source of policy-parameter dependence, and the smoothness needed for the nonlinear CPT expansion.  Conditions that enter only a specific comparison or corollary---such as reference-isolated coupling, stationary-set geometry, or the minimax oracle experiment---are introduced with the corresponding result rather than treated as global assumptions.
 
-\begin{assumption}[Bounded analysis domain and likelihood regularity]\label{ass:trajectory}
-The parameter set $\Theta\subset\R^d$ is nonempty, compact, and convex, and is contained in an open set on which the policy is defined.  The horizon $h$ is finite and $N\ge1$.  There exist finite constants $Q_f,B_X,B_r,B_v$ such that, on the analyzed domain,
+\begin{assumption}[Compact policy and trajectory domain]\label{ass:trajectory}
+The parameter set $\Theta\subset\R^d$ is nonempty, compact, and convex, and is contained in an open set on which the policy is defined.  The horizon $h$ and asset count $N$ are finite.  There exist constants $Q_f,B_X,B_r,B_v<\infty$ such that, uniformly over every analyzed true model $P_k$ and frozen simulator $\widetilde P_k$,
 \begin{equation}\label{eq:primitive-bounds}
  \sup_{i,u}\norm{q_{i,u}}_2\le Q_f,
  \qquad
@@ -13,86 +13,34 @@ The parameter set $\Theta\subset\R^d$ is nonempty, compact, and convex, and is c
  \qquad
  0\le v_\pm(Y_k)\le B_v.
 \end{equation}
-Conditional on the observed history and action, the market transition kernel and the map $\mathsf M_u$ do not depend explicitly on $\theta$.  The latent Dirichlet proposals are retained in the augmented trajectory.  Hence all explicit $\theta$-dependence of the conditional trajectory law enters through the Dirichlet policy density in \eqref{eq:dirichlet-policy}.  The bounds and parameter-independence conditions above are required uniformly for every analyzed true episode model $P_k$ and frozen simulator model $\widetilde P_k$, conditional on the episode-start information and context.  In particular, the frozen simulator is held fixed as $\theta$ varies.
 \end{assumption}
 
-\begin{assumption}[Fixed regularized CPT]\label{ass:cpt-regularity}
-The preference parameters in \eqref{eq:value-functions}--\eqref{eq:normalized-weight} are fixed.  The functions $w_\pm^\eps$ are strictly increasing and belong to $C^3([0,1])$, with
+Assumption~\ref{ass:trajectory} supplies a common analysis domain on which score moments, objective values, and smoothness constants can be controlled uniformly across episodes.  The quantities $\Theta,h,N$, and the feature norms are design-controlled, while the trajectory bounds are directly diagnosable from simulated or replayed paths.  If only a local or high-probability bounded region is available, the fixed-target arguments below still apply on that region; the online statements then inherit local or high-probability constants instead of the episode-uniform constants used here.
+
+\begin{assumption}[Policy-mediated likelihood structure]\label{ass:likelihood}
+Conditional on the observed history and executed action, the market transition kernel and the history-measurable feasibility map $\mathsf M_u(\cdot\mid s_u)$ have no explicit dependence on $\theta$.  The latent Dirichlet proposals $\widetilde\omega_u$ are retained in the augmented trajectory, and each frozen simulator is held fixed as $\theta$ varies.  Hence the policy density is the only explicit source of $\theta$-dependence in the conditional augmented-trajectory law.
+\end{assumption}
+
+This condition isolates the parameter dependence that the trajectory score in \eqref{eq:trajectory-score} differentiates.  It is auditable from the simulator interface: once the observed history and executed action are fixed, neither the market kernel nor $\mathsf M_u(\cdot\mid s_u)$ should take $\theta$ as an additional input.  If a model instead contains direct environment dependence on $\theta$, the corresponding likelihood or pathwise derivative must be added to the score identity; the estimator developed here then targets the policy-mediated component unless that additional term is included.
+
+\begin{assumption}[Smooth regularized CPT weighting]\label{ass:cpt-regularity}
+The preference parameters in \eqref{eq:value-functions}--\eqref{eq:normalized-weight} are fixed.  The normalized weighting functions $w_\pm^\eps$ are strictly increasing and belong to $C^3([0,1])$, with
 \begin{equation}\label{eq:weight-derivative-bounds}
- C_j:=\max_{\sigma\in\{+,-\}}\sup_{p\in[0,1]}
- \abs{(w_\sigma^\eps)^{(j)}(p)}<\infty,
+ C_j
+ :=\max_{\sigma\in\{+,-\}}\sup_{p\in[0,1]}
+ \abs{(w_\sigma^\eps)^{(j)}(p)}
+ <\infty,
  \qquad j=1,2,3.
 \end{equation}
 \end{assumption}
 
-Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, Appendix \ref{app:notation} derives finite uniform score moments and constants $B_g,L<\infty$ such that
+Assumption~\ref{ass:cpt-regularity} is a property of the chosen regularized weighting functions and can therefore be checked analytically.  The first derivative enters the score-gradient identity, the second controls objective smoothness, and the third controls the second-order remainder used by the full/half debiasing construction.  Weaker integrability conditions can suffice for a gradient identity, but without uniform endpoint control the finite-sample expansion and finite-variance randomized correction require additional tail or margin conditions.
+
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, Appendix \ref{app:notation} establishes finite uniform score moments and constants $B_g,L<\infty$ such that, for both true and frozen-simulator objectives,
 \begin{equation}\label{eq:gradient-smoothness-summary}
  \sup_{k,\theta\in\Theta}\norm{g_k(\theta)}_2\le B_g,
  \qquad
- \norm{g_k(\theta)-g_k(\theta')}_2\le L\norm{\theta-\theta'}_2.
+ \norm{g_k(\theta)-g_k(\theta')}_2
+ \le L\norm{\theta-\theta'}_2.
 \end{equation}
-
-\subsubsection{Online variation and optional geometric conditions}
-
-\begin{assumption}[Frozen-simulator error and objective variation]\label{ass:online-variation}
-For the queried parameter $\theta_k$ in episode $k$,
-\begin{equation}\label{eq:simulator-gradient-error}
- \norm{\widetilde g_k(\theta_k)-g_k(\theta_k)}_2\le\beta_k,
- \qquad
- \E\beta_k^2<\infty,
-\end{equation}
-where $\beta_k$ is $\cF_k$-measurable.  Define
-\begin{equation}\label{eq:objective-variation}
- \cV_K
- :=\sum_{k=1}^{K-1}
- \sup_{\theta\in\Theta}
- \abs{J_{k+1}(\theta,r_{k+1})-J_k(\theta,r_k)}.
-\end{equation}
-For the finite horizon under study, $\E\cV_K<\infty$.
-\end{assumption}
-
-\begin{assumption}[Stationary-set error bound; optional]\label{ass:error-bound}
-There exists $\kappa<\infty$ such that, uniformly over the analyzed episodes,
-\begin{equation}\label{eq:error-bound}
- \dist(\theta,\Sta_k)\le\kappa\norm{Q_k(\theta)}_2,
- \qquad \theta\in\Theta.
-\end{equation}
-\end{assumption}
-
-\begin{assumption}[Reference-isolated coupling; optional]\label{ass:reference-coupling}
-When two episode-start references are compared, the market law, non-reference start state, and policy parameter are held fixed; the policy features and market transition kernel do not depend directly on the reference value.  The two trajectories can therefore be coupled with common policy and market random variables, yielding the same wealth and portfolio paths.
-\end{assumption}
-
-\subsubsection{Fixed-target minimax experiment}
-
-\begin{assumption}[Exact-trajectory minimax experiment]\label{ass:minimax-oracle}
-Fix $d$, an interior point $\theta_0=0\in\Theta$, finite upper bounds on $h$ and $N$, and the common constants in Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}.  Let $\mathfrak C$ be a class of conditional portfolio models satisfying these bounds and containing the Bernoulli-return submodel constructed in Appendix \ref{app:minimax}; assume $(w_+^\eps)'(0)>0$.
-
-An estimator may adaptively query any $\theta\in\Theta$.  Each oracle call returns one fresh complete augmented trajectory from the queried policy under the unknown $P\in\mathfrak C$.  The procedure may randomize and stop at a data-dependent call count $T_{\rm call}$, subject to
-\begin{equation}\label{eq:minimax-budget}
- \sup_{P\in\mathfrak C}\E_P T_{\rm call}\le \mathsf B.
-\end{equation}
-No additional observation of the unknown market law is available.  The target is $g_P=\nabla J_P(\theta_0)$, while $d$ and all domain constants remain fixed as $\mathsf B\to\infty$.
-\end{assumption}
-
-\subsubsection{Assumption roles and scope}
-
-\begin{table}[H]
-\centering
-\caption{Role, verification route, and scope fallback of the assumptions.  The fallback column states which conclusion is retained when the corresponding optional or asymptotic condition is unavailable.}
-\label{tab:assumption-roles}
-\small
-\begin{tabularx}{\textwidth}{@{}p{0.16\textwidth}p{0.27\textwidth}p{0.27\textwidth}X@{}}
-\toprule
-Assumption & Role & Verification route & If unavailable \\
-\midrule
-\ref{ass:trajectory} & score identity, moments, smoothness & parameter box; bounded factors; Appendix \ref{app:notation} & re-establish the required likelihood moments on the enlarged domain \\
-\ref{ass:cpt-regularity} & Taylor expansion and fixed-target debiasing & analytic derivatives of the fixed regularized weights & change the regularization or prove a replacement remainder bound \\
-\ref{ass:online-variation} & true-target online residual bound & simulator validation for $\beta_k$; direct objective-difference bound for $\cV_K$ & finite-horizon theorem remains with the observed error terms; vanishing tracking is not asserted \\
-\ref{ass:error-bound} & residual $\Rightarrow$ distance to $\Sta_k$ & objective-specific geometry or a proved local error bound & retain residual and DLR conclusions only \\
-\ref{ass:reference-coupling} & explicit reference-only sensitivity decomposition & verify that features and market kernel do not use $r$ directly & retain the general variation budget $\cV_K$ without the reference-only split \\
-\ref{ass:minimax-oracle} & fixed-$d$ minimax information rate & check that the information source and budget match the oracle experiment & omit the minimax claim for richer-information settings \\
-\bottomrule
-\end{tabularx}
-\end{table}
-\FloatBarrier
+In particular, the simulator-gradient discrepancy $\beta_k$ and objective-variation budget $\cV_K$ in \eqref{eq:simulator-gradient-error}--\eqref{eq:objective-variation} are finite for every finite experiment.
