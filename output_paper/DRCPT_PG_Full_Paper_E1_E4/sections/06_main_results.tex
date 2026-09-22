@@ -1,6 +1,6 @@
 \section{Main Results}\label{sec:results}
 
-The theory follows the same chain as the method: endogenous reference updating first changes the objective being optimized; the frozen-target gradient must then be estimated without finite-budget plug-in bias; finally, the resulting updates must track a moving first-order target.  We state these claim-level results here and defer proof machinery---score moments, full/half cancellation, projected-ascent inequalities, and stationary-set drift calculations---to the appendices.
+The theory follows the same chain as the method.  Endogenous reference updating first changes the objective itself; reliable optimization then requires a statistically controlled gradient for each frozen target and a procedure that can follow the resulting sequence of moving first-order conditions.  We therefore establish the reference effect first, complete the frozen-target statistical theory next, and then turn to online tracking.
 
 \subsection{Reference dependence}
 
@@ -127,7 +127,42 @@ If $\Sigma_n$ is nonsingular and $\widehat\Sigma_{M,n}$ is the empirical covaria
 \end{equation}
 \end{theorem}
 
-The estimator result is therefore not merely an asymptotic bias statement: for each fixed frozen target, the untruncated construction is exactly unbiased while retaining finite variance and finite expected trajectory cost.  The CLT provides replication-based uncertainty quantification for the same estimator.
+For each frozen target, the untruncated construction is exactly unbiased with finite variance and finite expected trajectory cost.  The CLT then provides replication-based uncertainty quantification for the same estimator.
+
+\subsection{Fixed-dimension minimax information rate}
+
+\begin{definition}[Complete-trajectory oracle experiment]\label{def:minimax-oracle}
+Fix $d$, $\theta_0=0\in\operatorname{int}(\Theta)$, common finite bounds on $h$ and $N$, and the constants in Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}.  Let $\mathfrak C$ be a model class satisfying these bounds, containing the Bernoulli-return submodel constructed in Appendix \ref{app:minimax}, with $(w_+^\eps)'(0)>0$.  Under $P\in\mathfrak C$, an adaptive query $\theta_t\in\Theta$ returns one fresh complete augmented trajectory
+\[
+ \tau_t\mid\mathcal G_{t-1}\sim P_{\theta_t},
+ \qquad
+ \mathcal G_t:=\sigma\{(\theta_j,\tau_j):j\le t\}.
+\]
+An admissible procedure chooses a stopping time $T_{\rm call}$ and an $\mathcal G_{T_{\rm call}}$-measurable estimator $\widehat g$ such that
+\begin{equation}\label{eq:minimax-budget}
+ \sup_{P\in\mathfrak C}\E_P T_{\rm call}\le\mathsf B,
+\end{equation}
+with target $g_P:=\nabla J_P(\theta_0)$.
+\end{definition}
+
+The corresponding minimax risk is
+\begin{equation}\label{eq:minimax-risk}
+ \mathfrak R_{\mathsf B}
+ :=\inf_{\widehat g:\,\sup_{P\in\mathfrak C}\E_P T_{\rm call}\le\mathsf B}
+ \sup_{P\in\mathfrak C}
+ \E_P\norm{\widehat g-g_P}_2^2.
+\end{equation}
+
+\begin{theorem}[Minimax-optimal fixed-dimension trajectory-budget rate]\label{thm:minimax}
+For the oracle experiment in Definition \ref{def:minimax-oracle}, there exist constants
+$c_{\rm lb},C_{\rm ub},\mathsf B_0\in(0,\infty)$, independent of $\mathsf B$, such that for all $\mathsf B\ge\mathsf B_0$,
+\begin{equation}\label{eq:minimax-rate}
+ \frac{c_{\rm lb}}{\mathsf B}
+ \le \mathfrak R_{\mathsf B}
+ \le \frac{C_{\rm ub}}{\mathsf B}.
+\end{equation}
+The upper bound is attained, up to constants, by averaging independent untruncated outputs $Z_n^{\db}$ under the same expected complete-trajectory budget.  Hence, for fixed $d$ and fixed regularization, the minimax gradient-estimation rate is $\Theta(\mathsf B^{-1})$.
+\end{theorem}
 
 \subsection{Online first-order tracking under a moving CPT objective}
 
@@ -167,13 +202,13 @@ Thus the same projected-residual control also governs the temporally smoothed fi
 \end{corollary}
 
 \paragraph{Stationary-set interpretation.}
-The main online guarantee is stated in the projected first-order residual and does not require a metric relation to a particular stationary point.  When parameter-space interpretation is useful, suppose additionally that, for some $\kappa<\infty$,
+The projected residual is the primary first-order tracking quantity.  A direct parameter-space interpretation follows under the additional local error-bound geometry: for some $\kappa<\infty$,
 \begin{equation}\label{eq:error-bound}
  \dist(\theta,\Sta_k)
  \le \kappa\norm{Q_k(\theta)}_2,
  \qquad \theta\in\Theta,
 \end{equation}
-uniformly over the analyzed episodes.  This local geometric condition is not needed for the residual or DLR bounds; it is used only to translate them into distance from the contemporaneous constrained stationary set.
+uniformly over the analyzed episodes.  Under this condition, residual control translates directly into distance from the contemporaneous constrained stationary set.
 
 \begin{corollary}[Moving stationary-set tracking]\label{cor:stationary-tracking}
 If \eqref{eq:error-bound} holds, then
@@ -201,39 +236,4 @@ then
 If \eqref{eq:error-bound} holds, the left-hand side of \eqref{eq:stationary-tracking} also converges to zero.
 \end{corollary}
 
-For the semi-synthetic environment used in E3--E4, Appendix~\ref{app:online} gives a sufficient objective-sensitivity condition under which the diminishing state gain and finite return-law interpolation imply sublinear objective variation.  This makes explicit the bridge between the theorem's variation budget and the experimental construction without building that construction into the general theorem.
-
-\subsection{Fixed-dimension minimax information rate}
-
-\begin{definition}[Complete-trajectory oracle experiment]\label{def:minimax-oracle}
-Fix $d$, $\theta_0=0\in\operatorname{int}(\Theta)$, common finite bounds on $h$ and $N$, and the constants in Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}.  Let $\mathfrak C$ be a model class satisfying these bounds, containing the Bernoulli-return submodel constructed in Appendix \ref{app:minimax}, with $(w_+^\eps)'(0)>0$.  Under $P\in\mathfrak C$, an adaptive query $\theta_t\in\Theta$ returns one fresh complete augmented trajectory
-\[
- \tau_t\mid\mathcal G_{t-1}\sim P_{\theta_t},
- \qquad
- \mathcal G_t:=\sigma\{(\theta_j,\tau_j):j\le t\}.
-\]
-An admissible procedure chooses a stopping time $T_{\rm call}$ and an $\mathcal G_{T_{\rm call}}$-measurable estimator $\widehat g$ such that
-\begin{equation}\label{eq:minimax-budget}
- \sup_{P\in\mathfrak C}\E_P T_{\rm call}\le\mathsf B,
-\end{equation}
-with target $g_P:=\nabla J_P(\theta_0)$.
-\end{definition}
-
-The corresponding minimax risk is
-\begin{equation}\label{eq:minimax-risk}
- \mathfrak R_{\mathsf B}
- :=\inf_{\widehat g:\,\sup_{P\in\mathfrak C}\E_P T_{\rm call}\le\mathsf B}
- \sup_{P\in\mathfrak C}
- \E_P\norm{\widehat g-g_P}_2^2.
-\end{equation}
-
-\begin{theorem}[Minimax-optimal fixed-dimension trajectory-budget rate]\label{thm:minimax}
-For the oracle experiment in Definition \ref{def:minimax-oracle}, there exist constants
-$c_{\rm lb},C_{\rm ub},\mathsf B_0\in(0,\infty)$, independent of $\mathsf B$, such that for all $\mathsf B\ge\mathsf B_0$,
-\begin{equation}\label{eq:minimax-rate}
- \frac{c_{\rm lb}}{\mathsf B}
- \le \mathfrak R_{\mathsf B}
- \le \frac{C_{\rm ub}}{\mathsf B}.
-\end{equation}
-The upper bound is attained, up to constants, by averaging independent untruncated outputs $Z_n^{\db}$ under the same expected complete-trajectory budget.  Hence, for fixed $d$ and fixed regularization, the minimax gradient-estimation rate is $\Theta(\mathsf B^{-1})$.
-\end{theorem}
+For the semi-synthetic environment used in E3--E4, Appendix~\ref{app:online} gives a sufficient objective-sensitivity condition under which the diminishing state gain and finite return-law interpolation imply sublinear objective variation.  This links the theorem's variation budget to the experimental construction.
