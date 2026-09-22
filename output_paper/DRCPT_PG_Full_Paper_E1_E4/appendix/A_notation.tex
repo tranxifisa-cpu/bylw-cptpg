@@ -102,10 +102,12 @@ Moreover $\abs{J_k(\theta,r_k)}\le B_v$.
 Fix episode $k$ and, for one side $\sigma$, write
 $S_\theta^\sigma(y):=S_{P_k,z_k,r_k,\theta}^\sigma(y)$.  The likelihood-score identity and Lemma \ref{lem:dirichlet-moments} give
 \[
- \nabla S_\theta^\sigma(y)=\E\{I_\sigma(y)G_{k,\theta}\},
+ \nabla S_\theta^\sigma(y)
+ =\E\{\1[v_\sigma(Y_k)>y]G_{k,\theta}\},
  \qquad
  \nabla^2S_\theta^\sigma(y)
- =\E\{I_\sigma(y)(G_{k,\theta}G_{k,\theta}^\top+\mathcal H_{k,\theta})\}.
+ =\E\{\1[v_\sigma(Y_k)>y]
+ (G_{k,\theta}G_{k,\theta}^\top+\mathcal H_{k,\theta})\}.
 \]
 The bounded indicator and the moment bounds provide an integrable dominating function, so the derivative--expectation interchange is justified by dominated convergence.  Consequently
 \[
