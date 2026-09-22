@@ -188,7 +188,7 @@ def experiment_evidence_map():
     label(ax, checks, e1, 121, 218, "Matched wealth; different histories", 18)
     label(ax, checks, e1, 121, 269, "Reference domain + portfolio ranking", 17, "#526579")
 
-    label(ax, checks, e2, 767, 145, "E2  Finite-sample gradient estimation", 23, MAP_BLUE, True, 18)
+    label(ax, checks, e2, 767, 145, "E2  Finite-sample\ngradient estimation", 26, MAP_BLUE, True, 26)
     label(ax, checks, e2, 767, 218, "Four fixed targets; matched expected cost", 18)
     label(ax, checks, e2, 767, 269, "Bias / variance / CLT / MSE scaling", 17, "#526579")
 
