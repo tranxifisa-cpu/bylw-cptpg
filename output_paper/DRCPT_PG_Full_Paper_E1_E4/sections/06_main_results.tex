@@ -61,25 +61,26 @@ Consequently,
 \subsection{Exact frozen-target gradient estimation}
 
 \begin{theorem}[Regularized CPT score-gradient identity]\label{thm:gradient-identity}
-Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix one target and write $J=J_k$, $Y=Y_k$, $S_\theta^\pm(y):=S_{P_k,z_k,r_k,\theta}^\pm(y)$, and $G_\theta:=G_{k,\theta}$.  Define
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix episode $k$ and write
+$S_\theta^\pm(y):=S_{P_k,z_k,r_k,\theta}^\pm(y)$.  Define
 \begin{align}\label{eq:cpt-multiplier}
  \Psi_\theta(\tau)
  ={}&\int_0^{B_v}(w_+^\eps)'(S_\theta^+(y))
- \{\1[v_+(Y(\tau))>y]-S_\theta^+(y)\}\,dy\notag\\
+ \{\1[v_+(Y_k(\tau))>y]-S_\theta^+(y)\}\,dy\notag\\
  &-\int_0^{B_v}(w_-^\eps)'(S_\theta^-(y))
- \{\1[v_-(Y(\tau))>y]-S_\theta^-(y)\}\,dy.
+ \{\1[v_-(Y_k(\tau))>y]-S_\theta^-(y)\}\,dy.
 \end{align}
 Then
 \begin{equation}\label{eq:score-gradient-identity}
- \nabla J(\theta)=\E\{\Psi_\theta(\tau)G_\theta(\tau)\}.
+ g_k(\theta)=\E\{\Psi_\theta(\tau)G_{k,\theta}(\tau)\}.
 \end{equation}
-The same identity holds for the frozen simulator objective $\widetilde J$.
+Replacing $P_k$ by $\widetilde P_k$ gives the same identity for $\widetilde g_k(\theta)$.
 \end{theorem}
 
 The empirical survival probabilities entering \eqref{eq:cpt-multiplier} make a direct finite-sample plug-in gradient biased.  Appendix~\ref{app:estimator} shows that the leave-one-out base has $O(n^{-1})$ mean error and that the coupled full/half difference cancels the first-order influence term, leaving second moment $O(n^{-2}4^{-\ell})$.  These two properties are the mechanism behind the randomized correction in Algorithm~\ref{alg:cloo-rd}.
 
 \begin{theorem}[Exact unbiasedness, finite variance, and finite expected cost]\label{thm:estimator}
-Fix one frozen target and parameter $\theta$, and write $g:=\nabla J(\theta)$.  Let $Z_n^{\db}$ be defined by \eqref{eq:debiased-output}, with $n\ge2$, $p_{\rm act}\in(0,1]$, and $1<b<2$.  Let $C_U$ and $C_{\rm rem}$ denote the finite constants established by \Cref{lem:level-cancellation}.  Put
+Fix one frozen target and parameter $\theta$, and let $g$ denote its CPT gradient.  Let $Z_n^{\db}$ be defined by \eqref{eq:debiased-output}, with $n\ge2$, $p_{\rm act}\in(0,1]$, and $1<b<2$.  Let $C_U$ and $C_{\rm rem}$ denote the finite constants established by \Cref{lem:level-cancellation}.  Put
 \begin{equation}\label{eq:level-series-constants}
  \Xi_b
  :=\sum_{\ell\ge1}\frac{4^{-\ell}}{\nu_\ell}
@@ -113,7 +114,7 @@ For $M$ independent outputs,
 \end{theorem}
 
 \begin{theorem}[Fixed-target asymptotic normality]\label{thm:clt}
-Under \Cref{thm:estimator}, keep the same frozen target and write $g:=\nabla J(\theta)$.  Fix $(n,p_{\rm act},b)$ and let $\Sigma_n=\Cov(Z_n^{\db})$.  Then
+Under \Cref{thm:estimator}, keep the same frozen target and its gradient $g$.  Fix $(n,p_{\rm act},b)$ and let $\Sigma_n=\Cov(Z_n^{\db})$.  Then
 \begin{equation}\label{eq:clt}
  \sqrt M\,(\widehat g_{M,n}^{\db}-g)
  \rightsquigarrow \mathcal N(0,\Sigma_n).
