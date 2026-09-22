@@ -1,13 +1,12 @@
 \section{Proofs for the Debiased Estimator}\label{app:estimator}
 
-Throughout this appendix, condition on one frozen target and write
-$g=\nabla J(\theta)$.  The complete trajectory summaries $\mathsf X_1,\mathsf X_2,\ldots$ are independent and identically distributed under this conditional law.
+Throughout this appendix, condition on one frozen target and let $g$ denote its CPT gradient at the queried parameter $\theta$.  The complete trajectory summaries $\mathsf X_1,\mathsf X_2,\ldots$ are independent and identically distributed under this conditional law.
 For a realization $x=(V^+,V^-,G_x)$, write $I_{x,\sigma}(y)=\1\{V^\sigma>y\}$.
 
 \subsection{Second-order expansion and full/half coupling}
 
 \begin{lemma}[Coupled full/half cancellation]\label{lem:level-cancellation}
-Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix one frozen target and parameter and write $g:=\nabla J(\theta)$.  There exist a measurable $\varphi$ and constants $C_{\rm rem},C_U<\infty$ such that
+Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix one frozen target and parameter, and let $g$ denote its CPT gradient.  There exist a measurable $\varphi$ and constants $C_{\rm rem},C_U<\infty$ such that
 \begin{equation}\label{eq:loo-expansion}
  U_n^{\rm raw}-g
  =\frac1n\sum_{i=1}^{n}\varphi(\mathsf X_i)+\mathcal B_n,
@@ -175,7 +174,7 @@ For $n\ge2$,
 and there exists $C_{\rm bias}<\infty$ such that
 \begin{equation}\label{eq:loo-bias-order}
  \norm{\bar U_n-g}_2\le \frac{C_{\rm bias}}{n},
- \qquad g:=\nabla J(\theta).
+ \qquad g\text{ denotes the target gradient}.
 \end{equation}
 \end{lemma}
 
