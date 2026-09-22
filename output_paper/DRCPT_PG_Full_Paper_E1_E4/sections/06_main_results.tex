@@ -61,12 +61,6 @@ Consequently, with
 
 \subsection{Exact frozen-target gradient estimation}
 
-Throughout this subsection, fix the model, context, and parameter and write
-\[
- g:=\nabla_\theta J(\theta)
-\]
-for the corresponding frozen-target gradient.  In the online algorithm the frozen model is $\widetilde P_k$, so the conditional target is $\widetilde g_k(\theta_k)$.
-
 \begin{theorem}[Regularized CPT score-gradient identity]\label{thm:gradient-identity}
 Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix one target and write $J=J_k$, $Y=Y_k$, $S_\theta^\pm(y):=S_{P_k,z_k,r_k,\theta}^\pm(y)$, and $G_\theta:=G_{k,\theta}$.  Define
 \begin{align}\label{eq:cpt-multiplier}
@@ -82,6 +76,12 @@ Then
 \end{equation}
 The same identity holds for the frozen simulator objective $\widetilde J$.
 \end{theorem}
+
+For the finite-sample estimator results below, fix the model, context, and queried parameter and write
+\[
+ g:=\nabla_\theta J(\theta)
+\]
+for the corresponding frozen-target gradient.  In the online algorithm the frozen model is $\widetilde P_k$, so the conditional target is $\widetilde g_k(\theta_k)$.
 
 The empirical survival probabilities entering \eqref{eq:cpt-multiplier} make a direct finite-sample plug-in gradient biased.  Appendix~\ref{app:estimator} shows that the leave-one-out base has $O(n^{-1})$ mean error and that the coupled full/half difference cancels the first-order influence term, leaving second moment $O(n^{-2}4^{-\ell})$.  These two properties are the mechanism behind the randomized correction in Algorithm~\ref{alg:cloo-rd}.
 
