@@ -31,7 +31,7 @@ Let $v=v_+$ and define
  \mathfrak m(t)=\upsilon\,v'(\upsilon t),\qquad 0\le t\le1.
 \]
 The shifted-power value function gives $\mathfrak m(0)=0$, $\mathfrak m(t)>0$ for $t\in(0,1]$, and bounded $\mathfrak m$.  Since
-$P(\mathsf U>t)=1-t^{e^{\theta^{[1]}}}$, a change of variables $y=v(\upsilon t)$ in the gain-side CPT integral gives
+$\Pp(\mathsf U>t)=1-t^{e^{\theta^{[1]}}}$, a change of variables $y=v(\upsilon t)$ in the gain-side CPT integral gives
 \begin{equation}\label{eq:minimax-cpt-submodel}
  J_p(\theta)
  =\int_0^1 \mathfrak m(t)
@@ -45,10 +45,8 @@ $t^{e^{\theta^{[1]}}}\abs{\log t}$ has an integrable envelope on $(0,1)$ and $(w
  \mathfrak g(p)
  =p\int_0^1\mathfrak m(t)(w_+^\eps)'(p(1-t))(-t\log t)\,dt.
 \end{equation}
-Put
+Let
 \[
- A_v=\int_0^1\mathfrak m(t)(-t\log t)\,dt>0,
- \qquad
  d_W=(w_+^\eps)'(0)>0.
 \]
 Since $\abs{(w_+^\eps)''}\le C_2$, differentiation of \eqref{eq:minimax-gradient-function} with respect to $p$ gives
@@ -56,15 +54,18 @@ Since $\abs{(w_+^\eps)''}\le C_2$, differentiation of \eqref{eq:minimax-gradient
  \mathfrak g'(p)
  &=\int_0^1\mathfrak m(t)(-t\log t)
  \left[(w_+^\eps)'(p(1-t))+p(1-t)(w_+^\eps)''(p(1-t))\right]dt\\
- &\ge (d_W-2C_2p)A_v.
+ &\ge (d_W-2C_2p)
+ \int_0^1\mathfrak m(t)(-t\log t)\,dt.
 \end{align*}
-Choose $p_{\max}\in(0,1/2]$ small enough that $2C_2p_{\max}\le d_W/2$; if $C_2=0$, any choice in $(0,1/2]$ is admissible.  Let
+The integral is strictly positive.  Choose $p_{\max}\in(0,1/2]$ small enough that $2C_2p_{\max}\le d_W/2$; if $C_2=0$, any choice in $(0,1/2]$ is admissible.  Let
 \[
  p_*=p_{\max}/2,
  \qquad
  \mathcal I=[p_*/2,3p_*/2],
  \qquad
- c_*=d_WA_v/2.
+ c_*=
+ \frac{d_W}{2}
+ \int_0^1\mathfrak m(t)(-t\log t)\,dt.
 \]
 Then
 \begin{equation}\label{eq:minimax-gradient-separation}
