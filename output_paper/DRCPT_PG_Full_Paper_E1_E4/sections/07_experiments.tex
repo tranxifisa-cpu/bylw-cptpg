@@ -55,9 +55,11 @@ R_{i,k,u}=0.08\,\tanh\!\left(
 \frac{\mu_k^{\rm ret}+2.5\,(\phi_k^{\rm ret})^\top f_{i,u}+\xi^{\rm com}_{k,u}+\xi^{\rm id}_{i,k,u}}{0.08}
 \right),
 \]
-where the common and idiosyncratic shocks have standard deviations $0.006\sigma_k^{\rm ret}$ and $0.009\sigma_k^{\rm ret}$, respectively; $(\mu_k^{\rm ret},\phi_k^{\rm ret},\sigma_k^{\rm ret})$ denotes the episode-specific return-law coefficients.  Episodes $1$--$40$ use the stable momentum law, episodes $41$--$60$ use the reversal law, episodes $61$--$120$ interpolate to the terminal low-volatility/value/quality law, and the exogenous return law is fixed thereafter.  E2 standardizes the account context to
+where $f_{i,u}$ is the market-factor vector of risky asset $i$ at time $u$, $\phi_k^{\rm ret}$ has the same dimension, and the common and idiosyncratic shocks have standard deviations $0.006\sigma_k^{\rm ret}$ and $0.009\sigma_k^{\rm ret}$, respectively; $(\mu_k^{\rm ret},\phi_k^{\rm ret},\sigma_k^{\rm ret})$ denotes the episode-specific return-law coefficients.  Episodes $1$--$40$ use the stable momentum law, episodes $41$--$60$ use the reversal law, episodes $61$--$120$ interpolate to the terminal low-volatility/value/quality law, and the exogenous return law is fixed thereafter.  E2 standardizes the account context to
 \[
-(X,r,\omega,\theta)=(1,1,e_{\rm cash},0)
+(X,r,\omega,\theta)=(1,1,e_{\rm cash},0),
+\qquad
+e_{\rm cash}:=(1,0,\ldots,0).
 \]
 and freezes four pre-specified targets at episodes $20$, $50$, $90$, and $150$, corresponding to the stable, post-change, mid-drift, and post-drift phases.  E3 subsequently uses the same factor distribution and episode-specific return law but allows the account state to evolve continuously.
 
@@ -166,15 +168,14 @@ with the $200$-, $300$-, $600$-, and $1500$-day boundaries assigned to the neare
 \[
 \vartheta\in\{0.005,0.01,0.015,0.02,0.03,0.04,0.05,0.06\},
 \qquad
-\gamma c_{\rm scr}\le\vartheta,
-\quad c_{\rm scr}=0.31.
+0.31\,\gamma\le\vartheta.
 \]
-The retained grid satisfies $\gamma c_{\rm scr}\le\vartheta$ with $c_{\rm scr}=0.31$.  The E3 defaults $(\eta_+,\eta_-)=(0.20,0.05)$, $h=5$, and $(\gamma,\vartheta)=(0.08,0.05)$ are marked throughout the robustness plots.  Each configuration uses four independent paired trajectories and two independent evaluation streams.
+The retained grid satisfies $0.31\,\gamma\le\vartheta$.  The E3 defaults $(\eta_+,\eta_-)=(0.20,0.05)$, $h=5$, and $(\gamma,\vartheta)=(0.08,0.05)$ are marked throughout the robustness plots.  Each configuration uses four independent paired trajectories and two independent evaluation streams.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/e4_robustness.pdf}
-    \caption{Reference-mechanism ablation and robustness of the online-tracking advantage, measured by the configuration-matched post-change DLR ratio $\mathrm{Ratio}_{\mathrm{DLR}}$.  \textbf{A}: structured ablation over the $9\times9$ reference-update grid; $(0,0)$ removes reference adaptation, the diagonal $\eta_+=\eta_-$ removes gain--loss asymmetry while retaining adaptation, and the off-diagonal regions test asymmetric updating.  The black contour marks a ratio of one and the star marks the default rule.  \textbf{B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$.  \textbf{C}: $(\gamma,\vartheta)$ robustness grid subject to $\gamma c_{\rm scr}\le\vartheta$; blank cells lie outside this region and the star marks the E3 default.}
+    \caption{Reference-mechanism ablation and robustness of the online-tracking advantage, measured by the configuration-matched post-change DLR ratio $\mathrm{Ratio}_{\mathrm{DLR}}$.  \textbf{A}: structured ablation over the $9\times9$ reference-update grid; $(0,0)$ removes reference adaptation, the diagonal $\eta_+=\eta_-$ removes gain--loss asymmetry while retaining adaptation, and the off-diagonal regions test asymmetric updating.  The black contour marks a ratio of one and the star marks the default rule.  \textbf{B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$.  \textbf{C}: $(\gamma,\vartheta)$ robustness grid subject to $0.31\,\gamma\le\vartheta$; blank cells lie outside this region and the star marks the E3 default.}
     \label{fig:e4-robustness}
 \end{figure}
 \FloatBarrier
