@@ -3,13 +3,13 @@
 The analysis rests on three standing conditions, each tied to a distinct part of the argument: uniform regularity of the portfolio trajectories, the source of policy-parameter dependence in the trajectory law, and smoothness of the regularized CPT weighting.  More specialized conditions are introduced where they become relevant, so the main assumptions match the quantities used throughout the estimator and online analyses.
 
 \begin{assumption}[Compact policy and trajectory domain]\label{ass:trajectory}
-The parameter set $\Theta\subset\R^d$ is nonempty, compact, and convex, and is contained in an open set on which the policy is defined.  The horizon $h$ and asset count $N$ are finite.  There exist constants $Q_f,B_X,B_r,B_v<\infty$ such that, uniformly over every analyzed true model $P_k$ and frozen simulator $\widetilde P_k$,
+The parameter set $\Theta\subset\R^d$ is nonempty, compact, and convex, and is contained in an open set on which the policy is defined.  The horizon $h$ and asset count $N$ are finite.  Uniformly over every analyzed true model $P_k$ and frozen simulator $\widetilde P_k$, the policy features, wealth, and reference state are bounded on the analysis domain, and there exists $B_v<\infty$ such that
 \begin{equation}\label{eq:primitive-bounds}
- \sup_{i,u}\norm{q_{i,u}}_2\le Q_f,
+ \sup_{i,u}\norm{q_{i,u}}_2<\infty,
  \qquad
- 0<X_u\le B_X,
+ \sup_u X_u<\infty,
  \qquad
- 0\le r_u\le B_r,
+ \sup_u r_u<\infty,
  \qquad
  0\le v_\pm(Y_k)\le B_v.
 \end{equation}
