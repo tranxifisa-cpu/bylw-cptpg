@@ -83,7 +83,7 @@ We first connect the final estimator to the true gradient.  Conditional on $\cF_
  \E(\widehat g_k^{\db}-\widetilde g_k(\theta_k)\mid\cF_k)=0,
  \qquad
  \E(\norm{\widehat g_k^{\db}-\widetilde g_k(\theta_k)}_2^2\mid\cF_k)
- \le\frac{C_{\rm var}(n)}{M_k}.
+ \le\frac{C_{\rm var}(n,p_{\rm act},b)}{M_k}.
 \]
 The cross term with the deterministic conditional vector
 $\widetilde g_k(\theta_k)-g_k(\theta_k)$ therefore vanishes.  Hence
@@ -91,7 +91,7 @@ $\widetilde g_k(\theta_k)-g_k(\theta_k)$ therefore vanishes.  Hence
  \E\norm{\widehat g_k^{\db}-g_k(\theta_k)}_2^2
  &=\E\norm{\widehat g_k^{\db}-\widetilde g_k(\theta_k)}_2^2
  +\E\norm{\widetilde g_k(\theta_k)-g_k(\theta_k)}_2^2\\
- &\le\frac{C_{\rm var}(n)}{M_k}+\E\beta_k^2,
+ &\le\frac{C_{\rm var}(n,p_{\rm act},b)}{M_k}+\E\beta_k^2,
 \end{align*}
 which is \eqref{eq:true-gradient-mse}.
 
@@ -123,10 +123,10 @@ Summing \eqref{eq:online-one-step}, applying \eqref{eq:true-gradient-mse} and \e
 \subsection{Dynamic local regret}
 
 \begin{proof}[Proof of \Cref{cor:dynamic-local-regret}]
-Write $A=A_{\rho,W}$.  With the convention $Q_t(\theta_t)=0$ for $t\le0$, the coefficients $\rho^j/A$, $j=0,\ldots,W-1$, are nonnegative and sum to one.  Convexity of $x\mapsto\norm{x}_2^2$ gives
+With the convention $Q_t(\theta_t)=0$ for $t\le0$, the coefficients $\rho^j/A_{\rho,W}$, $j=0,\ldots,W-1$, are nonnegative and sum to one.  Convexity of $x\mapsto\norm{x}_2^2$ gives
 \[
  \norm{\bar Q_k}_2^2
- \le \frac1A\sum_{j=0}^{W-1}\rho^j
+ \le \frac{1}{A_{\rho,W}}\sum_{j=0}^{W-1}\rho^j
        \norm{Q_{k-j}(\theta_{k-j})}_2^2.
 \]
 Summing over $k\le K$ and reindexing,
@@ -134,7 +134,7 @@ Summing over $k\le K$ and reindexing,
  \Reg_{\rho,W}(K)
  &\le
  \sum_{t=1}^{K}\zeta_t
- \left\{\frac1A\sum_{j=0}^{\min\{W-1,K-t\}}\rho^j\right\}
+ \left\{\frac{1}{A_{\rho,W}}\sum_{j=0}^{\min\{W-1,K-t\}}\rho^j\right\}
  \le \sum_{t=1}^{K}\zeta_t.
 \end{align*}
 This proves \eqref{eq:dynamic-local-regret-bound}; taking expectations and dividing by $K$ gives \eqref{eq:average-dynamic-local-regret-bound}.
@@ -163,11 +163,27 @@ $\widehat Q^{(j)}=\mathcal Q_\theta(\widehat g^{(j)})$, then
  \le \frac{2\varepsilon_g}{\vartheta}
  +\frac{\varepsilon_g^2}{\vartheta^2}.
 \end{equation}
-Indeed, independence gives
-$\E\ip{\widehat Q^{(1)}}{\widehat Q^{(2)}}=\norm{\E\widehat Q^{(1)}}_2^2$.
-Writing $e=\E\widehat Q^{(1)}-\mathcal Q_\theta(g)$, Jensen's inequality and
-\eqref{eq:residual-evaluation-lipschitz} give $\norm e_2\le\varepsilon_g/\vartheta$.
-Finally $\norm{\mathcal Q_\theta(g)}_2\le1$, because $\norm{\mathsf d(g)}_2\le1$, which yields \eqref{eq:cross-stream-residual-error}.
+Let
+\[
+ q:=\mathcal Q_\theta(g),
+ \qquad
+ e_j:=\E\widehat Q^{(j)}-q,
+ \quad j=1,2.
+\]
+Independence gives
+$\E\ip{\widehat Q^{(1)}}{\widehat Q^{(2)}}
+=\ip{q+e_1}{q+e_2}$.
+Jensen's inequality and \eqref{eq:residual-evaluation-lipschitz} give
+$\norm{e_j}_2\le\varepsilon_g/\vartheta$ for $j=1,2$.  Since
+$\norm q_2\le1$, because $\norm{\mathsf d(g)}_2\le1$,
+\[
+ \left|
+ \ip{q+e_1}{q+e_2}-\norm q_2^2
+ \right|
+ \le \norm q_2(\norm{e_1}_2+\norm{e_2}_2)
+ +\norm{e_1}_2\norm{e_2}_2,
+\]
+which yields \eqref{eq:cross-stream-residual-error}.
 
 The same argument passes through the linear DLR smoothing.  If
 \[
@@ -195,7 +211,7 @@ If \eqref{eq:error-bound} holds, define
  \delta_k^g:=\sup_{\theta\in\Theta}
  \norm{g_{k+1}(\theta)-g_k(\theta)}_2.
 \end{equation}
-Then
+Then, with $\dH$ denoting Hausdorff distance,
 \begin{equation}\label{eq:stationary-set-drift}
  \dH(\Sta_{k+1},\Sta_k)
  \le\frac{\kappa}{\vartheta}\delta_k^g.
@@ -232,9 +248,9 @@ Taking the supremum over $\theta\in\Sta_k$ gives one directed Hausdorff bound.  
 \end{proof}
 
 \begin{proof}[Proof of \Cref{cor:vanishing-tracking}]
-In \eqref{eq:online-residual-bound}, the endpoint term is $O(K^{-1})$.  The assumption $\E\cV_K=o(K)$ makes the variation term vanish after division by $K$.  Since $C_{\rm var}(n)$ is fixed,
+In \eqref{eq:online-residual-bound}, the endpoint term is $O(K^{-1})$.  The assumption $\E\cV_K=o(K)$ makes the variation term vanish after division by $K$.  Since $C_{\rm var}(n,p_{\rm act},b)$ is fixed,
 \[
- \frac1K\sum_{k=1}^{K}\left(\frac{C_{\rm var}(n)}{M_k}+\E\beta_k^2\right)\to0
+ \frac1K\sum_{k=1}^{K}\left(\frac{C_{\rm var}(n,p_{\rm act},b)}{M_k}+\E\beta_k^2\right)\to0
 \]
 by the assumed Ces\`aro condition.  Therefore $\cE_K\to0$.  Equation \eqref{eq:average-dynamic-local-regret-bound} gives the DLR conclusion, and \eqref{eq:stationary-tracking} gives the stationary-set conclusion when the local condition \eqref{eq:error-bound} holds.
 \end{proof}
