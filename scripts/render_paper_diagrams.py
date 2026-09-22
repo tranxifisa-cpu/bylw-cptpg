@@ -188,7 +188,7 @@ def experiment_evidence_map():
     label(ax, checks, e1, 121, 218, "Matched wealth; different histories", 18)
     label(ax, checks, e1, 121, 269, "Reference domain + portfolio ranking", 17, "#526579")
 
-    label(ax, checks, e2, 767, 145, "E2  Finite-sample gradient estimation", 26, MAP_BLUE, True, 20)
+    label(ax, checks, e2, 767, 145, "E2  Finite-sample gradient estimation", 23, MAP_BLUE, True, 18)
     label(ax, checks, e2, 767, 218, "Four fixed targets; matched expected cost", 18)
     label(ax, checks, e2, 767, 269, "Bias / variance / CLT / MSE scaling", 17, "#526579")
 
@@ -196,17 +196,17 @@ def experiment_evidence_map():
     label(ax, checks, e3, 1412, 218, "Same setup; slow dynamic state path", 18)
     label(ax, checks, e3, 1412, 269, "Residual + DLR, cumulative / average", 17, "#526579")
 
-    label(ax, checks, e4, 676, 520, "E4  Reference ablation and robustness", 27, PURPLE, True, 22)
-    label(ax, checks, e4, 676, 590, "Reference dynamics / horizon / optimizer scale", 18)
-    label(ax, checks, e4, 676, 640, "Where does the tracking advantage strengthen or weaken?", 17, "#526579")
+    label(ax, checks, e4, 676, 520, "E4  Reference ablation and robustness", 24, PURPLE, True, 19)
+    label(ax, checks, e4, 676, 590, "Reference dynamics / horizon / optimizer scale", 17)
+    label(ax, checks, e4, 676, 640, "Where does the tracking advantage strengthen or weaken?", 15, "#526579")
 
     label(ax, checks, e5, 212, 916, "E5  Real-market portfolio evaluation", 27, GREEN, True, 22)
     label(ax, checks, e5, 212, 990, "Time-ordered A-share backtest", 18)
-    label(ax, checks, e5, 212, 1040, "Risk-adjusted performance + trading intensity", 17, "#526579")
+    label(ax, checks, e5, 212, 1040, "Risk-adjusted performance + trading intensity", 15.5, "#526579")
 
     label(ax, checks, e6, 1100, 916, "E6  Investor behavior prediction", 27, GREEN, True, 22)
     label(ax, checks, e6, 1100, 990, "Held-out sell / hold opportunities", 18)
-    label(ax, checks, e6, 1100, 1040, "Held-out prediction + behavioral alignment", 17, "#526579")
+    label(ax, checks, e6, 1100, 1040, "Held-out prediction + behavioral alignment", 15.5, "#526579")
 
     label(ax, checks, e7, 657, 1195, "E7  Simulated investor interaction", 27, ORANGE, True, 22)
     label(ax, checks, e7, 657, 1265, "Heterogeneous agents informed by E6", 18)
