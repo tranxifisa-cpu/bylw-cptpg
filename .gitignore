@@ -22,3 +22,13 @@ behavior/
 .DS_Store
 Thumbs.db
 results/e3_slow_compact_hybrid_v2
+
+# LaTeX build files for the manuscript; keep main.pdf tracked.
+/output_paper/DRCPT_PG_Full_Paper_E1_E4/*.aux
+/output_paper/DRCPT_PG_Full_Paper_E1_E4/*.bbl
+/output_paper/DRCPT_PG_Full_Paper_E1_E4/*.blg
+/output_paper/DRCPT_PG_Full_Paper_E1_E4/*.fdb_latexmk
+/output_paper/DRCPT_PG_Full_Paper_E1_E4/*.fls
+/output_paper/DRCPT_PG_Full_Paper_E1_E4/*.log
+/output_paper/DRCPT_PG_Full_Paper_E1_E4/*.out
+/output_paper/DRCPT_PG_Full_Paper_E1_E4/*.synctex.gz
