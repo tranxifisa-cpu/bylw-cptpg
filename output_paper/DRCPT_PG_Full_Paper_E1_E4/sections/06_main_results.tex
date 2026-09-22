@@ -61,6 +61,12 @@ Consequently, with
 
 \subsection{Exact frozen-target gradient estimation}
 
+Throughout this subsection, fix the model, context, and parameter and write
+\[
+ g:=\nabla_\theta J(\theta)
+\]
+for the corresponding frozen-target gradient.  In the online algorithm the frozen model is $\widetilde P_k$, so the conditional target is $\widetilde g_k(\theta_k)$.
+
 \begin{theorem}[Regularized CPT score-gradient identity]\label{thm:gradient-identity}
 Under Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity}, fix one target and write $J=J_k$, $Y=Y_k$, $S_\theta^\pm(y):=S_{P_k,z_k,r_k,\theta}^\pm(y)$, and $G_\theta:=G_{k,\theta}$.  Define
 \begin{align}\label{eq:cpt-multiplier}
@@ -96,7 +102,7 @@ Then
 \end{equation}
 \begin{equation}\label{eq:single-output-variance}
  \tr\Cov(Z_n^{\db})
- \le C_{\rm var}(n)
+ \le C_{\rm var}(n,p_{\rm act},b)
  :=\frac{C_U}{n}+\frac{9C_{\rm rem}\Xi_b}{p_{\rm act} n^2}<\infty,
 \end{equation}
 and the expected number of complete trajectories is
@@ -109,7 +115,7 @@ For $M$ independent outputs,
  \widehat g_{M,n}^{\db}:=\frac1M\sum_{m=1}^{M}Z_{n,m}^{\db},
  \qquad
  \E\norm{\widehat g_{M,n}^{\db}-g}_2^2
- \le\frac{C_{\rm var}(n)}{M}.
+ \le\frac{C_{\rm var}(n,p_{\rm act},b)}{M}.
 \end{equation}
 \end{theorem}
 
@@ -167,10 +173,10 @@ The upper bound is attained, up to constants, by averaging independent untruncat
 \subsection{Online first-order tracking under a moving CPT objective}
 
 \begin{theorem}[Average expected squared projected residual bound]\label{thm:online-residual}
-Suppose Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity} hold and $\gamma L\le\vartheta$.  Let $\widehat g_k^{\db}$ be defined by \eqref{eq:gradient-average} and target $\widetilde g_k(\theta_k)$.  Then
+Suppose Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity} hold and $\gamma L\le\vartheta$.  Let $C_g:=\max\{B_g,\vartheta\}$, and let $\widehat g_k^{\db}$ be defined by \eqref{eq:gradient-average} with target $\widetilde g_k(\theta_k)$.  Then
 \begin{equation}\label{eq:true-gradient-mse}
  \E\norm{\widehat g_k^{\db}-g_k(\theta_k)}_2^2
- \le\frac{C_{\rm var}(n)}{M_k}+\E\beta_k^2,
+ \le\frac{C_{\rm var}(n,p_{\rm act},b)}{M_k}+\E\beta_k^2,
 \end{equation}
 and
 \begin{equation}\label{eq:online-residual-bound}
@@ -180,7 +186,7 @@ and
  \frac{8\{2B_v+\E\cV_K\}}{\vartheta\gamma K}
  +\frac{10C_g}{\vartheta^3K}
  \sum_{k=1}^{K}
- \left(\frac{C_{\rm var}(n)}{M_k}+\E\beta_k^2\right),
+ \left(\frac{C_{\rm var}(n,p_{\rm act},b)}{M_k}+\E\beta_k^2\right),
  }
 \end{equation}
 \end{theorem}
