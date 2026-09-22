@@ -252,15 +252,19 @@ while $c_k^{\rm ret}$ changes only at the regime boundary and over a finite inte
 $\sum_k\norm{c_{k+1}^{\rm ret}-c_k^{\rm ret}}<\infty$.
 For a frozen objective that is uniformly Lipschitz in these episode-start inputs on the compact analysis domain, there are finite constants $L_{\rm acct},L_{\rm ret}$ such that
 \[
+\begin{aligned}
  \sup_{\theta\in\Theta}
  \abs{J_{k+1}(\theta,r_{k+1})-J_k(\theta,r_k)}
- \le
+ &\le
  L_{\rm acct}\!\left(
  \abs{\log X_{t_{k+1}}-\log X_{t_k}}
  +\abs{r_{k+1}-r_k}
+ \right.\\
+ &\qquad\left.
  +\norm{\omega_{t_{k+1}-1}-\omega_{t_k-1}}_1
  \right)
  +L_{\rm ret}\norm{c_{k+1}^{\rm ret}-c_k^{\rm ret}}.
+\end{aligned}
 \]
 Under this regularity, the schedule gives
 $\cV_K=O(\sum_{k<K}\varpi_k)+O(1)=O(K^{1/4})=o(K)$.
