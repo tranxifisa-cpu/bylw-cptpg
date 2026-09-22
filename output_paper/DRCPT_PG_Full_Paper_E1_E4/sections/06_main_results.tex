@@ -45,18 +45,17 @@ and, for fixed $(P,z,\theta)$,
  \abs{J(P,z,r;\theta)-J(P,z,r';\theta)}
  \le C_1L_v(1-\eta_{\min})^h\abs{r-r'}.
 \end{equation}
-Consequently, with
-\[
- \Delta_k^{\mathrm{nr}}
- :=\sup_{\theta\in\Theta}
- \abs{J(P_{k+1},z_{k+1},r_k;\theta)-J(P_k,z_k,r_k;\theta)},
-\]
-\begin{equation}\label{eq:variation-decomposition}
+Consequently,
+\begin{align}\label{eq:variation-decomposition}
  \sup_{\theta\in\Theta}
  \abs{J_{k+1}(\theta,r_{k+1})-J_k(\theta,r_k)}
- \le \Delta_k^{\mathrm{nr}}
+ &\le
+ \sup_{\theta\in\Theta}
+ \abs{J(P_{k+1},z_{k+1},r_k;\theta)-J(P_k,z_k,r_k;\theta)}
+ \notag\\
+ &\quad
  +C_1L_v(1-\eta_{\min})^h\abs{r_{k+1}-r_k}.
-\end{equation}
+\end{align}
 \end{proposition}
 
 \subsection{Exact frozen-target gradient estimation}
@@ -80,7 +79,7 @@ The same identity holds for the frozen simulator objective $\widetilde J$.
 The empirical survival probabilities entering \eqref{eq:cpt-multiplier} make a direct finite-sample plug-in gradient biased.  Appendix~\ref{app:estimator} shows that the leave-one-out base has $O(n^{-1})$ mean error and that the coupled full/half difference cancels the first-order influence term, leaving second moment $O(n^{-2}4^{-\ell})$.  These two properties are the mechanism behind the randomized correction in Algorithm~\ref{alg:cloo-rd}.
 
 \begin{theorem}[Exact unbiasedness, finite variance, and finite expected cost]\label{thm:estimator}
-Let $Z_n^{\db}$ be defined by \eqref{eq:debiased-output}, with $n\ge2$, $p_{\rm act}\in(0,1]$, and $1<b<2$.  Let $C_U$ and $C_{\rm rem}$ denote the finite constants established by \Cref{lem:level-cancellation}.  Put
+Fix one frozen target and parameter $\theta$, and write $g:=\nabla J(\theta)$.  Let $Z_n^{\db}$ be defined by \eqref{eq:debiased-output}, with $n\ge2$, $p_{\rm act}\in(0,1]$, and $1<b<2$.  Let $C_U$ and $C_{\rm rem}$ denote the finite constants established by \Cref{lem:level-cancellation}.  Put
 \begin{equation}\label{eq:level-series-constants}
  \Xi_b
  :=\sum_{\ell\ge1}\frac{4^{-\ell}}{\nu_\ell}
@@ -114,7 +113,7 @@ For $M$ independent outputs,
 \end{theorem}
 
 \begin{theorem}[Fixed-target asymptotic normality]\label{thm:clt}
-Under \Cref{thm:estimator}, fix $(n,p_{\rm act},b)$ and let $\Sigma_n=\Cov(Z_n^{\db})$.  Then
+Under \Cref{thm:estimator}, keep the same frozen target and write $g:=\nabla J(\theta)$.  Fix $(n,p_{\rm act},b)$ and let $\Sigma_n=\Cov(Z_n^{\db})$.  Then
 \begin{equation}\label{eq:clt}
  \sqrt M\,(\widehat g_{M,n}^{\db}-g)
  \rightsquigarrow \mathcal N(0,\Sigma_n).
@@ -123,7 +122,7 @@ If $\Sigma_n$ is nonsingular and $\widehat\Sigma_{M,n}$ is the empirical covaria
 \begin{equation}\label{eq:studentized-clt}
  \sqrt M\,\widehat\Sigma_{M,n}^{-1/2}
  (\widehat g_{M,n}^{\db}-g)
- \rightsquigarrow \mathcal N(0,I_d).
+ \rightsquigarrow \mathcal N(0,\mathrm I_d).
 \end{equation}
 \end{theorem}
 
@@ -178,7 +177,7 @@ and
  \cE_K
  \le
  \frac{8\{2B_v+\E\cV_K\}}{\vartheta\gamma K}
- +\frac{10C_g}{\vartheta^3K}
+ +\frac{10\max\{B_g,\vartheta\}}{\vartheta^3K}
  \sum_{k=1}^{K}
  \left(\frac{C_{\rm var}(n)}{M_k}+\E\beta_k^2\right),
  }
