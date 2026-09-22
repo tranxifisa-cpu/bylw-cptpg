@@ -104,15 +104,15 @@ Choose $\delta_*$ small enough that $C_I\delta_*^2\le1/8$.  Pinsker's inequality
 \paragraph{Step 4: reduction from estimation to testing.}
 By \eqref{eq:minimax-gradient-separation} and the mean-value theorem, the two gradient targets satisfy
 \begin{equation}\label{eq:minimax-target-distance}
- D_{\mathsf B}^g
+ \Delta_{\mathsf B}^g
  :=\norm{\mathfrak g(p_+)e_1-\mathfrak g(p_-)e_1}_2
  \ge2c_*\delta.
 \end{equation}
-Given any estimator $\widehat g$, define the test that chooses the closer of the two targets.  On a testing error, the estimator must be at least $D_{\mathsf B}^g/2$ from the true target.  The sum of the two testing error probabilities is at least one minus the total variation distance.  Therefore
+Given any estimator $\widehat g$, define the test that chooses the closer of the two targets.  On a testing error, the estimator must be at least $\Delta_{\mathsf B}^g/2$ from the true target.  The sum of the two testing error probabilities is at least one minus the total variation distance.  Therefore
 \begin{align*}
  \max_{s\in\{+,-\}}
  \E_s\norm{\widehat g-\mathfrak g(p_s)e_1}_2^2
- &\ge \frac{(D_{\mathsf B}^g)^2}{8}
+ &\ge \frac{(\Delta_{\mathsf B}^g)^2}{8}
  \left\{1-\operatorname{TV}(\mathbb P_+^{\rm tr},\mathbb P_-^{\rm tr})\right\}\\
  &\ge \frac{3c_*^2\delta_*^2}{8\mathsf B}.
 \end{align*}
