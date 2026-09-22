@@ -31,7 +31,7 @@ while
 \begin{proof}[Proof of \Cref{lem:level-cancellation}]
 To prove \eqref{eq:loo-expansion}, it is enough to isolate the first-order Hoeffding projection and show that both the degenerate two-sample term and the Taylor remainder are $O_{L^2}(n^{-1})$.  For a side $\sigma$ and threshold $y$, write
 \[
- S_\sigma(y)=P(V^\sigma>y),
+ S_\sigma(y)=\Pp(V^\sigma>y),
  \qquad
  e_{-i,\sigma}(y)=\widehat S_{-i,n}^\sigma(y)-S_\sigma(y).
 \]
@@ -48,7 +48,7 @@ Substituting \eqref{eq:weight-taylor} into \eqref{eq:raw-loo} splits the statist
 
 Define
 \begin{align*}
- h_0(x)
+ \mathfrak h_0(x)
  &=G_x\sum_\sigma \varsigma_\sigma
  \int_0^{B_v}(w_\sigma^\eps)'(S_\sigma(y))I_{x,\sigma}(y)\,dy,\\
  \mathcal K(x,x')
@@ -56,14 +56,14 @@ Define
  \int_0^{B_v}(w_\sigma^\eps)''(S_\sigma(y))
  I_{x,\sigma}(y)\{I_{x',\sigma}(y)-S_\sigma(y)\}\,dy.
 \end{align*}
-By \eqref{eq:score-gradient-identity} and $\E G=0$, $\E h_0(\mathsf X)=g$.  Moreover
+By \eqref{eq:score-gradient-identity} and $\E G=0$, $\E \mathfrak h_0(\mathsf X)=g$.  Moreover
 $\E\{\mathcal K(\mathsf X,\mathsf X')\mid \mathsf X\}=0$ for independent $\mathsf X,\mathsf X'$, because
 $\E\{I_{\mathsf X',\sigma}(y)-S_\sigma(y)\}=0$.  Let
 \[
- h_1(x')=\E_{\mathsf X}\{\mathcal K(\mathsf X,x')\}.
+ \mathfrak h_1(x')=\E_{\mathsf X}\{\mathcal K(\mathsf X,x')\}.
 \]
-Then $\E h_1(\mathsf X')=0$.  Put
-$\mathcal K^\circ(x,x')=\mathcal K(x,x')-h_1(x')$.  Both first-order projections of $\mathcal K^\circ$ vanish:
+Then $\E \mathfrak h_1(\mathsf X')=0$.  Put
+$\mathcal K^\circ(x,x')=\mathcal K(x,x')-\mathfrak h_1(x')$.  Both first-order projections of $\mathcal K^\circ$ vanish:
 \[
  \E\{\mathcal K^\circ(\mathsf X,\mathsf X')\mid \mathsf X\}=0,
  \qquad
@@ -72,7 +72,7 @@ $\mathcal K^\circ(x,x')=\mathcal K(x,x')-h_1(x')$.  Both first-order projections
 The ordered two-sample term therefore has the exact decomposition
 \begin{equation}\label{eq:ordered-hoeffding}
  \frac{1}{n(n-1)}\sum_{i\ne j}\mathcal K(\mathsf X_i,\mathsf X_j)
- =\frac1n\sum_{j=1}^{n}h_1(\mathsf X_j)
+ =\frac1n\sum_{j=1}^{n}\mathfrak h_1(\mathsf X_j)
  +\mathcal D_n,
 \end{equation}
 where
@@ -89,9 +89,9 @@ We next bound the Taylor remainder.  For each $i$, $e_{-i,\sigma}$ is an empiric
 \begin{equation}\label{eq:bernoulli-fourth-moment}
  \E\abs{e_{-i,\sigma}(y)}^4\le\frac{C_e}{(n-1)^2}
 \end{equation}
-for a universal finite $C_e$.  By \eqref{eq:weight-taylor}, Cauchy--Schwarz in the $y$-integral, independence of $G_i$ from the leave-one-out empirical survival, and $\E\norm{G_i}_2^2<\infty$, the $i$th Taylor contribution has second moment at most $C_T/n^2$.  Jensen's inequality for the average over $i$ then gives a second-moment bound of the same order for the averaged Taylor remainder $T_n$:
+for a universal finite $C_e$.  By \eqref{eq:weight-taylor}, Cauchy--Schwarz in the $y$-integral, independence of $G_i$ from the leave-one-out empirical survival, and $\E\norm{G_i}_2^2<\infty$, the $i$th Taylor contribution has second moment at most $C_T/n^2$.  Jensen's inequality for the average over $i$ then gives a second-moment bound of the same order for the averaged Taylor remainder $\mathcal T_n$:
 \begin{equation}\label{eq:taylor-remainder-bound}
- \E\norm{T_n}_2^2\le\frac{C_T'}{n^2}.
+ \E\norm{\mathcal T_n}_2^2\le\frac{C_T}{n^2}.
 \end{equation}
 
 Combining the first-order term, \eqref{eq:ordered-hoeffding}, and the Taylor remainder yields
@@ -99,9 +99,9 @@ Combining the first-order term, \eqref{eq:ordered-hoeffding}, and the Taylor rem
  U_n^{\rm raw}-g
  =\frac1n\sum_{i=1}^{n}\mathfrak h(\mathsf X_i)+\mathcal B_n,
  \qquad
- \mathfrak h=h_0-g+h_1,
+ \mathfrak h=\mathfrak h_0-g+\mathfrak h_1,
  \qquad
- \mathcal B_n=\mathcal D_n+T_n.
+ \mathcal B_n=\mathcal D_n+\mathcal T_n.
 \]
 The vector function $\mathfrak h$ has mean zero, and \eqref{eq:degenerate-remainder}--\eqref{eq:taylor-remainder-bound} imply
 $\E\norm{\mathcal B_n}_2^2\le C_{\rm rem}/n^2$ after increasing the finite constant $C_{\rm rem}$.  This proves \eqref{eq:loo-expansion}.
