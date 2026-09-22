@@ -167,14 +167,13 @@ with $C_U=C_E/2$.  This completes the proof.
 \subsection{Centering and finite-sample bias}
 
 \begin{lemma}[Centering and finite-sample bias]\label{lem:centering-expectation}
-For $n\ge2$,
+Let $g$ denote the frozen target gradient.  For $n\ge2$,
 \begin{equation}\label{eq:centered-raw-mean}
  \E U_n^{\rm cen}=\E U_n^{\rm raw}=: \bar U_n,
 \end{equation}
 and there exists $C_{\rm bias}<\infty$ such that
 \begin{equation}\label{eq:loo-bias-order}
- \norm{\bar U_n-g}_2\le \frac{C_{\rm bias}}{n},
- \qquad g\text{ denotes the target gradient}.
+ \norm{\bar U_n-g}_2\le \frac{C_{\rm bias}}{n}.
 \end{equation}
 \end{lemma}
 
