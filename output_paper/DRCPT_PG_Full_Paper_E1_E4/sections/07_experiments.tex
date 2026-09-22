@@ -159,7 +159,7 @@ Panel B varies the episode horizon over
 \[
 h\in\{1,5,10,15,20,25,30,35,40,45,50\},
 \]
-with the $200$-, $300$-, $600$-, and $1500$-day boundaries assigned to the nearest complete episode where needed; the state-gain clock remains tied to elapsed market time.  Panel C evaluates $48$ optimizer configurations retained by a pre-specified diagnostic screen from
+with the $200$-, $300$-, $600$-, and $1500$-day boundaries assigned to the nearest complete episode where needed; the state-gain clock remains tied to elapsed market time.  Panel C evaluates $48$ optimizer configurations from
 \[
 \gamma\in\{0.01,0.02,0.03,0.04,0.05,0.06,0.08,0.10,0.12\},
 \]
@@ -174,7 +174,7 @@ The retained grid satisfies $\gamma c_{\rm scr}\le\vartheta$ with $c_{\rm scr}=0
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/e4_robustness.pdf}
-    \caption{Reference-mechanism ablation and robustness of the online-tracking advantage, measured by the configuration-matched post-change DLR ratio $\mathrm{Ratio}_{\mathrm{DLR}}$.  \textbf{A}: structured ablation over the $9\times9$ reference-update grid; $(0,0)$ removes reference adaptation, the diagonal $\eta_+=\eta_-$ removes gain--loss asymmetry while retaining adaptation, and the off-diagonal regions test asymmetric updating.  The black contour marks a ratio of one and the star marks the default rule.  \textbf{B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$.  \textbf{C}: diagnostically screened $(\gamma,\vartheta)$ grid; blank cells lie outside $\gamma c_{\rm scr}\le\vartheta$, and the star marks the E3 default.}
+    \caption{Reference-mechanism ablation and robustness of the online-tracking advantage, measured by the configuration-matched post-change DLR ratio $\mathrm{Ratio}_{\mathrm{DLR}}$.  \textbf{A}: structured ablation over the $9\times9$ reference-update grid; $(0,0)$ removes reference adaptation, the diagonal $\eta_+=\eta_-$ removes gain--loss asymmetry while retaining adaptation, and the off-diagonal regions test asymmetric updating.  The black contour marks a ratio of one and the star marks the default rule.  \textbf{B}: horizon sweep with paired-seed 95\% bootstrap intervals; the horizontal line marks a ratio of one and the vertical line marks $h=5$.  \textbf{C}: $(\gamma,\vartheta)$ robustness grid subject to $\gamma c_{\rm scr}\le\vartheta$; blank cells lie outside this region and the star marks the E3 default.}
     \label{fig:e4-robustness}
 \end{figure}
 \FloatBarrier
@@ -195,7 +195,7 @@ We compare five policy-gradient methods: DRCPT-PG, symmetric-reference CPT-PG, s
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{../../results/e5_hs300_e3sync_expcompatible_beta6_c10/figures/figure_E5_external_validity.pdf}
-    \caption{E5 chronological A-share evaluation.  \textbf{A}: median normalized wealth across the ten policy seeds, with seed dispersion bands.  \textbf{B}: drawdown and recovery over the same replay, with market-stage annotations used only for visualization.  \textbf{C}: terminal wealth versus maximum drawdown; bubble size represents turnover.  \textbf{D}: mean turnover and cumulative transaction cost.  All five methods share the same fixed asset universe, point-in-time information set, transaction-cost rule, and stochastic execution protocol.}
+    \caption{E5 chronological A-share evaluation.  \textbf{A}: median normalized wealth across the ten policy seeds, with seed dispersion bands.  \textbf{B}: drawdown and recovery over the same replay, with market-stage annotations indicating the main market phases.  \textbf{C}: terminal wealth versus maximum drawdown; bubble size represents turnover.  \textbf{D}: mean turnover and cumulative transaction cost.  All five methods share the same fixed asset universe, point-in-time information set, transaction-cost rule, and stochastic execution protocol.}
     \label{fig:e5-market}
 \end{figure}
 
