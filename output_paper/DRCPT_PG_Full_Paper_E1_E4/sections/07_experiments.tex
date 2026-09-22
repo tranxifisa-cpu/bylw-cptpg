@@ -1,12 +1,12 @@
 \section{Experimental Design and Evidence}\label{sec:experiments}
 
 \subsection{Experimental roadmap}\label{sec:exp-roadmap}
-The experiments move from controlled tests of the mechanism and first-order quantities to progressively less controlled market and behavioral settings.  E1 asks whether different wealth histories can change portfolio ranking at the same current wealth.  E2 evaluates the frozen-target gradient estimator, E3 examines first-order tracking in a continuous slow-variation environment, and E4 tests how reference adaptation, horizon length, and optimizer choice affect that tracking behavior.  E5 then turns to a chronological A-share replay under common trading constraints.  E6 asks whether the dynamic reference adds predictive information for held-out investor decisions, and E7 studies how the resulting recommendations interact with investor types calibrated from observed behavior.  \Cref{fig:evidence-map} summarizes this progression.
+The empirical study proceeds in two layers.  E1--E4 examine path-dependent reference formation, frozen-target gradient estimation, online first-order tracking, and ablation/robustness in controlled settings.  E5--E7 then evaluate chronological A-share performance, held-out investor behavior, and heterogeneous-agent interaction.  \Cref{fig:evidence-map} summarizes the links among the seven studies.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.96\textwidth]{figures/experiment_evidence_map.pdf}
-    \caption{Structure of the experimental evaluation.  E1--E4 test path-dependent reference formation, frozen-target gradient estimation, continuous first-order tracking, and the sensitivity of tracking to the reference mechanism and implementation choices.  E5--E7 then examine chronological market performance, held-out investor behavior, and heterogeneous recommendation interaction.}
+    \caption{Empirical roadmap of the paper.  E1--E4 establish path-dependent reference formation, finite-sample gradient estimation, online first-order tracking, and ablation/robustness in controlled settings.  E5--E7 then extend the evaluation to chronological A-share performance, held-out investor behavior, and heterogeneous-agent interaction.}
     \label{fig:evidence-map}
 \end{figure}
 \FloatBarrier
