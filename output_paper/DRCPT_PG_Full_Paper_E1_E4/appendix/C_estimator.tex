@@ -148,20 +148,20 @@ $2B_v(C_1+C_2)/(n-1)$.  Hence, for a deterministic constant $C_*$ depending only
  &\le \frac{C_*}{n}(\norm{G_i}_2+\norm{G_i'}_2)
  +\frac{C_*}{n(n-1)}\sum_{j\ne i}\norm{G_j}_2.
 \end{align*}
-Using $(\sum_{j\ne i}x_j)^2\le(n-1)\sum_{j\ne i}x_j^2$ and the uniform second-moment bound for the score, there is a finite constant $C_E$ such that
+Using $(\sum_{j\ne i}x_j)^2\le(n-1)\sum_{j\ne i}x_j^2$ and the uniform second-moment bound for the score, choose a finite $C_U$ such that, uniformly in $i$,
 \[
  \E\norm{U_n^{\rm cen}-U_n^{\rm cen,(i)}}_2^2
- \le\frac{C_E}{n^2}
+ \le\frac{2C_U}{n^2}.
 \]
-uniformly in $i$.  The vector Efron--Stein inequality yields
+The vector Efron--Stein inequality then yields
 \[
  \tr\Cov(U_n^{\rm cen})
  =\E\norm{U_n^{\rm cen}-\E U_n^{\rm cen}}_2^2
  \le\frac12\sum_{i=1}^{n}
  \E\norm{U_n^{\rm cen}-U_n^{\rm cen,(i)}}_2^2
- \le\frac{C_U}{n}
+ \le\frac{C_U}{n}.
 \]
-with $C_U=C_E/2$.  This completes the proof.
+This completes the proof.
 \end{proof}
 
 
