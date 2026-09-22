@@ -88,9 +88,9 @@ $\operatorname{kl}(p\Vert q)\le (p-q)^2/\{q(1-q)\}$ gives
 \end{equation}
 for a finite constant $C_I$ depending only on $\mathcal I$.
 
-Consider an arbitrary admissible estimator in \eqref{eq:minimax-risk}.  Its query point at each oracle call may depend on the preceding transcript.  Conditional on any such query, the latent Dirichlet action law is identical under $p_+$ and $p_-$; only the Bernoulli return kernel differs.  All algorithmic randomization can be included in the transcript and is likewise common to the two models.  The data-dependent call count $T_{\rm call}$ is a stopping time for the oracle transcript filtration.  The chain rule for the stopped likelihood ratio gives
+Consider an arbitrary admissible estimator in \eqref{eq:minimax-risk}.  Its query point at each oracle call may depend on the preceding transcript.  Conditional on any such query, the latent Dirichlet action law is identical under $p_+$ and $p_-$; only the Bernoulli return kernel differs.  All algorithmic randomization can be included in the transcript and is likewise common to the two models.  Let $\Pp_+^{\rm tr}$ and $\Pp_-^{\rm tr}$ denote the resulting stopped transcript laws.  The data-dependent call count $T_{\rm call}$ is a stopping time for the oracle transcript filtration.  The chain rule for the stopped likelihood ratio gives
 \begin{equation}\label{eq:stopped-transcript-kl}
- \operatorname{KL}(\mathbb P_+^{\rm tr}\Vert\mathbb P_-^{\rm tr})
+ \operatorname{KL}(\Pp_+^{\rm tr}\Vert\Pp_-^{\rm tr})
  =\E_+T_{\rm call}\,\operatorname{kl}(p_+\Vert p_-)
  \le \mathsf B C_I\delta^2=C_I\delta_*^2.
 \end{equation}
@@ -99,7 +99,7 @@ $\{T_{\rm call}\ge j\}$; these events are measurable before the $j$th fresh retu
 
 Choose $\delta_*$ small enough that $C_I\delta_*^2\le1/8$.  Pinsker's inequality then gives
 \begin{equation}\label{eq:minimax-tv}
- \operatorname{TV}(\mathbb P_+^{\rm tr},\mathbb P_-^{\rm tr})\le\frac14.
+ \operatorname{TV}(\Pp_+^{\rm tr},\Pp_-^{\rm tr})\le\frac14.
 \end{equation}
 
 \paragraph{Step 4: reduction from estimation to testing.}
@@ -114,7 +114,7 @@ Given any estimator $\widehat g$, define the test that chooses the closer of the
  \max_{s\in\{+,-\}}
  \E_s\norm{\widehat g-\mathfrak g(p_s)e_1}_2^2
  &\ge \frac{(\Delta_{\mathsf B}^g)^2}{8}
- \left\{1-\operatorname{TV}(\mathbb P_+^{\rm tr},\mathbb P_-^{\rm tr})\right\}\\
+ \left\{1-\operatorname{TV}(\Pp_+^{\rm tr},\Pp_-^{\rm tr})\right\}\\
  &\ge \frac{3c_*^2\delta_*^2}{8\mathsf B}.
 \end{align*}
 The two models belong to $\mathfrak C$, so taking the infimum over all admissible procedures gives the lower bound in \eqref{eq:minimax-rate} with
