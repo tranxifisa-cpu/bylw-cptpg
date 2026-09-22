@@ -10,7 +10,7 @@ Episodes are indexed by $k=1,\ldots,K$, begin at dates $t_k$, and have a fixed h
  \qquad
  \omega_u\in\Delta_N:=\left\{\omega\in\R_+^{N+1}:\sum_{i=0}^{N}\omega_i=1\right\},
 \end{equation}
-where asset $0$ is cash, $X_u>0$ is normalized wealth, and $r_u\ge0$ is the reference wealth.  For return vector $R_{u+1}$ with $R_{0,u+1}=0$ and proportional transaction-cost coefficient $c_{\rm tc}\ge0$,
+where $m_u$ is the observed market state, asset $0$ is cash, $X_u>0$ is normalized wealth, and $r_u\ge0$ is the reference wealth.  For return vector $R_{u+1}$ with $R_{0,u+1}=0$ and proportional transaction-cost coefficient $c_{\rm tc}\ge0$,
 \begin{equation}\label{eq:wealth-update}
  X_{u+1}=X_u\left(1+\omega_u^\top R_{u+1}
  -c_{\rm tc}\norm{\omega_u-\omega_{u-1}}_1\right),
@@ -34,7 +34,7 @@ Let $\cF_k$ be the information available at the start of episode $k$, and set
  \qquad
  z_k:=(m_{t_k},X_{t_k},\omega_{t_k-1}).
 \end{equation}
-All Monte Carlo learning trajectories for episode $k$ are generated conditionally on the frozen context $(\cF_k,z_k,r_k)$.  Each trajectory $\tau$ carries its own wealth and reference recursions and produces
+Hereafter, $r_k$ denotes the episode-start reference, whereas $r_u$ denotes the calendar-time reference within an episode.  All Monte Carlo learning trajectories for episode $k$ are generated conditionally on the frozen context $(\cF_k,z_k,r_k)$.  Each trajectory $\tau$ carries its own wealth and reference recursions and produces
 \begin{equation}\label{eq:relative-outcome}
  Y_k(\tau)=X_{t_k+h}(\tau)-r_{t_k+h}(\tau).
 \end{equation}
@@ -73,7 +73,7 @@ For $x\ge0$ let
  \qquad
  v_-(y)=\lambda u_{\alpha_-,\eps_v}(y^-),
 \end{equation}
-with $0<\alpha_+,\alpha_-\le1$, $\lambda>1$, and $\eps_v>0$.  Let $w_\pm$ be strictly increasing probability-weighting functions and, for fixed $\eps\in(0,1/2)$, define the endpoint-normalized weights
+where $y^+:=\max\{y,0\}$ and $y^-:=\max\{-y,0\}$, with $0<\alpha_+,\alpha_-\le1$, $\lambda>1$, and $\eps_v>0$.  Let $w_\pm$ be strictly increasing probability-weighting functions and, for fixed $\eps\in(0,1/2)$, define the endpoint-normalized weights
 \begin{equation}\label{eq:normalized-weight}
  w_\pm^\eps(p)
  =\frac{w_\pm(\eps+(1-2\eps)p)-w_\pm(\eps)}
@@ -133,12 +133,12 @@ and the population projected residual
  Q_k(\theta)
  =\frac{\Pi_\Theta\{\theta+\gamma\mathsf d(g_k(\theta))\}-\theta}{\gamma}.
 \end{equation}
-The constrained first-order stationary set is
+Here $\Pi_\Theta$ denotes Euclidean projection onto $\Theta$.  The constrained first-order stationary set is
 \begin{equation}\label{eq:stationary-set}
  \Sta_k
  =\{\theta\in\Theta:Q_k(\theta)=0\}
  =\left\{\theta\in\Theta:
- \ip{g_k(\theta)}{u-\theta}\le0\ \forall u\in\Theta\right\}.
+ \ip{g_k(\theta)}{\theta'-\theta}\le0\ \forall \theta'\in\Theta\right\}.
 \end{equation}
 Because $J_k$ is continuously differentiable on compact convex $\Theta$, each $J_k$ attains a maximizer satisfying \eqref{eq:stationary-set}; continuity of $Q_k$ then makes $\Sta_k$ a nonempty compact set.  At the realized iterate, let
 \begin{equation}\label{eq:periodwise-residual}
