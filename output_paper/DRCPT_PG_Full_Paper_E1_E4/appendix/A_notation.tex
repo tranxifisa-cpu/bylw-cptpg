@@ -17,18 +17,19 @@ $k,u,h$ & indices / integer & episode, calendar time, and finite episode horizon
 $s_u,\omega_u,\widetilde\omega_u$ & state / portfolios & state $(m_u,X_u,r_u,\omega_{u-1})$ with market state $m_u$; executed portfolio and latent proposal \\
 $z_k,\cF_k,r_k$ & context / information & frozen non-reference start state, episode-start information, and reference $r_{t_k}$ \\
 $\theta,\Theta,\pi_\theta$ & vector / set / policy & parameter, compact convex parameter set, and Dirichlet actor \\
-$P_k,\widetilde P_k$ & episode models & true and frozen-simulator models inducing policy-dependent trajectory laws \\
+$P_k,\widetilde P_k$ & episode models & true and frozen-simulator models; for fixed $(P,z,r)$, $P_\theta$ denotes the induced augmented-trajectory law \\
 $Y_k,v_\pm,w_\pm^\eps$ & outcome / functions & terminal relative outcome and regularized CPT value and weight maps \\
 $J_k,\widetilde J_k$ & scalar functions & true and frozen-simulator CPT objectives \\
-$g_k,\widetilde g_k,G_{k,\theta}$ & $\R^d$ & true gradient, simulator gradient, and complete-trajectory score \\
+$g_k,\widetilde g_k$ & maps $\Theta\to\R^d$ & true and frozen-simulator gradient maps \\
+$G_{k,\theta}(\tau)$ & $\R^d$ & complete-trajectory score at parameter $\theta$ \\
 $\widehat g_k^{\db},M_k$ & vector / integer & debiased update estimate averaged over $M_k$ independent complete outputs \\
-$Q_k;\gamma,\vartheta$ & vector / scalars & projected residual; step size and normalization floor \\
+$Q_k;\gamma,\vartheta$ & map $\Theta\to\R^d$ / scalars & projected residual map; step size and normalization floor \\
 $\Sta_k$ & subset of $\Theta$ & constrained first-order stationary set \\
 $\zeta_k$ & $\R_+$ & squared projected residual $\norm{Q_k(\theta_k)}_2^2$ \\
 $\cE_K$ & $\R_+$ & average expected squared projected residual \\
 $A_{\rho,W},\bar Q_k$ & scalar / $\R^d$ & full-window exponential mass and temporally smoothed projected residual \\
 $\Reg_{\rho,W}(K);\rho,W$ & scalar / parameters & dynamic local regret; discount and window length \\
-$\beta_k,\cV_K$ & $\R_+$ & simulator-gradient error bound and cumulative true-objective variation \\
+$\beta_k,\cV_K$ & $\R_+$ & frozen-simulator gradient discrepancy and cumulative true-objective variation \\
 $T_{\rm call},\mathsf B$ & integer / scalar & oracle trajectory count and expected trajectory budget \\
 \bottomrule
 \end{tabularx}
@@ -41,7 +42,7 @@ Under Assumptions \ref{ass:trajectory}--\ref{ass:likelihood}, there exist $0<\un
 \begin{equation}\label{eq:concentration-compactness}
  \underline a\le a_{i,u}(\theta)\le\overline a
 \end{equation}
-uniformly in $i,u,\theta$.  For every fixed $p<\infty$,
+uniformly in $i,u,\theta$.  For every fixed $1\le p<\infty$,
 \begin{equation}\label{eq:score-moment-bound}
  \sup_{k,\theta}\E\norm{G_{k,\theta}}_2^p<\infty.
 \end{equation}
@@ -59,7 +60,7 @@ Moreover, for every bounded measurable trajectory functional $F$, differentiatio
 \end{lemma}
 
 \begin{proof}
-Compactness of $\Theta$ and boundedness of $q_{i,u}$ imply \eqref{eq:concentration-compactness}.  Every Dirichlet coordinate has a Beta marginal with parameters in a compact subset of $(0,\infty)^2$.  Hence, for every finite $p$,
+Compactness of $\Theta$ and boundedness of $q_{i,u}$ imply \eqref{eq:concentration-compactness}.  Every Dirichlet coordinate has a Beta marginal with parameters in a compact subset of $(0,\infty)^2$.  Hence, for every finite $p\ge1$,
 \[
  \sup_{\mathfrak a,\mathfrak b}\int_0^1
  \abs{\log x}^p x^{\mathfrak a-1}(1-x)^{\mathfrak b-1}\,dx<\infty,
@@ -99,7 +100,7 @@ Moreover $\abs{J_k(\theta,r_k)}\le B_v$.
 \end{lemma}
 
 \begin{proof}
-For one side $\sigma$ and threshold $y$, the likelihood-score identity and Lemma \ref{lem:dirichlet-moments} give
+For one side $\sigma$ and threshold $y$, let $I_\sigma(y):=\1\{v_\sigma(Y)>y\}$.  The likelihood-score identity and Lemma \ref{lem:dirichlet-moments} give
 \[
  \nabla S_\theta^\sigma(y)=\E\{I_\sigma(y)G_\theta\},
  \qquad
@@ -125,17 +126,17 @@ The integrand is uniformly dominated by the constants above, giving \eqref{eq:sm
 \subsection{Projected residual and constrained stationarity}
 
 \begin{lemma}[Projected residual characterizes first-order stationarity]\label{lem:residual-stationarity}
-For closed convex $\Theta$, $\gamma,\vartheta>0$, and $g\in\R^d$,
+For closed convex $\Theta$, $\theta\in\Theta$, $\gamma,\vartheta>0$, and $g\in\R^d$,
 \begin{equation}\label{eq:projection-stationarity-equivalence}
  \Pi_\Theta\{\theta+\gamma\mathsf d(g)\}=\theta
  \quad\Longleftrightarrow\quad
- \ip{g}{u-\theta}\le0\quad\forall u\in\Theta.
+ \ip{g}{\theta'-\theta}\le0\quad\forall \theta'\in\Theta.
 \end{equation}
 Hence the two definitions in \eqref{eq:stationary-set} coincide.
 \end{lemma}
 
 \begin{proof}
 The projection variational inequality gives
-$x=\Pi_\Theta(y)$ iff $\ip{y-x}{u-x}\le0$ for every $u\in\Theta$.  Substitute $y=\theta+\gamma\mathsf d(g)$ and use
+$x=\Pi_\Theta(y)$ iff $\ip{y-x}{\theta'-x}\le0$ for every $\theta'\in\Theta$.  Substitute $y=\theta+\gamma\mathsf d(g)$ and use
 $\mathsf d(g)=g/\max\{\norm g_2,\vartheta\}$, a positive scalar multiple of $g$.
 \end{proof}
