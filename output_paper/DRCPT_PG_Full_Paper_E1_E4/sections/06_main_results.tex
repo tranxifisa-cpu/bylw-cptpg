@@ -173,7 +173,7 @@ The upper bound is attained, up to constants, by averaging independent untruncat
 \subsection{Online first-order tracking under a moving CPT objective}
 
 \begin{theorem}[Average expected squared projected residual bound]\label{thm:online-residual}
-Suppose Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity} hold and $\gamma L\le\vartheta$.  Let $C_g:=\max\{B_g,\vartheta\}$, and let $\widehat g_k^{\db}$ be defined by \eqref{eq:gradient-average} with target $\widetilde g_k(\theta_k)$.  Then
+Suppose Assumptions \ref{ass:trajectory}--\ref{ass:cpt-regularity} hold and $\gamma L\le\vartheta$.  Fix estimator design $(n,p_{\rm act},b)$, let $C_g:=\max\{B_g,\vartheta\}$, and let $\widehat g_k^{\db}$ be defined by \eqref{eq:gradient-average} with target $\widetilde g_k(\theta_k)$.  Then
 \begin{equation}\label{eq:true-gradient-mse}
  \E\norm{\widehat g_k^{\db}-g_k(\theta_k)}_2^2
  \le\frac{C_{\rm var}(n,p_{\rm act},b)}{M_k}+\E\beta_k^2,
