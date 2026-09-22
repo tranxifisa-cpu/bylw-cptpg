@@ -1,5 +1,7 @@
 \section{Algorithm}\label{sec:algorithm}
 
+The learning procedure follows the decomposition introduced above.  For a frozen episode context, the first stage constructs a gradient estimate whose expectation matches the regularized CPT gradient despite the nonlinear probability weighting.  The second stage averages independent outputs and uses the resulting direction in a projected online update, while the realized portfolio path simultaneously updates wealth and the reference state.
+
 \subsection{Centered leave-one-out base and raw randomized correction}
 
 Fix one frozen episode context and parameter, and suppress the episode index.  A complete trajectory yields
@@ -75,7 +77,7 @@ The level distribution is untruncated: no deterministic cap is imposed on $\ell^
 
 \subsection{Online update}
 
-The online loop uses the same stochastic Dirichlet actor defined in \eqref{eq:dirichlet-policy}; Algorithm~\ref{alg:drcptpg} writes its concentration update explicitly so that the execution step is self-contained without introducing a separate policy subroutine.
+The online loop uses the same stochastic Dirichlet actor defined in \eqref{eq:dirichlet-policy}.  Each episode first estimates the frozen-simulator gradient and updates the policy parameter after the realized five-step path has propagated the wealth, reference, and portfolio state.
 
 In episode $k$, generate $M_k$ conditionally independent copies of \eqref{eq:debiased-output} under the frozen simulator and set
 \begin{equation}\label{eq:gradient-average}
