@@ -45,9 +45,8 @@ For asset $i=0,\ldots,N$, let $q_{i,u}\in\R^d$ be a feature vector.  For $\theta
 \begin{equation}\label{eq:dirichlet-policy}
  a_{i,u}(\theta)=\exp(\theta^\top q_{i,u}),
  \qquad
- \widetilde\omega_u\sim
- \pi_\theta(\cdot\mid s_u)
- =\Dir\!\left(a_{0,u}(\theta),\ldots,a_{N,u}(\theta)\right).
+ \widetilde\omega_u\mid(s_u,\theta)
+ \sim\Dir\!\left(a_{0,u}(\theta),\ldots,a_{N,u}(\theta)\right).
 \end{equation}
 A history-measurable feasibility map $\mathsf M_u(\cdot\mid s_u):\Delta_N\to\Delta_N$ and a fixed trade fraction $\chi\in(0,1]$ generate the executed portfolio
 \begin{equation}\label{eq:action-map}
@@ -82,7 +81,7 @@ with $0<\alpha_+,\alpha_-\le1$, $\lambda>1$, and $\eps_v>0$.  Let $w_\pm$ be str
 \end{equation}
 Thus $w_\pm^\eps(0)=0$ and $w_\pm^\eps(1)=1$.
 
-For a frozen episode environment/model $P$ and context $(z,r)$, let $P_\theta$ denote the induced augmented trajectory law under $\pi_\theta$.  Write
+For a frozen episode environment/model $P$ and context $(z,r)$, let $P_\theta$ denote the augmented trajectory law induced by the Dirichlet actor at parameter $\theta$.  Write
 \[
  S_{P,z,r,\theta}^{\pm}(y)
  =P_\theta\{v_\pm(Y)>y\}.
@@ -149,10 +148,9 @@ Because $J_k$ is continuously differentiable on compact convex $\Theta$, each $J
 
 For window length $W\ge1$ and discount $\rho\in(0,1]$, define
 \begin{equation}\label{eq:dynamic-window-residual}
- A_{\rho,W}:=\sum_{j=0}^{W-1}\rho^j,
- \qquad
  \bar Q_k
- :=A_{\rho,W}^{-1}\sum_{j=0}^{W-1}\rho^j Q_{k-j}(\theta_{k-j}),
+ :=\left(\sum_{j=0}^{W-1}\rho^j\right)^{-1}
+ \sum_{j=0}^{W-1}\rho^j Q_{k-j}(\theta_{k-j}),
 \end{equation}
 with the convention $Q_t(\theta_t)=0$ for $t\le0$.  The dynamic local regret (DLR) is
 \begin{equation}\label{eq:dynamic-regret}
