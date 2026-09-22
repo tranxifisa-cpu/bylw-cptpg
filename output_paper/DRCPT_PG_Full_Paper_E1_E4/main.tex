@@ -14,7 +14,7 @@
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage{xcolor}
 \usepackage{microtype}
-\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue,hypertexnames=false]{hyperref}
 \usepackage[nameinlink,capitalize]{cleveref}
 
 \newtheorem{theorem}{Theorem}[section]
@@ -54,7 +54,7 @@
 \newcommand{\db}{\mathrm{db}}
 \newcommand{\pl}{\mathrm{pl}}
 
-\title{Dynamic-Reference Cumulative Prospect Policy Gradients:\\Debiased Estimation, Minimax Limits, and Online Portfolio Tracking}
+\title{Online Portfolio Optimization with Dynamic-Reference Cumulative Prospect Policy Gradients}
 \author{Anonymous Authors}
 \date{}
 
@@ -62,7 +62,7 @@
 \maketitle
 
 \begin{abstract}
-Cumulative prospect theory (CPT) provides a natural model of reference-dependent portfolio choice, but existing first-order CPT policy optimization typically treats the reference point as fixed.  We study portfolio learning when realized wealth updates the reference state, making the objective both path dependent and time varying.  We introduce Dynamic-Reference Cumulative Prospect Policy Gradient (DRCPT-PG), which couples endogenous reference dynamics with an exactly unbiased finite-budget estimator of the regularized frozen-target CPT gradient and a normalized projected update for tracking the moving first-order target.  The estimator has finite expected trajectory cost and variance, supports studentized asymptotic inference, and attains the fixed-dimensional minimax trajectory-budget rate; the online analysis controls the projected residual and dynamic local regret under sublinear objective variation.  In controlled experiments, continued updating reduces cumulative squared projected residual from $1.427$ to $0.684$ relative to a frozen closed-loop control.  In a chronological 300-stock A-share replay, DRCPT-PG attains the highest mean Sharpe ratio and the lowest mean maximum drawdown, turnover, and transaction cost among the five policy-gradient methods.  Held-out investor data further show that adaptive and asymmetric reference representations add predictive information about trading behavior, while calibrated interaction experiments rank DRCPT-PG first on adoption-weighted interaction value in every investor type.  Together, these results provide a first-order framework for portfolio learning with endogenous reference formation, linking behavioral state dynamics to statistically controlled gradient estimation and online tracking.
+Cumulative prospect theory (CPT) models portfolio choice relative to a reference point, yet most first-order CPT policy methods keep that reference fixed even when realized wealth should update it.  We study online portfolio optimization with an endogenous reference state, where policy decisions reshape wealth, wealth updates the reference, and the resulting CPT objective moves over time.  We introduce Dynamic-Reference Cumulative Prospect Policy Gradient (DRCPT-PG), which combines an exactly unbiased estimator of the regularized frozen-target CPT gradient with finite expected trajectory cost and variance, and a normalized projected update for tracking the moving first-order target.  The estimator supports studentized asymptotic inference and attains the fixed-dimensional minimax trajectory-budget rate, while the online analysis controls the projected residual and dynamic local regret under sublinear objective variation.  In controlled experiments, continued updating reduces cumulative squared projected residual from $1.427$ to $0.684$ relative to a frozen closed-loop control.  In a chronological 300-stock A-share replay, DRCPT-PG achieves the highest mean Sharpe ratio and the lowest mean maximum drawdown, turnover, and transaction cost among five policy-gradient methods; held-out investor data further show incremental predictive gains from adaptive and asymmetric reference representations.  These results connect adaptive reference formation to a statistically controlled first-order learning framework for path-dependent online portfolio optimization.
 \end{abstract}
 
 \input{sections/01_introduction}
