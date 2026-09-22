@@ -16,8 +16,8 @@ Symbol & Type & Meaning \\
 $k,u,h$ & indices / integer & episode, calendar time, and finite episode horizon \\
 $s_u,\omega_u,\widetilde\omega_u$ & state / portfolios & state $(m_u,X_u,r_u,\omega_{u-1})$ with market state $m_u$; executed portfolio and latent proposal \\
 $z_k,\cF_k,r_k$ & context / information & frozen non-reference start state, episode-start information, and reference $r_{t_k}$ \\
-$\theta,\Theta,\pi_\theta$ & vector / set / policy & parameter, compact convex parameter set, and Dirichlet actor \\
-$P_k,\widetilde P_k$ & episode models & true and frozen-simulator models inducing policy-dependent trajectory laws \\
+$\theta,\Theta$ & vector / set & policy parameter and compact convex parameter set \\
+$P_k,\widetilde P_k;P_\theta$ & models / law & true and frozen-simulator episode models; augmented trajectory law induced at parameter $\theta$ for a frozen model $P$ \\
 $Y_k,v_\pm,w_\pm^\eps$ & outcome / functions & terminal relative outcome and regularized CPT value and weight maps \\
 $J_k,\widetilde J_k$ & scalar functions & true and frozen-simulator CPT objectives \\
 $g_k,\widetilde g_k,G_{k,\theta}$ & $\R^d$ & true gradient, simulator gradient, and complete-trajectory score \\
@@ -26,7 +26,7 @@ $Q_k;\gamma,\vartheta$ & vector / scalars & projected residual; step size and no
 $\Sta_k$ & subset of $\Theta$ & constrained first-order stationary set \\
 $\zeta_k$ & $\R_+$ & squared projected residual $\norm{Q_k(\theta_k)}_2^2$ \\
 $\cE_K$ & $\R_+$ & average expected squared projected residual \\
-$A_{\rho,W},\bar Q_k$ & scalar / $\R^d$ & full-window exponential mass and temporally smoothed projected residual \\
+$\bar Q_k$ & $\R^d$ & temporally smoothed projected residual \\
 $\Reg_{\rho,W}(K);\rho,W$ & scalar / parameters & dynamic local regret; discount and window length \\
 $\beta_k,\cV_K$ & $\R_+$ & simulator-gradient error bound and cumulative true-objective variation \\
 $T_{\rm call},\mathsf B$ & integer / scalar & oracle trajectory count and expected trajectory budget \\
