@@ -70,26 +70,23 @@ Since $\abs{w_\sigma^\eps(p)-w_\sigma^\eps(q)}\le C_1\abs{p-q}$, applying this i
 \subsection{Score representation of the CPT gradient}
 
 \begin{proof}
-We prove the gain part; the loss part follows by the same calculation and is subtracted at the end.  To differentiate
-\[
- J^+(\theta)=\int_0^{B_v}w_+^\eps(S_\theta^+(y))\,dy,
-\]
-it is enough to identify $\nabla S_\theta^+(y)$ and justify moving the derivative through the $y$-integral.
+Fix the episode $k$ of \Cref{thm:gradient-identity}.  We prove the gain contribution to $g_k(\theta)$; the loss contribution follows by the same calculation and is subtracted at the end.  It is enough to identify $\nabla S_\theta^+(y)$ and justify moving the derivative through the gain-side CPT integral.
 
 For fixed $y$, the likelihood-ratio identity in \Cref{lem:dirichlet-moments} applied to the bounded indicator gives
 \begin{equation}\label{eq:survival-score-derivative}
  \nabla S_\theta^+(y)
- =\E\{\1[v_+(Y)>y]G_\theta\}.
+ =\E\{\1[v_+(Y_k)>y]G_{k,\theta}\}.
 \end{equation}
 By Cauchy--Schwarz and Assumption \ref{ass:trajectory}, the norm of the right-hand side is at most $\sqrt{C_{G,2}}$ uniformly in $y$ and $\theta$.  Since $(w_+^\eps)'$ is bounded by $C_1$ and the integration interval is finite, this constant is an integrable dominating function.  The dominated convergence theorem therefore gives
 \begin{align*}
- \nabla J^+(\theta)
+ \nabla_\theta\!\int_0^{B_v}w_+^\eps(S_\theta^+(y))\,dy
  &=\int_0^{B_v}(w_+^\eps)'(S_\theta^+(y))
- \E\{\1[v_+(Y)>y]G_\theta\}\,dy\\
- &=\E\left[G_\theta
- \int_0^{B_v}(w_+^\eps)'(S_\theta^+(y))\1[v_+(Y)>y]dy\right],
+ \E\{\1[v_+(Y_k)>y]G_{k,\theta}\}\,dy\\
+ &=\E\left[G_{k,\theta}
+ \int_0^{B_v}(w_+^\eps)'(S_\theta^+(y))\1[v_+(Y_k)>y]dy\right],
 \end{align*}
-where Fubini's theorem is applicable because the integrand is dominated by $C_1B_v\norm{G_\theta}$ and $\E\norm{G_\theta}<\infty$.
+where Fubini's theorem is applicable because the integrand is dominated by
+$C_1B_v\norm{G_{k,\theta}}$ and $\E\norm{G_{k,\theta}}<\infty$.
 
-The score has mean zero.  Therefore subtracting the deterministic quantity $S_\theta^+(y)$ inside the integral does not change the expectation.  This yields the gain component of \eqref{eq:cpt-multiplier}.  Repeating the argument for the loss side and subtracting proves \eqref{eq:score-gradient-identity}.  The frozen-simulator identity follows under the same conditional argument with its trajectory law in place of the true law.
+The score has mean zero.  Therefore subtracting the deterministic quantity $S_\theta^+(y)$ inside the integral does not change the expectation.  This yields the gain component of \eqref{eq:cpt-multiplier}.  Repeating the argument for the loss side and subtracting proves \eqref{eq:score-gradient-identity}.  Replacing the true conditional trajectory law by the frozen-simulator law gives the corresponding identity for $\widetilde g_k(\theta)$.
 \end{proof}
