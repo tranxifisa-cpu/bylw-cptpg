@@ -1,32 +1,140 @@
-\section{主要符号与记号约定}\label{app:notation}
+\section{主要符号与分析预备结果}\label{app:notation}
 
-表~\ref{tab:notation}列出本文的主要符号。时期编号为 $k$，总时期数为 $K$，日历时点为 $u$，每期包含 $h$ 个决策步；$X_{k,h}$ 与 $r_{k,h}$ 表示第 $k$ 期的终端财富与终端参考点。条件统计结论固定期初信息 $\cF_k$，求梯度时固定期初财富、市场信息、持仓与参考点。辅助常数和采样变量在正文首次使用处定义。
+固定目标的统计结论均在给定期初信息、所查询参数及冻结模拟模型后，对新生成的蒙特卡洛轨迹成立；文中的条件独立性也相对于这一条件分布而言。令重复次数$M$趋于无穷时，目标和估计器设计$(n,p_{\rm act},b)$固定；令时期数$K$增长时，各假设中的常数须在时期之间统一；极小极大结论则固定维度$d$和模型类常数，使预算$\mathsf B\to\infty$。
 
-\begin{table}[htbp]
+\subsection{主要符号}
+
+\begin{table}[H]
 \centering
+\caption{状态、目标、估计与在线评价中的主要符号。估计器内部记号及仅用于证明的常数在首次使用处定义。}
+\label{tab:notation-core}
 \small
-\renewcommand{\arraystretch}{1.2}
-\caption{主要符号及含义}\label{tab:notation}
-\begin{tabular}{@{}p{0.34\linewidth}p{\dimexpr0.66\linewidth-2\tabcolsep\relax}@{}}
+\begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.16\textwidth}X@{}}
 \toprule
-符号 & 含义\\
+符号 & 类型 & 含义 \\
 \midrule
-$X_u$ & 以固定初始财富为单位的账户财富\\
-$r_u$ & 与归一化财富采用相同单位的参考点\\
-$\eta_+,\eta_-$ & 盈利方向与亏损方向的参考点适应率\\
-$Y_k=X_{k,h}-r_{k,h}$ & 第 $k$ 期的终端相对结果\\
-$J_k(\theta,r_k)$ & 第 $k$ 期正则化 CPT 条件目标\\
-$\pi_\theta$ & 参数为 $\theta$ 的 Dirichlet 投资组合策略\\
-$G_{k,\theta}(\tau)$ & 完整轨迹的似然得分函数\\
-$g_k$ & $\theta_k$ 处的真实 CPT 策略梯度\\
-$\widehat g_{k,n,m}^{\pl}$ & 内外层样本分拆的 CPT 梯度代入估计量\\
-$\widehat g_k^{\db}$ & 多层去偏构造的 CPT 梯度估计量\\
-$\delta_k^J,V_K$ & 相邻时期的目标变化及其累计预算\\
-$\beta_k^{\rm sim}$ & 模拟目标与真实目标之间的梯度偏差界\\
-$Q_k,\mathcal E_K$ & 归一化投影残差及其期望平方的时期平均\\
-$\Sta_k$ & 目标 $J_k$ 的受约束一阶驻点集合\\
-$\Reg_{\rho,w}^{Q}(K)$ & 投影残差形式的窗口动态局部遗憾\\
-$B$ & 极小极大估计中的期望完整轨迹调用预算\\
+$k,u,h$ & 下标/整数 & 时期、日历时间及每期的有限时域长度 \\
+$s_u,\omega_u,\widetilde\omega_u$ & 状态/组合 & 状态$(m_u,X_u,r_u,\omega_{u-1})$，其中$m_u$为市场状态；执行组合与潜在提议 \\
+$z_k,\cF_k,r_k$ & 起点/信息 & 冻结的非参考点起始状态、期初信息及参考点$r_{t_k}$ \\
+$\theta,\Theta,\pi_\theta$ & 向量/集合/策略 & 策略参数、紧凸参数域与Dirichlet策略 \\
+$P_k,\widetilde P_k$ & 时期模型 & 真实模型与冻结模拟模型；固定$(P,z,r)$后，$P_\theta$表示诱导的增广轨迹分布 \\
+$Y_k,v_\pm,w_\pm^\eps$ & 结果/函数 & 终端相对结果、正则化CPT价值函数及概率权重 \\
+$J_k,\widetilde J_k$ & 标量函数 & 真实CPT目标与冻结模拟目标 \\
+$g_k,\widetilde g_k$ & $\Theta\to\R^d$ & 真实梯度映射与冻结模拟梯度映射 \\
+$G_{k,\theta}(\tau)$ & $\R^d$ & 参数$\theta$下的完整轨迹得分 \\
+$\widehat g_k^{\db},M_k$ & 向量/整数 & $M_k$次独立完整输出的平均去偏梯度 \\
+$Q_k;\gamma,\vartheta$ & 映射/标量 & 投影残差映射、步长与归一化下界 \\
+$\Sta_k$ & $\Theta$的子集 & 受约束的一阶驻点集合 \\
+$\zeta_k$ & $\R_+$ & 平方投影残差$\norm{Q_k(\theta_k)}_2^2$ \\
+$\cE_K$ & $\R_+$ & 平均期望平方投影残差 \\
+$A_{\rho,W},\bar Q_k$ & 标量/向量 & 全窗口指数权重和与时间平滑后的投影残差 \\
+$\Reg_{\rho,W}(K);\rho,W$ & 标量/参数 & 动态局部遗憾、折扣系数与窗口长度 \\
+$\beta_k,\cV_K$ & $\R_+$ & 模拟梯度误差与真实目标的累计变差 \\
+$T_{\rm call},\mathsf B$ & 停止时刻/标量 & 非负整数值的轨迹查询次数与期望轨迹预算 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
+
+\subsection{Dirichlet得分矩}
+
+\begin{lemma}[增广轨迹得分的统一矩界]\label{lem:dirichlet-moments}
+在假设~\ref{ass:trajectory}--\ref{ass:likelihood}下，存在$0<\underline a\le\overline a<\infty$，使对所有$i,u,\theta$均有
+\begin{equation}\label{eq:concentration-compactness}
+ \underline a\le a_{i,u}(\theta)\le\overline a.
+\end{equation}
+对每个固定的$1\le p<\infty$，
+\begin{equation}\label{eq:score-moment-bound}
+ \sup_{k,\theta}\E\norm{G_{k,\theta}}_2^p<\infty.
+\end{equation}
+轨迹对数似然的Hessian矩阵$\mathcal H_{k,\theta}$亦满足
+\begin{equation}\label{eq:hessian-moment-bound}
+ \sup_{k,\theta}\E\norm{\mathcal H_{k,\theta}}_{\op}<\infty.
+\end{equation}
+进一步，对任意有界可测的轨迹泛函$F$，条件轨迹分布下可交换至二阶求导与积分：
+\begin{equation}\label{eq:likelihood-ratio-identities}
+ \nabla_\theta\E_\theta F=\E_\theta(FG_{k,\theta}),
+ \qquad
+ \nabla_\theta^2\E_\theta F
+ =\E_\theta\{F(G_{k,\theta}G_{k,\theta}^\top+\mathcal H_{k,\theta})\}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+$\Theta$的紧性与$q_{i,u}$的有界性给出式~\eqref{eq:concentration-compactness}。Dirichlet分布的每一坐标都具有Beta边缘分布，其两个参数落在$(0,\infty)^2$的紧子集中。因此对任意有限的$p\ge1$，
+\[
+ \sup_{\mathfrak a,\mathfrak b}\int_0^1
+ \abs{\log x}^p x^{\mathfrak a-1}(1-x)^{\mathfrak b-1}\,dx<\infty,
+\]
+其中上确界取遍诱导的紧参数集。digamma与polygamma项在相同的正紧区间上有界。结合式~\eqref{eq:trajectory-score}、因子有界性和有限的$(h,N)$，得到式~\eqref{eq:score-moment-bound}；再对得分求一次导数，得到式~\eqref{eq:hessian-moment-bound}。依假设~\ref{ass:likelihood}，市场转移核与$\mathsf M_u(\cdot\mid s_u)$不贡献似然导数。
+
+为交换求导与轨迹积分，在仍包含于策略定义域的前提下将$\Theta$略微扩张。此邻域中的浓度参数保持在某个$[a_-,a_+]$内，其中$a_->0$。对单次潜在动作$\widetilde\omega$，Dirichlet密度及其关于$\theta$的一、二阶导数，都由与$\theta$无关的常数倍下式控制：
+\[
+ \prod_{i=0}^{N}\widetilde\omega_i^{a_- -1}
+ \left(1+\sum_{i=0}^{N}|\log\widetilde\omega_i|^2\right).
+\]
+当$a_->0$时，这一包络在单纯形上可积。有限的$h$次潜在动作相乘后仍构成可积的轨迹包络；与参数无关的市场核在每步条件积分中均积分为一。因此，有界$F$与前两阶导数的乘积均被同一可积函数支配。应用控制收敛定理得到式~\eqref{eq:likelihood-ratio-identities}。
+\end{proof}
+
+\subsection{CPT目标的光滑性}
+
+\begin{lemma}[统一梯度界与光滑界]\label{lem:cpt-smoothness}
+在假设~\ref{ass:trajectory}--\ref{ass:cpt-regularity}下，存在$B_g,L<\infty$，使
+\begin{equation}\label{eq:uniform-gradient-smoothness}
+ \sup_{k,\theta\in\Theta}\norm{g_k(\theta)}_2\le B_g,
+ \qquad
+ \norm{g_k(\theta)-g_k(\theta')}_2\le L\norm{\theta-\theta'}_2.
+\end{equation}
+记
+\[
+ C_{G,2}:=\sup_{k,\theta}\E\norm{G_{k,\theta}}_2^2,
+ \qquad
+ C_H:=\sup_{k,\theta}\E\norm{\mathcal H_{k,\theta}}_{\op},
+\]
+则可取
+\begin{equation}\label{eq:smoothness-constant}
+ B_g=2B_vC_1\sqrt{C_{G,2}},
+ \qquad
+ L=2B_v\{C_2C_{G,2}+C_1(C_{G,2}+C_H)\}.
+\end{equation}
+此外，$\abs{J_k(\theta,r_k)}\le B_v$。
+\end{lemma}
+
+\begin{proof}
+对侧别$\sigma$与阈值$y$，记$I_\sigma(y):=\1\{v_\sigma(Y)>y\}$。由似然得分恒等式及引理~\ref{lem:dirichlet-moments}，
+\[
+ \nabla S_\theta^\sigma(y)=\E\{I_\sigma(y)G_\theta\},
+ \qquad
+ \nabla^2S_\theta^\sigma(y)
+ =\E\{I_\sigma(y)(G_\theta G_\theta^\top+\mathcal H_\theta)\}.
+\]
+指标函数有界，得分矩也有界，因此可由控制收敛交换求导与期望，并有
+\[
+ \norm{\nabla S_\theta^\sigma(y)}_2\le\sqrt{C_{G,2}},
+ \qquad
+ \norm{\nabla^2S_\theta^\sigma(y)}_{\op}\le C_{G,2}+C_H.
+\]
+对CPT积分求两次导数，再用假设~\ref{ass:cpt-regularity}，得到
+\[
+ \nabla^2\!\int_0^{B_v}w_\sigma^\eps(S_\theta^\sigma(y))dy
+ =\int_0^{B_v}
+ \{(w_\sigma^\eps)''(S)\nabla S\nabla S^\top
+ +(w_\sigma^\eps)'(S)\nabla^2S\}dy.
+\]
+被积函数由上述常数统一控制，故有式~\eqref{eq:smoothness-constant}；一阶导数的界同理。最后，$0\le w_\sigma^\eps\le1$且两个积分的共同区间长度为$B_v$，所以$\abs{J_k}\le B_v$。
+\end{proof}
+
+\subsection{投影残差与受约束驻点}
+
+\begin{lemma}[投影残差刻画一阶驻点]\label{lem:residual-stationarity}
+设$\Theta$闭且凸，$\theta\in\Theta$，$\gamma,\vartheta>0$，$g\in\R^d$，则
+\begin{equation}\label{eq:projection-stationarity-equivalence}
+ \Pi_\Theta\{\theta+\gamma\mathsf d(g)\}=\theta
+ \quad\Longleftrightarrow\quad
+ \ip{g}{\theta'-\theta}\le0\quad\forall \theta'\in\Theta.
+\end{equation}
+因此，式~\eqref{eq:stationary-set}中的两种驻点定义等价。
+\end{lemma}
+
+\begin{proof}
+投影的变分不等式表明，$x=\Pi_\Theta(y)$当且仅当对所有$\theta'\in\Theta$有$\ip{y-x}{\theta'-x}\le0$。代入$y=\theta+\gamma\mathsf d(g)$，并注意$\mathsf d(g)=g/\max\{\norm g_2,\vartheta\}$是$g$的正倍数，即得结论。
+\end{proof}

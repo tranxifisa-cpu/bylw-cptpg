@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="786" viewBox="0 0 1160 786">
+  <title>七组实验之间的证据关系</title>
+  <defs>
+    <style>
+      .card { fill: #eef4f7; stroke: #8ca8b4; stroke-width: 1.5; }
+      .validation { fill: #fbf5ee; stroke: #b78c63; stroke-width: 1.5; }
+      .head { fill: #0d5b70; }
+      .head-validation { fill: #a45d2b; }
+      .title { fill: #ffffff; font: 700 24px 'Microsoft YaHei', 'SimHei', sans-serif; }
+      .body { fill: #172e3a; font: 20px 'Microsoft YaHei', 'SimHei', sans-serif; }
+      .detail { fill: #425966; font: 19px 'Microsoft YaHei', 'SimHei', sans-serif; }
+      .arrow { fill: none; stroke: #496472; stroke-width: 2.1; stroke-linecap: square; stroke-linejoin: miter; marker-end: url(#arrowhead); }
+      .bus { fill: none; stroke: #496472; stroke-width: 2.1; stroke-linecap: square; stroke-linejoin: miter; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0 0 L 7 4 L 0 8 Z" fill="#496472"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1160" height="786" fill="#ffffff"/>
+  <path class="arrow" d="M 374 94 H 403"/>
+  <path class="arrow" d="M 757 94 H 786"/>
+  <path class="bus" d="M 197 216 H 963"/>
+  <path class="arrow" d="M 197 167 V 212"/>
+  <path class="arrow" d="M 580 167 V 212"/>
+  <path class="arrow" d="M 963 167 V 212"/>
+  <path class="arrow" d="M 580 216 V 243"/>
+  <path class="bus" d="M 580 375 V 414 H 310"/>
+  <path class="bus" d="M 580 414 H 850"/>
+  <path class="arrow" d="M 310 414 V 446"/>
+  <path class="arrow" d="M 850 414 V 446"/>
+  <path class="bus" d="M 310 626 H 850"/>
+  <path class="arrow" d="M 310 590 V 622"/>
+  <path class="arrow" d="M 850 590 V 622"/>
+  <path class="arrow" d="M 580 626 V 652"/>
+
+  <rect class="card" x="24" y="18" width="346" height="149"/>
+  <rect class="head" x="24" y="18" width="346" height="42"/>
+  <text class="title" x="43" y="49">E1  路径依赖</text>
+  <text class="body" x="43" y="103">终点财富相同，经历不同</text>
+  <text class="detail" x="43" y="139">参考点区间与组合排序</text>
+
+  <rect class="card" x="407" y="18" width="346" height="149"/>
+  <rect class="head" x="407" y="18" width="346" height="42"/>
+  <text class="title" x="426" y="49">E2  有限样本梯度估计</text>
+  <text class="body" x="426" y="103">四个冻结目标；预期成本匹配</text>
+  <text class="detail" x="426" y="139">偏差、方差、CLT 与 MSE 速率</text>
+
+  <rect class="card" x="790" y="18" width="346" height="149"/>
+  <rect class="head" x="790" y="18" width="346" height="42"/>
+  <text class="title" x="809" y="49">E3  连续在线跟踪</text>
+  <text class="body" x="809" y="103">同一设定；账户状态缓变</text>
+  <text class="detail" x="809" y="139">投影残差与 DLR 的累积值、平均值</text>
+
+  <rect class="card" x="322" y="247" width="516" height="128"/>
+  <rect class="head" x="322" y="247" width="516" height="42"/>
+  <text class="title" x="342" y="278">E4  参考点消融与稳健性</text>
+  <text class="body" x="342" y="322">参考点更新、时期长度与优化器尺度</text>
+  <text class="detail" x="342" y="355">在线跟踪优势在哪些设定下增强或减弱？</text>
+
+  <rect class="card" x="55" y="450" width="510" height="140"/>
+  <rect class="head" x="55" y="450" width="510" height="42"/>
+  <text class="title" x="76" y="481">E5  真实市场投资组合评价</text>
+  <text class="body" x="76" y="529">按时间顺序回测 A 股</text>
+  <text class="detail" x="76" y="565">风险调整后表现与交易强度</text>
+
+  <rect class="card" x="595" y="450" width="510" height="140"/>
+  <rect class="head" x="595" y="450" width="510" height="42"/>
+  <text class="title" x="616" y="481">E6  投资者行为预测</text>
+  <text class="body" x="616" y="529">留出样本中的减持与持有机会</text>
+  <text class="detail" x="616" y="565">样本外预测与行为匹配</text>
+
+  <rect class="validation" x="322" y="656" width="516" height="118"/>
+  <rect class="head-validation" x="322" y="656" width="516" height="42"/>
+  <text class="title" x="342" y="687">E7  模拟投资者交互</text>
+  <text class="body" x="342" y="733">依据 E6 构建异质投资者</text>
+  <text class="detail" x="342" y="763">采纳与满意度</text>
+</svg>

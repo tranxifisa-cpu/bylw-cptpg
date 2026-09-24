@@ -64,7 +64,7 @@ def parser():
     p.add_argument("--e6-shrinkage", type=float, default=20.0)
     p.add_argument("--seed", type=int, default=2026)
     p.add_argument("--e6-opportunities", type=Path,
-                   help="E7 input: E6 opportunities.parquet with training-period calibration data")
+                   help="E7 input: existing E6 opportunities; omit to rebuild from behavior into E7 output")
     p.add_argument("--e6-model", type=Path,
                    help="E7 input: E6 model directory containing metrics.csv")
     return p.parse_args()
@@ -125,8 +125,8 @@ def main():
         raise ValueError("Experiment 7 requires --e5-run pointing to a completed experiment 5 directory")
     if not args.e5_run.exists():
         raise FileNotFoundError(args.e5_run)
-    if args.e6_opportunities is None or args.e6_model is None:
-        raise ValueError("Experiment 7 requires --e6-opportunities and --e6-model")
+    if args.e6_model is None:
+        raise ValueError("Experiment 7 requires --e6-model")
     if args.agents_per_type < 1:
         raise ValueError("--agents-per-type must be positive")
     if args.e6_shrinkage <= 0:
@@ -134,13 +134,33 @@ def main():
     if args.output.exists():
         raise FileExistsError(args.output)
     args.output.mkdir(parents=True)
+    e6_manifest = json.loads((args.e6_model / "manifest.json").read_text(encoding="utf-8"))
+    e6_opportunities = args.e6_opportunities
+    if e6_opportunities is None:
+        e6_opportunities = args.output / "e6_opportunities.parquet"
+        reconstructed = build_e6_opportunities(
+            args.behavior_root, e6_opportunities, eta_gain=float(e6_manifest["eta_gain"]),
+            eta_loss=float(e6_manifest["eta_loss"]))
+        if len(reconstructed) != int(e6_manifest["rows"]):
+            raise ValueError("Rebuilt E6 opportunities do not match the completed E6 model")
+    elif not e6_opportunities.exists():
+        raise FileNotFoundError(e6_opportunities)
+    else:
+        source_metadata = e6_opportunities.with_suffix(".json")
+        if not source_metadata.exists():
+            raise ValueError("An explicit E6 opportunities input needs its matching .json metadata")
+        source_config = json.loads(source_metadata.read_text(encoding="utf-8"))
+        if (float(source_config["eta_gain"]) != float(e6_manifest["eta_gain"]) or
+                float(source_config["eta_loss"]) != float(e6_manifest["eta_loss"])):
+            raise ValueError("E6 opportunities and model use different reference speeds")
+        if len(pd.read_parquet(e6_opportunities, columns=["y"])) != int(e6_manifest["rows"]):
+            raise ValueError("E6 opportunities row count does not match the completed E6 model")
     recommendations, panel, config, e5_metadata = replay_e5_recommendations(
         args.e5_run, args.output / "e5_recommendations.parquet")
     assignments, profiles = fit_agent_types(args.behavior_root, args.output, args.clusters, args.seed,
-                                            e6_opportunities=args.e6_opportunities,
+                                            e6_opportunities=e6_opportunities,
                                             e6_model=args.e6_model,
                                             shrinkage=args.e6_shrinkage)
-    e6_manifest = json.loads((args.e6_model / "manifest.json").read_text(encoding="utf-8"))
     summary, traces, overall = simulate_agents(
         recommendations, assignments, profiles, panel, config, args.output,
         investor_eta_gain=float(e6_manifest["eta_gain"]),

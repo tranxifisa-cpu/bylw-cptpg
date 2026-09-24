@@ -23,6 +23,11 @@ behavior/
 Thumbs.db
 results/e3_slow_compact_hybrid_v2
 
+# Keep the E7 result set cited by the current manuscript; ignore other E7 runs and logs.
+/results/e7_*
+!/results/e7_heterogeneous_agents/
+!/results/e7_heterogeneous_agents/**
+
 # LaTeX build files for the manuscript; keep main.pdf tracked.
 /output_paper/DRCPT_PG_Full_Paper_E1_E4/*.aux
 /output_paper/DRCPT_PG_Full_Paper_E1_E4/*.bbl

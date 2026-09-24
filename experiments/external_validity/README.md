@@ -51,14 +51,13 @@ E7 图的前三个面板分别展示投资者类型画像、按类型分解的 e
 python scripts/run_external_validity.py --experiment 7 `
   --behavior-root behavior `
   --e5-run results/e5_hs300_e3sync_expcompatible_beta6_c10 `
-  --e6-opportunities results/e6_reference_behavior_eta041/opportunities.parquet `
   --e6-model results/e6_reference_behavior_eta041/model `
-  --output results/e7_heterogeneous_agents `
+  --output results/e7_heterogeneous_agents_reproduction `
   --clusters 4 --agents-per-type 16 --e6-shrinkage 20 --seed 2026
 ```
 
 E7 保留 E5 的 seed 级市场路径，在同一投资者、seed 和 episode 上对所有方法使用共同随机采纳抽样；总体结果按真实校准样本中的类型占比加权。`post_sent.pkl` 没有可靠的逐帖时间戳，因此不会被解释为严格的滞后社交因果变量。`agents-per-type` 控制每类抽取的真实校准投资者数量；正式结果应固定参数后运行，不根据输出反向选择代理数量。E7 的满意度和采纳率是参数化反事实模拟，不是观察到的真实用户满意度或真实采纳行为。
 
-当前保留的 E6 上传目录以模型结果审计为目的，可能不包含体积较大的 `opportunities.parquet`。若要从头复现 E7，必须先用上一节 E6 命令在同一输出根目录生成该文件，再执行 E7 命令；不能用 E6 的预测明细代替原始机会表。
+若 E6 结果目录不包含 `opportunities.parquet`，E7 入口会按 E6 模型的参考点参数从行为数据重建机会表，并核对样本行数。复现时使用新的输出目录，保留论文所用的正式结果。
 
 E5 和 E7 的 manifest 位于结果根目录，E6 的模型 manifest 位于 `model/manifest.json`。审计时先检查 manifest，再检查源数据哈希和时间切分，最后解释经济指标；不要把 E5 的 Sharpe、E6 的行为预测准确率或 E7 的模拟满意度与 E1--E4 的理论 DLR 数值混排。

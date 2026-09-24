@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="620" viewBox="0 0 1160 620">
+  <title>本文研究框架</title>
+  <defs>
+    <style>
+      .card { fill: #eef4f7; stroke: #8ca8b4; stroke-width: 1.5; }
+      .validation { fill: #fbf5ee; stroke: #b78c63; stroke-width: 1.5; }
+      .head { fill: #0d5b70; }
+      .head-validation { fill: #a45d2b; }
+      .title { fill: #ffffff; font: 700 25px 'Microsoft YaHei', 'SimHei', sans-serif; }
+      .body { fill: #172e3a; font: 19px 'Microsoft YaHei', 'SimHei', sans-serif; }
+      .arrow { fill: none; stroke: #496472; stroke-width: 2.1; stroke-linecap: square; stroke-linejoin: miter; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0 0 L 7 4 L 0 8 Z" fill="#496472"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1160" height="620" fill="#ffffff"/>
+  <path class="arrow" d="M 362 102 H 406"/>
+  <path class="arrow" d="M 749 102 H 793"/>
+  <path class="arrow" d="M 580 186 V 218 H 365 V 248"/>
+  <path class="arrow" d="M 967 186 V 225 H 795 V 248"/>
+  <path class="arrow" d="M 365 400 V 466"/>
+  <path class="arrow" d="M 795 400 V 466"/>
+
+  <rect class="card" x="24" y="16" width="338" height="170"/>
+  <rect class="head" x="24" y="16" width="338" height="42"/>
+  <text class="title" x="43" y="47">行为动机</text>
+  <text class="body" x="43" y="88">参考点随经历适应，</text>
+  <text class="body" x="43" y="114">且对盈亏非对称更新</text>
+  <text class="body" x="43" y="151">相同财富可能对应不同的</text>
+  <text class="body" x="43" y="176">收益与损失区间</text>
+
+  <rect class="card" x="411" y="16" width="338" height="170"/>
+  <rect class="head" x="411" y="16" width="338" height="42"/>
+  <text class="title" x="430" y="47">动态参考点 CPT 模型</text>
+  <text class="body" x="430" y="105">状态：财富、参考点与持仓</text>
+  <text class="body" x="430" y="150">Dirichlet 策略决定多头配置</text>
+
+  <rect class="card" x="798" y="16" width="338" height="170"/>
+  <rect class="head" x="798" y="16" width="338" height="42"/>
+  <text class="title" x="817" y="47">学习方法</text>
+  <text class="body" x="817" y="89">冻结目标的无偏梯度</text>
+  <text class="body" x="817" y="116">估计器</text>
+  <text class="body" x="817" y="157">归一化投影在线更新</text>
+
+  <rect class="card" x="155" y="252" width="420" height="148"/>
+  <rect class="head" x="155" y="252" width="420" height="42"/>
+  <text class="title" x="176" y="283">统计保证</text>
+  <text class="body" x="176" y="323">严格无偏、有限方差与中心极限定理</text>
+  <text class="body" x="176" y="351">固定维度下的极小极大</text>
+  <text class="body" x="176" y="379">轨迹预算速率</text>
+
+  <rect class="card" x="585" y="252" width="420" height="148"/>
+  <rect class="head" x="585" y="252" width="420" height="42"/>
+  <text class="title" x="606" y="283">在线跟踪保证</text>
+  <text class="body" x="606" y="330">投影残差与动态局部遗憾</text>
+  <text class="body" x="606" y="365">误差界下的驻点集合跟踪</text>
+
+  <rect class="validation" x="130" y="470" width="900" height="136"/>
+  <rect class="head-validation" x="130" y="470" width="900" height="42"/>
+  <text class="title" x="151" y="501">实证检验</text>
+  <text class="body" x="151" y="550">E1–E4：机制、估计器、在线跟踪与消融稳健性</text>
+  <text class="body" x="151" y="582">E5–E7：A 股回放、样本外投资者行为与异质投资者交互</text>
+</svg>

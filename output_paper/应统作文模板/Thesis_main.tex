@@ -3,6 +3,7 @@
 
 \documentclass{sufethesismas}
 \usepackage{algorithmic}
+\usepackage{placeins}
 \bibliographystyle{bib/gbt7714-numerical.bst}
 \newcommand{\zhiheng}[1]{{\color{red}{\bf\sf [ZH: #1]}}}
 \input{chapters/math_notation}
@@ -27,21 +28,27 @@
 \input{chapters/00_abstracts}
 \tableofcontents{}
 
+\clearpage
 \mainmatter
+\raggedbottom
 \input{chapters/01_introduction}
 \input{chapters/02_setup}
 \input{chapters/03_algorithm}
 \input{chapters/04_results}
 \input{chapters/05_experiments}
 \input{chapters/06_discussion}
-\newline
 
+\let\savedcleardoublepage\cleardoublepage
+\let\cleardoublepage\clearpage
 \bibliography{bib/ref,bib/drcpt_sync}
+\let\cleardoublepage\savedcleardoublepage
 
 % Use the appendix interface supplied by sufethesismas without redefining it.
 \normalsize
 \chapterxtrue
+\let\cleardoublepage\clearpage
 \appendix{附录}
+\let\cleardoublepage\savedcleardoublepage
 % Keep appendix hyperlinks distinct without changing the template's printed numbering.
 \renewcommand{\theHsection}{appendix.\arabic{section}}
 \pagestyle{revtitlestyle}
@@ -50,26 +57,9 @@
 \input{chapters/appendix_C_estimator}
 \input{chapters/appendix_D_regret}
 \input{chapters/appendix_E_minimax}
-\input{chapters/appendix_F_reproducibility}
 
-% The author has not supplied replacements for the template's back matter.
 \chapterx{致谢}
-谢谢。本模板仅供内部使用，谢谢配合。
 
 \begin{resume}
-\begin{resumesection}{基本情况}
-某某某, 男/女, 某某省某某市/县人, 199？/200？ 年~？ 月出生.
-\end{resumesection}
-\begin{resumelist}{教育状况}
-20XX 年~9 月至~20XX 年~7 月, 某某学校某某学院, 本科, 专业: XXXX。
-
-20XX 年~9 月至~201XX年~7 月, 上海财经大学统计与管理学院, 硕士研究生, 专业: XXX。
-\end{resumelist}
-\begin{resumesection}{研究兴趣}
-XXXXX。
-\end{resumesection}
-\begin{resumesection}{联系方式}
-E-mail: XXXXX@mail.shufe.edu.cn.
-\end{resumesection}
 \end{resume}
 \end{document}
