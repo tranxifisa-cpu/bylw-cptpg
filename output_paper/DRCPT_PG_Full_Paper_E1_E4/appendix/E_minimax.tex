@@ -4,7 +4,7 @@
 We prove the lower and upper bounds under the same complete-trajectory oracle and the same expected trajectory budget.  For the lower bound, it is enough to construct a two-point submodel contained in $\mathfrak C$ whose CPT gradients are separated by order $\mathsf B^{-1/2}$ while the stopped transcript distributions remain at bounded total variation.  For the upper bound, \Cref{thm:estimator} supplies an unbiased finite-variance output with finite expected trajectory cost.
 
 \paragraph{Step 1: a CPT-realizable one-stock submodel.}
-Consider one risky asset and cash, horizon $h=1$, zero transaction cost, and episode-start wealth and reference equal to one.  Take the previous portfolio to be all cash and let the feasibility map be the identity.  Set the risky feature to $e_1\in\R^d$ and the cash feature to zero.  At a query $\theta$, the latent risky weight satisfies
+Consider one risky asset and cash, horizon $h=1$, zero transaction cost, and episode-start wealth and reference equal to one.  Take the previous portfolio to be all cash and let the feasibility map be the identity.  Set the risky feature to the first standard basis vector $e_1\in\R^d$ and the cash feature to zero.  At a query $\theta$, the latent risky weight satisfies
 \[
  \mathsf U\sim\operatorname{Beta}(e^{\theta^{[1]}},1),
 \]
@@ -31,7 +31,7 @@ Let $v=v_+$ and define
  \mathfrak m(t)=\upsilon\,v'(\upsilon t),\qquad 0\le t\le1.
 \]
 The shifted-power value function gives $\mathfrak m(0)=0$, $\mathfrak m(t)>0$ for $t\in(0,1]$, and bounded $\mathfrak m$.  Since
-$P(\mathsf U>t)=1-t^{e^{\theta^{[1]}}}$, a change of variables $y=v(\upsilon t)$ in the gain-side CPT integral gives
+$\Pp(\mathsf U>t)=1-t^{e^{\theta^{[1]}}}$, a change of variables $y=v(\upsilon t)$ in the gain-side CPT integral gives
 \begin{equation}\label{eq:minimax-cpt-submodel}
  J_p(\theta)
  =\int_0^1 \mathfrak m(t)
@@ -49,22 +49,22 @@ Put
 \[
  A_v=\int_0^1\mathfrak m(t)(-t\log t)\,dt>0,
  \qquad
- d_W=(w_+^\eps)'(0)>0.
+ c_{w,0}=(w_+^\eps)'(0)>0.
 \]
 Since $\abs{(w_+^\eps)''}\le C_2$, differentiation of \eqref{eq:minimax-gradient-function} with respect to $p$ gives
 \begin{align*}
  \mathfrak g'(p)
  &=\int_0^1\mathfrak m(t)(-t\log t)
  \left[(w_+^\eps)'(p(1-t))+p(1-t)(w_+^\eps)''(p(1-t))\right]dt\\
- &\ge (d_W-2C_2p)A_v.
+ &\ge (c_{w,0}-2C_2p)A_v.
 \end{align*}
-Choose $p_{\max}\in(0,1/2]$ small enough that $2C_2p_{\max}\le d_W/2$; if $C_2=0$, any choice in $(0,1/2]$ is admissible.  Let
+Choose $p_*>0$ sufficiently small that
 \[
- p_*=p_{\max}/2,
+ \mathcal I=[p_*/2,3p_*/2]\subset(0,1/2],
  \qquad
- \mathcal I=[p_*/2,3p_*/2],
+ 3C_2p_*\le c_{w,0}/2,
  \qquad
- c_*=d_WA_v/2.
+ c_*=c_{w,0}A_v/2.
 \]
 Then
 \begin{equation}\label{eq:minimax-gradient-separation}
@@ -79,17 +79,17 @@ For $\mathsf B$ large enough, take
  \qquad
  \delta=\delta_*/\sqrt{\mathsf B},
 \]
-where $\delta_*>0$ is chosen so that $p_\pm\in\mathcal I$.  For Bernoulli laws in the fixed interior interval $\mathcal I$, the elementary bound
+where $\delta_*>0$ is chosen so that $p_\pm\in\mathcal I$.  For Bernoulli laws in the fixed interior interval $\mathcal I$, there exists
+$C_I<\infty$, depending only on $\mathcal I$, such that the elementary bound
 $\operatorname{kl}(p\Vert q)\le (p-q)^2/\{q(1-q)\}$ gives
 \begin{equation}\label{eq:bernoulli-kl-bound}
  \operatorname{kl}(p_+\Vert p_-)
- \le C_I\delta^2
+ \le C_I\delta^2.
 \end{equation}
-for a finite constant $C_I$ depending only on $\mathcal I$.
 
-Consider an arbitrary admissible estimator in \eqref{eq:minimax-risk}.  Its query point at each oracle call may depend on the preceding transcript.  Conditional on any such query, the latent Dirichlet action law is identical under $p_+$ and $p_-$; only the Bernoulli return kernel differs.  All algorithmic randomization can be included in the transcript and is likewise common to the two models.  The data-dependent call count $T_{\rm call}$ is a stopping time for the oracle transcript filtration.  The chain rule for the stopped likelihood ratio gives
+Consider an arbitrary admissible estimator in \eqref{eq:minimax-risk}.  Let $\Pp_+^{\rm tr}$ and $\Pp_-^{\rm tr}$ denote the stopped-transcript laws under $p_+$ and $p_-$, respectively.  Its query point at each oracle call may depend on the preceding transcript.  Conditional on any such query, the latent Dirichlet action law is identical under $p_+$ and $p_-$; only the Bernoulli return kernel differs.  All algorithmic randomization can be included in the transcript and is likewise common to the two models.  The data-dependent call count $T_{\rm call}$ is a stopping time for the oracle transcript filtration.  The chain rule for the stopped likelihood ratio gives
 \begin{equation}\label{eq:stopped-transcript-kl}
- \operatorname{KL}(\mathbb P_+^{\rm tr}\Vert\mathbb P_-^{\rm tr})
+ \operatorname{KL}(\Pp_+^{\rm tr}\Vert\Pp_-^{\rm tr})
  =\E_+T_{\rm call}\,\operatorname{kl}(p_+\Vert p_-)
  \le \mathsf B C_I\delta^2=C_I\delta_*^2.
 \end{equation}
@@ -98,22 +98,22 @@ $\{T_{\rm call}\ge j\}$; these events are measurable before the $j$th fresh retu
 
 Choose $\delta_*$ small enough that $C_I\delta_*^2\le1/8$.  Pinsker's inequality then gives
 \begin{equation}\label{eq:minimax-tv}
- \operatorname{TV}(\mathbb P_+^{\rm tr},\mathbb P_-^{\rm tr})\le\frac14.
+ \operatorname{TV}(\Pp_+^{\rm tr},\Pp_-^{\rm tr})\le\frac14.
 \end{equation}
 
 \paragraph{Step 4: reduction from estimation to testing.}
 By \eqref{eq:minimax-gradient-separation} and the mean-value theorem, the two gradient targets satisfy
 \begin{equation}\label{eq:minimax-target-distance}
- D_{\mathsf B}^g
+ \operatorname{Sep}_{\mathsf B}
  :=\norm{\mathfrak g(p_+)e_1-\mathfrak g(p_-)e_1}_2
  \ge2c_*\delta.
 \end{equation}
-Given any estimator $\widehat g$, define the test that chooses the closer of the two targets.  On a testing error, the estimator must be at least $D_{\mathsf B}^g/2$ from the true target.  The sum of the two testing error probabilities is at least one minus the total variation distance.  Therefore
+Given any estimator $\widehat g$, define the test that chooses the closer of the two targets.  On a testing error, the estimator must be at least $\operatorname{Sep}_{\mathsf B}/2$ from the true target.  The sum of the two testing error probabilities is at least one minus the total variation distance.  Therefore
 \begin{align*}
  \max_{s\in\{+,-\}}
  \E_s\norm{\widehat g-\mathfrak g(p_s)e_1}_2^2
- &\ge \frac{(D_{\mathsf B}^g)^2}{8}
- \left\{1-\operatorname{TV}(\mathbb P_+^{\rm tr},\mathbb P_-^{\rm tr})\right\}\\
+ &\ge \frac{(\operatorname{Sep}_{\mathsf B})^2}{8}
+ \left\{1-\operatorname{TV}(\Pp_+^{\rm tr},\Pp_-^{\rm tr})\right\}\\
  &\ge \frac{3c_*^2\delta_*^2}{8\mathsf B}.
 \end{align*}
 The two models belong to $\mathfrak C$, so taking the infimum over all admissible procedures gives the lower bound in \eqref{eq:minimax-rate} with
@@ -122,7 +122,7 @@ $c_{\rm lb}=3c_*^2\delta_*^2/8$.
 \paragraph{Step 5: cost-matched upper bound.}
 Fix any admissible estimator design parameters $(n,p_{\rm act},b)$ from \Cref{thm:estimator}.  The common model-class constants in Definition \ref{def:minimax-oracle} make
 \[
- \sup_{P\in\mathfrak C}\tr\Cov_P(Z_n^{\db})\le C_{\rm var}(n)<\infty,
+ \sup_{P\in\mathfrak C}\tr\Cov_P(Z_n^{\db})\le C_{\rm var}(n,p_{\rm act},b)<\infty,
  \qquad
  C_{\rm cost}=n(1+p_{\rm act} \Upsilon_b)<\infty
 \]
@@ -135,9 +135,9 @@ $M\ge \mathsf B/(2C_{\rm cost})$.  Hence
 \[
  \sup_{P\in\mathfrak C}
  \E_P\norm{\widehat g_{M,n}^{\db}-g_P}_2^2
- \le\frac{C_{\rm var}(n)}{M}
- \le\frac{2C_{\rm var}(n)C_{\rm cost}}{\mathsf B}.
+ \le\frac{C_{\rm var}(n,p_{\rm act},b)}{M}
+ \le\frac{2C_{\rm var}(n,p_{\rm act},b)C_{\rm cost}}{\mathsf B}.
 \]
 Thus the upper bound in \eqref{eq:minimax-rate} holds with
-$C_{\rm ub}=2C_{\rm var}(n)C_{\rm cost}$ and a sufficiently large $\mathsf B_0$.  The lower and upper bounds use the same target, trajectory oracle, loss, and expected raw-trajectory budget, completing the proof.
+$C_{\rm ub}=2C_{\rm var}(n,p_{\rm act},b)C_{\rm cost}$ and a sufficiently large $\mathsf B_0$.  The lower and upper bounds use the same target, trajectory oracle, loss, and expected raw-trajectory budget, completing the proof.
 \end{proof}
