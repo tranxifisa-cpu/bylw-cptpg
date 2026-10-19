@@ -142,6 +142,7 @@ def authenticate(repo: Path) -> None:
     helpers = git_text(repo, "config", "--get-all", "credential.helper", check=False).splitlines()
     if not helpers or any(helper.strip().split(" ")[0] == "store" for helper in helpers):
         raise SyncError("Configure a secure Git credential helper first (Windows: manager)")
+    print("Paste once and press Enter. No characters will be displayed.")
     token = getpass.getpass("New Overleaf token (input hidden): ")
     if not TOKEN.fullmatch(token.encode()):
         raise SyncError("The input is not an Overleaf Git authentication token")
@@ -167,33 +168,40 @@ def prepare_bridge(repo: Path, bridge: Path, setup: bool, fetch: bool) -> bool:
         raise SyncError("The clone must use this project's token-free Overleaf HTTPS URL")
     if git_text(bridge, "status", "--porcelain"):
         raise SyncError("The Overleaf clone has uncommitted changes; resolve them before syncing")
-    if git_text(bridge, "branch", "--show-current") != "master":
-        raise SyncError("The Overleaf clone must be on its master branch")
+    remote_ref = git_text(bridge, "symbolic-ref", "--quiet", "--short",
+                          "refs/remotes/origin/HEAD", check=False)
+    if not remote_ref.startswith("origin/"):
+        raise SyncError("The default Overleaf branch could not be determined")
+    branch = remote_ref[len("origin/"):]
+    if git_text(bridge, "branch", "--show-current") != branch:
+        raise SyncError(f"The Overleaf clone must be on its {branch} branch")
     if fetch:
-        git(bridge, "fetch", "origin", "master:refs/remotes/origin/master", overleaf=True)
+        git(bridge, "fetch", "origin", f"{branch}:refs/remotes/origin/{branch}", overleaf=True)
     head = git_text(bridge, "rev-parse", "HEAD")
-    remote_head = git_text(bridge, "rev-parse", "origin/master")
+    remote_head = git_text(bridge, "rev-parse", remote_ref)
     if head != remote_head:
-        if not git(bridge, "merge-base", "--is-ancestor", "HEAD", "origin/master", check=False).returncode:
-            git(bridge, "merge", "--ff-only", "origin/master")
-        elif not git(bridge, "merge-base", "--is-ancestor", "origin/master", "HEAD", check=False).returncode:
-            paths = git(bridge, "diff", "--name-only", "-z", "origin/master..HEAD").stdout.split(b"\0")
+        if not git(bridge, "merge-base", "--is-ancestor", "HEAD", remote_ref, check=False).returncode:
+            git(bridge, "merge", "--ff-only", remote_ref)
+        elif not git(bridge, "merge-base", "--is-ancestor", remote_ref, "HEAD", check=False).returncode:
+            paths = git(bridge, "diff", "--name-only", "-z", f"{remote_ref}..HEAD").stdout.split(b"\0")
             if any(path and not path.decode("utf-8").startswith(TARGET + "/") for path in paths):
                 raise SyncError("Unpushed Overleaf commits change files outside the Chinese thesis")
             return True
         else:
             raise SyncError("Overleaf history diverged. Merge the remote edits before syncing")
-    if setup:
-        hook = bridge / ".git" / "hooks" / "pre-commit"
-        if not hook.exists():
-            hook.write_text(HOOK, encoding="utf-8", newline="\n")
-            hook.chmod(0o755)
-        for key in ("user.name", "user.email"):
-            if not git_text(bridge, "config", "--get", key, check=False):
-                value = git_text(repo, "config", "--get", key, check=False)
-                if value:
-                    git(bridge, "config", key, value)
     return False
+
+
+def configure_bridge(repo: Path, bridge: Path) -> None:
+    hook = bridge / ".git" / "hooks" / "pre-commit"
+    if not hook.exists():
+        hook.write_text(HOOK, encoding="utf-8", newline="\n")
+        hook.chmod(0o755)
+    for key in ("user.name", "user.email"):
+        if not git_text(bridge, "config", "--get", key, check=False):
+            value = git_text(repo, "config", "--get", key, check=False)
+            if value:
+                git(bridge, "config", key, value)
 
 
 def synchronize(args: argparse.Namespace) -> None:
@@ -207,6 +215,9 @@ def synchronize(args: argparse.Namespace) -> None:
     source = read_files(repo, source_commit, SOURCE)
     source_hashes = fingerprints(source)
     pending = prepare_bridge(repo, bridge, args.command == "setup", not args.no_fetch)
+    branch = git_text(bridge, "branch", "--show-current")
+    if args.command != "status":
+        configure_bridge(repo, bridge)
     target = read_files(bridge, "HEAD", TARGET)
     target_hashes = fingerprints(target)
     state_path = bridge / ".git" / "overleaf-sync-state.json"
@@ -244,15 +255,18 @@ def synchronize(args: argparse.Namespace) -> None:
         if fingerprints(read_files(bridge, "HEAD", TARGET)) != source_hashes:
             raise SyncError("Committed Overleaf files do not match the source")
     if differences or pending:
-        git(bridge, "push", "origin", "HEAD:master", overleaf=True)
-        git(bridge, "fetch", "origin", "master:refs/remotes/origin/master", overleaf=True)
-        if git_text(bridge, "rev-parse", "HEAD") != git_text(bridge, "rev-parse", "origin/master"):
+        git(bridge, "push", "origin", f"HEAD:{branch}", overleaf=True)
+        git(bridge, "fetch", "origin", f"{branch}:refs/remotes/origin/{branch}", overleaf=True)
+        if git_text(bridge, "rev-parse", "HEAD") != git_text(bridge, "rev-parse", f"origin/{branch}"):
             raise SyncError("Overleaf advanced during verification; run status to inspect the new version")
     save_state(state_path, source_commit, git_text(bridge, "rev-parse", "HEAD"), source_hashes)
     print("Synchronized and verified" if differences or pending else "Already identical; baseline saved")
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("setup", "status", "push"))
     parser.add_argument("--repo", type=Path, default=Path(__file__).resolve().parents[1])

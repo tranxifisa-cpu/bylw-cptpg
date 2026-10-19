@@ -32,6 +32,7 @@ class OverleafSyncTests(unittest.TestCase):
         self.commit(self.bridge)
         sync.git(self.bridge, "remote", "add", "origin", sync.OVERLEAF_URL)
         sync.git(self.bridge, "update-ref", "refs/remotes/origin/master", "HEAD")
+        sync.git(self.bridge, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/master")
         sync.git(root, "init", "--bare", str(self.remote))
         sync.git(self.bridge, "push", str(self.remote), "HEAD:master")
         self.args = argparse.Namespace(command="push", repo=self.repo, overleaf_dir=self.bridge,
@@ -85,6 +86,16 @@ class OverleafSyncTests(unittest.TestCase):
         with self.assertRaisesRegex(sync.SyncError, "Overleaf was edited"):
             self.quiet_sync()
         self.assertEqual(target.read_text(), "advisor edit\n")
+
+    def test_main_default_branch_is_detected(self):
+        sync.git(self.bridge, "branch", "-m", "main")
+        sync.git(self.bridge, "update-ref", "refs/remotes/origin/main", "HEAD")
+        sync.git(self.bridge, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+        self.edit_source()
+        with patch.object(sync, "git", side_effect=self.network):
+            self.quiet_sync()
+        self.assertEqual(sync.git_text(self.remote, "rev-parse", "main"),
+                         sync.git_text(self.bridge, "rev-parse", "HEAD"))
 
     def test_failed_push_can_be_retried_without_new_commit(self):
         self.edit_source()

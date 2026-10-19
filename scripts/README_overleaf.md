@@ -14,7 +14,7 @@ GitHub 的 `main` 保存论文源文件，现有 Overleaf 项目用于协作和�
 python scripts/sync_overleaf.py setup
 ```
 
-输入新建的 Overleaf Git token，输入过程不显示。凭据交给 Git Credential Manager 保存，不进入网址、源码或命令历史。Windows 使用现有的 `manager` 凭据助手；克隆时使用 OpenSSL，以兼容本机的 TLS 连接。
+输入新建的 Overleaf Git token，只粘贴一次后按 Enter，输入过程不显示。凭据交给 Git Credential Manager 保存，不进入网址、源码或命令历史。Windows 使用现有的 `manager` 凭据助手；克隆时使用 OpenSSL，以兼容本机的 TLS 连接。同步时自动读取项目的默认分支。
 
 首次连接会克隆原项目、核对论文内容并记录同步基线。已有文件不同就停止，确认两边的改动后再建立基线。克隆的提交钩子会阻止 Overleaf token 进入 Git 历史。
 
