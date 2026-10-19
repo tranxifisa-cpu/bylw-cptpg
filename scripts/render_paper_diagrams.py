@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+import argparse
 
 import matplotlib
 
@@ -12,6 +13,54 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 
 OUT = Path(__file__).resolve().parents[1] / "output_paper" / "DRCPT_PG_Full_Paper_E1_E4" / "figures"
+CHINESE = False
+ZH = {
+    "Behavioral motivation": "行为动机",
+    "Adaptive and asymmetric reference": "参考点随经历适应，",
+    "updating": "且对盈亏非对称更新",
+    "Same wealth can imply different": "相同财富可能对应不同的",
+    "gain\u2013loss domains": "收益与损失区间",
+    "Dynamic-reference CPT model": "动态参考点 CPT 模型",
+    "State: wealth, reference, and portfolio": "状态：财富、参考点与持仓",
+    "Dirichlet policy for long-only allocation": "Dirichlet 策略决定多头配置",
+    "Learning method": "学习方法",
+    "Unbiased frozen-target gradient": "冻结目标的无偏梯度",
+    "estimator": "估计器",
+    "Normalized projected online update": "归一化投影在线更新",
+    "Statistical guarantees": "统计保证",
+    "Exact unbiasedness, finite variance, and CLT": "严格无偏、有限方差与中心极限定理",
+    "Fixed-dimensional minimax": "固定维度下的极小极大",
+    "trajectory-budget rate": "轨迹预算速率",
+    "Online-tracking guarantees": "在线跟踪保证",
+    "Projected residual and dynamic local regret": "投影残差与动态局部遗憾",
+    "Stationary-set tracking under an error bound": "误差界下的驻点集合跟踪",
+    "Empirical evaluation": "实证检验",
+    "E1\u2013E4: mechanism, estimator diagnostics, online tracking, and ablation / robustness":
+        "E1\u2013E4：机制、估计器、在线跟踪与消融稳健性",
+    "E5\u2013E7: chronological A-share replay, held-out investor behavior, and heterogeneous-agent interaction":
+        "E5\u2013E7：A 股回放、样本外投资者行为与异质投资者交互",
+    "E1  Path dependence": "E1  路径依赖",
+    "Matched wealth; different histories": "终点财富相同，经历不同",
+    "Reference domain + portfolio ranking": "参考点区间与组合排序",
+    "E2  Finite-sample\ngradient estimation": "E2  有限样本梯度估计",
+    "Four fixed targets; matched expected cost": "四个冻结目标；预期成本匹配",
+    "Bias / variance / CLT / MSE scaling": "偏差、方差、CLT 与 MSE 速率",
+    "E3  Continuous online tracking": "E3  连续在线跟踪",
+    "Same setup; slow dynamic state path": "同一设定；账户状态缓变",
+    "Residual + DLR, cumulative / average": "投影残差与 DLR 的累积值、平均值",
+    "E4  Reference ablation and robustness": "E4  参考点消融与稳健性",
+    "Reference dynamics / horizon / optimizer scale": "参考点更新、时期长度与优化器尺度",
+    "Where does the tracking advantage strengthen or weaken?": "在线跟踪优势在哪些设定下增强或减弱？",
+    "E5  Real-market portfolio evaluation": "E5  真实市场投资组合评价",
+    "Time-ordered A-share backtest": "按时间顺序回测 A 股",
+    "Risk-adjusted performance + trading intensity": "风险调整后表现与交易强度",
+    "E6  Investor behavior prediction": "E6  投资者行为预测",
+    "Held-out sell / hold opportunities": "留出样本中的减持与持有机会",
+    "Held-out prediction + behavioral alignment": "样本外预测与行为匹配",
+    "E7  Simulated investor interaction": "E7  模拟投资者交互",
+    "Heterogeneous agents informed by E6": "依据 E6 构建异质投资者",
+    "Adoption + satisfaction": "采纳与满意度",
+}
 INK = "#33434f"
 ARROW = "#687d91"
 BLUE = "#2a6796"
@@ -59,10 +108,12 @@ def arrow(ax, start, end, width: float = 2.6):
 def label(ax, checks, box: Box, x: float, y: float, value: str,
           size: float, color: str = INK, bold: bool = False,
           minimum: float | None = None):
+    if CHINESE:
+        value = ZH[value]
     artist = ax.text(
         x, y, value, ha="left", va="center", fontsize=size,
         fontweight="bold" if bold else "normal", color=color,
-        fontfamily="DejaVu Sans", zorder=4,
+        fontfamily="SimHei" if CHINESE else "DejaVu Sans", zorder=4,
     )
     checks.append((artist, box, minimum or size - 5))
 
@@ -89,6 +140,8 @@ def validate_text(fig, ax, checks):
 
 def export(fig, ax, checks, stem: str):
     validate_text(fig, ax, checks)
+    if CHINESE:
+        stem += "_zh"
     for suffix in ("png", "svg", "pdf"):
         fig.savefig(OUT / f"{stem}.{suffix}", dpi=100, facecolor="white")
     plt.close(fig)
@@ -215,6 +268,13 @@ def experiment_evidence_map():
 
 
 def main():
+    global OUT, CHINESE
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--language", choices=("en", "zh"), default="en")
+    args = parser.parse_args()
+    CHINESE = args.language == "zh"
+    if CHINESE:
+        OUT = Path(__file__).resolve().parents[1] / "output_paper" / "应统作文模板" / "figures"
     plt.rcParams.update({"svg.fonttype": "none", "pdf.fonttype": 42})
     research_framework()
     experiment_evidence_map()

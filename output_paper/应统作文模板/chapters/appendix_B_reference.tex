@@ -1,59 +1,88 @@
-\section{参考点机制的证明}\label{app:reference-proofs}
+\section{参考点机制与CPT梯度的证明}\label{app:reference-gradient}
 
-\subsection{\texorpdfstring{\Cref{prop:path-dependence}}{参考点命题}的证明}
+\subsection{相同期末财富与路径依赖参考点}
+
 \begin{proof}
-对路径 $A$，中间参考点为 $(1-\eta_+)r_0+\eta_+H$。由假设指定的第二步分支可得
+先分别计算两条路径的期末参考点，再利用确定性CPT价值的严格单调性。路径I的第一步为收益，因此中间参考点为
 \[
- r_A=(1-\eta_-)((1-\eta_+)r_0+\eta_+H)+\eta_-C.
+ r_{\rm I}^{(1)}=(1-\eta_+)r_0+\eta_+x_{\rm hi}.
 \]
-对路径 $B$，中间参考点为 $(1-\eta_-)r_0+\eta_-L_{\rm w}$，因此
+命题中的第一个条件使第二步相对这一参考点构成损失，于是
 \[
- r_B=(1-\eta_+)((1-\eta_-)r_0+\eta_-L_{\rm w})+\eta_+C.
+ r_{\rm I}=(1-\eta_-)\{(1-\eta_+)r_0+\eta_+x_{\rm hi}\}+\eta_-x_{\rm f}.
 \]
-两式相减后，含 $r_0$ 的项相互抵消，从而得到式~\eqref{eq:path-diff}。对确定性结果 $y$，端点归一化使其 CPT 值等于 $v_+(y)-v_-(y)$：相应的生存函数在效用值以下等于 1，在效用值以上等于 0。对于本文规定的价值函数，这一带符号变换严格递增。因此，不同的确定性相对结果对应不同的 CPT 值。
+路径II的第一步为损失，其中间参考点为
+\[
+ r_{\rm II}^{(1)}=(1-\eta_-)r_0+\eta_-x_{\rm lo}.
+\]
+第二个条件使随后到$x_{\rm f}$的变化成为收益，因此
+\[
+ r_{\rm II}=(1-\eta_+)\{(1-\eta_-)r_0+\eta_-x_{\rm lo}\}+\eta_+x_{\rm f}.
+\]
+两式相减后，$r_0$的系数抵消，得到式~\eqref{eq:path-reference-gap}。
 
-固定财富值 $x$。映射 $r\mapsto\Phi(r,x)$ 在 $r=x$ 处连续，并且在
-$r\le x$ 时斜率为 $1-\eta_+$，在 $r>x$ 时斜率为 $1-\eta_-$。若
-$r,r'$ 位于 $x$ 的同一侧，Lipschitz 界可由对应斜率直接得到。若二者分处
-$x$ 两侧，则在 $x$ 处分割区间并将两段上界相加。因此
-\[
- |\Phi(r,x)-\Phi(r',x)|\le(1-\eta_{\min})|r-r'|.
-\]
-沿共同财富路径逐步归纳，即得式~\eqref{eq:reference-contraction}。当终端财富相同时，进一步有
-$|Y-Y'|\le\chi_h|r-r'|$。
+对确定性相对结果$y$，相应价值幅度以下的生存概率为一，以上为零。由$w_\pm^\eps(0)=0$和$w_\pm^\eps(1)=1$，其CPT价值为$v_+(y)-v_-(y)$。平移幂函数的收益项在$y>0$时严格递增，$-v_-(y)$在$y<0$时严格递增，且两部分在零点连续相接。因此有符号的确定性CPT价值对$y$严格递增。当$r_{\rm I}\ne r_{\rm II}$时，$x_{\rm f}-r_{\rm I}\ne x_{\rm f}-r_{\rm II}$，两条路径的CPT价值必然不同。
+\end{proof}
 
-对 $x>0$，
-\[
- u'_{\alpha,\eps_v}(x)=\alpha x(x^2+\eps_v^2)^{\alpha/2-1}.
-\]
-利用 $x\le\sqrt{x^2+\eps_v^2}$ 和 $\alpha-1\le0$，可将该导数上界为
-$\alpha\eps_v^{\alpha-1}$。导数在零点的极限为零，所以与正部、负部映射复合后，函数在零点两侧仍连续可微，并具有所声明的全局 Lipschitz 上界。分别应用收益侧与损失侧的 Lipschitz 不等式并相加，便得到
-$\Omega(s)=(L_v^++L_v^-)s$。
+\subsection{参考点收缩与CPT敏感性}
 
-在假设~\ref{ass:reference-coupling} 下，对两个不同的初始参考点使用相同的动作抽样与市场抽样。记
-$V_\pm=v_\pm(Y)$、$V_\pm'=v_\pm(Y')$，并令
-$S_\pm,S_\pm'$ 分别为对应的生存函数。对任意由 $B_v$ 控制的非负随机变量 $V,V'$，Fubini 定理与该耦合给出
-\begin{equation}\label{eq:survival-coupling-inequality}
- \int_0^{B_v}|\Pp(V>z)-\Pp(V'>z)|\,dz
- \le \E\int_0^{B_v}|\1\{V>z\}-\1\{V'>z\}|\,dz
- =\E|V-V'|.
+\begin{proof}
+固定财富值$x$。映射$r\mapsto\Phi(r,x)$连续，当$r\le x$时斜率为$1-\eta_+$，当$r>x$时斜率为$1-\eta_-$。必要时在$x$处分割区间，即有
+\[
+ \abs{\Phi(r,x)-\Phi(r',x)}
+ \le(1-\eta_{\min})\abs{r-r'}.
+\]
+在命题所规定的参考点隔离比较中，两条轨迹共享财富路径。将上述不等式迭代$h$次即得到式~\eqref{eq:reference-contraction}。期末财富也相同，所以
+\begin{equation}\label{eq:relative-reference-coupling}
+ \abs{Y(r)-Y(r')}
+ \le(1-\eta_{\min})^h\abs{r-r'}.
 \end{equation}
-逐点连续模将收益侧与损失侧价值差之和控制为
-$D_h(|r-r'|)$。对两个 CPT 积分应用中值上界
-$|w^\eps(p)-w^\eps(q)|\le C_1|p-q|$，即可得到式~\eqref{eq:reference-value-sensitivity}。
 
-对于梯度结论，使用已经独立证明的定理~\ref{thm:gradient-identity}。在该恒等式中对指示变量作中心化，只会减去一个确定性标量与零均值得分的乘积。因此可以使用
+对$x\ge0$，
 \[
- \varphi(\tau)=\int_0^{B_v}(w_+^\eps)'(S_+(z))\1\{V_+>z\}\,dz
- -\int_0^{B_v}(w_-^\eps)'(S_-(z))\1\{V_->z\}\,dz
+ \frac{d}{dx}u_{\alpha,\eps_v}(x)
+ =\alpha x(x^2+\eps_v^2)^{\alpha/2-1}
+ \le\alpha\eps_v^{\alpha-1},
 \]
-以及 $\nabla J=\E[G\varphi]$。耦合后的财富路径和动作路径具有相同特征，也具有相同的 $G$。对收益侧或损失侧中的任一侧，有
+因为$x\le(x^2+\eps_v^2)^{1/2}$且$\alpha\le1$。从而
+\[
+ \abs{v_+(y)-v_+(y')}
+ +\abs{v_-(y)-v_-(y')}
+ \le L_v\abs{y-y'}.
+\]
+结合式~\eqref{eq:relative-reference-coupling}，可控制两侧期末价值幅度差的总和。
+
+若$V,V'\in[0,B_v]$为耦合的非负随机变量，则由Tonelli定理，
 \begin{align*}
- &|(w^\eps)'(S)\1\{V>z\}-(w^\eps)'(S')\1\{V'>z\}|\\
- &\hspace{1em}\le C_1|\1\{V>z\}-\1\{V'>z\}|+C_2|S-S'|.
+ \int_0^{B_v}\abs{\Pp(V>y)-\Pp(V'>y)}\,dy
+ &\le \E\int_0^{B_v}
+ \abs{\1\{V>y\}-\1\{V'>y\}}\,dy\\
+ &=\E\abs{V-V'}.
 \end{align*}
-将上式乘以 $\norm{G}_2$，对 $z$ 积分后取期望，再把收益侧与损失侧相加。第一项逐路径由
-$C_1\E\norm{G}_2 D_h(|r-r'|)$ 控制。固定条件环境后，第二项中的生存函数差是确定量；式~\eqref{eq:survival-coupling-inequality} 将两侧生存函数差的积分之和控制为
-$D_h(|r-r'|)$。最后使用
-$\E\norm{G}_2\le\sqrt{C_{G,2}}$，即可得到式~\eqref{eq:reference-gradient-sensitivity}。整个论证只使用得分的矩界，没有使用逐点有界得分，也没有要求结果变量具有密度。
+再用$\abs{w_\sigma^\eps(p)-w_\sigma^\eps(q)}\le C_1\abs{p-q}$，对收益侧与损失侧分别应用此不等式，得到式~\eqref{eq:reference-value-sensitivity}。最后在相邻期目标之差中加减$J(P_{k+1},z_{k+1},r_k;\theta)$，再对$\theta$一致应用三角不等式，得到式~\eqref{eq:variation-decomposition}。
+\end{proof}
+
+\subsection{CPT梯度的得分表示}
+
+\begin{proof}
+先看收益部分；损失部分计算相同，最后从收益部分减去。记
+\[
+ J^+(\theta)=\int_0^{B_v}w_+^\eps(S_\theta^+(y))\,dy.
+\]
+对固定的$y$，将引理~\ref{lem:dirichlet-moments}中的似然比恒等式用于有界指标函数，得到
+\begin{equation}\label{eq:survival-score-derivative}
+ \nabla S_\theta^+(y)
+ =\E\{\1[v_+(Y)>y]G_\theta\}.
+\end{equation}
+由Cauchy--Schwarz不等式和假设~\ref{ass:trajectory}，右侧范数对所有$y,\theta$均不超过$\sqrt{C_{G,2}}$。又因$(w_+^\eps)'\le C_1$且积分区间有限，存在可积的共同控制函数。控制收敛定理遂给出
+\begin{align*}
+ \nabla J^+(\theta)
+ &=\int_0^{B_v}(w_+^\eps)'(S_\theta^+(y))
+ \E\{\1[v_+(Y)>y]G_\theta\}\,dy\\
+ &=\E\left[G_\theta
+ \int_0^{B_v}(w_+^\eps)'(S_\theta^+(y))\1[v_+(Y)>y]dy\right].
+\end{align*}
+第二步可用Fubini定理，因为被积项由$C_1B_v\norm{G_\theta}$控制，且$\E\norm{G_\theta}<\infty$。
+
+得分的期望为零，因此在积分内减去确定性的$S_\theta^+(y)$不改变期望。这给出式~\eqref{eq:cpt-multiplier}中的收益项。对损失侧重复同一论证并相减，便得式~\eqref{eq:score-gradient-identity}。以冻结模拟模型的轨迹分布替代真实轨迹分布，条件论证不变。
 \end{proof}
