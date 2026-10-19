@@ -1,8 +1,44 @@
 \chapter{主要结论}\label{sec:results}
 
-动态参考点改变了策略所优化的目标：即使两条财富路径停在同一终点，先前经历留下的参考点仍可能使CPT评价不同。每一期需要从有限轨迹中估计当前目标的梯度；时期继续推进时，策略还必须跟上目标的移动。由路径依赖出发，本章先建立冻结目标下的梯度估计结果，再给出连续更新时的投影残差与动态局部遗憾界。
+同样的账户余额，可能意味着从高点回落，也可能意味着从亏损中恢复。动态参考点保留了这种经历上的差别，使下一期策略面对不同的CPT目标。对在线学习而言，这带来两个相接的问题：有限轨迹能否准确反映当前目标的梯度；当前目标继续变化时，这些梯度信息能否帮助策略持续调整因子参数。
+
+本章沿这两个问题展开。命题~\ref{prop:path-dependence}与命题~\ref{prop:reference-sensitivity}先说明历史如何进入评价，以及参考点变化如何传递到目标变化。定理~\ref{thm:gradient-identity}将CPT梯度写成可由轨迹估计的形式，定理~\ref{thm:estimator}与定理~\ref{thm:clt}进一步给出无偏性、均方误差和渐近分布；定理~\ref{thm:minimax}则在相同轨迹预算下确定这一估计问题的最优速率。在此基础上，定理~\ref{thm:online-residual}把当期估计精度与跨期目标变化联系起来，给出在线更新的一阶跟踪界。其后的推论依次给出动态局部遗憾、移动驻点集合的跟踪，以及平均残差趋于零的条件。图~\ref{fig:theory-results-chain}展示了这些结论之间的关系。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    result/.style={draw=black!65, line width=0.6pt, fill=white,
+        text width=3.55cm, minimum height=1.35cm, inner sep=4pt,
+        align=center, font=\small},
+    link/.style={->, draw=black!65, line width=0.65pt},
+    flow/.style={font=\footnotesize, fill=white, inner sep=2pt}
+]
+\node[result] (history) at (0,0)
+    {历史与参考点\\命题~\ref{prop:path-dependence}、\ref{prop:reference-sensitivity}};
+\node[result] (gradient) at (4.7,0)
+    {条件目标的梯度\\定理~\ref{thm:gradient-identity}};
+\node[result] (estimator) at (9.4,0)
+    {严格无偏估计\\定理~\ref{thm:estimator}};
+\node[result] (consequences) at (0,-2.75)
+    {遗憾、驻点与渐近跟踪\\推论~\ref{cor:dynamic-local-regret}--\ref{cor:vanishing-tracking}};
+\node[result, fill=black!4, line width=0.9pt] (tracking) at (4.7,-2.75)
+    {在线投影更新与残差界\\算法~\ref{alg:drcptpg}、定理~\ref{thm:online-residual}};
+\node[result] (statistics) at (9.4,-2.75)
+    {渐近分布与预算率\\定理~\ref{thm:clt}、\ref{thm:minimax}};
+\draw[link] (history.east) -- node[flow, above] {$J_k$} (gradient.west);
+\draw[link] (gradient.east) -- node[flow, above] {$\nabla J$} (estimator.west);
+\draw[link] (history.south east) -- node[flow, above right] {$\cV_K$} (tracking.north west);
+\draw[link] (estimator.south west) -- node[flow, above left] {均方误差} (tracking.north east);
+\draw[link] (estimator.south) -- node[flow, right] {独立重复} (statistics.north);
+\draw[link] (tracking.west) -- node[flow, above] {$\cE_K$} (consequences.east);
+\end{tikzpicture}
+\caption{从CPT梯度估计到定理~\ref{thm:online-residual}及其推论}
+\label{fig:theory-results-chain}
+\end{figure}
 
 \section{参考点的路径依赖}
+
+若评价只依赖期末财富，两条起点和终点相同的确定性财富路径将得到相同结果。参考点递推改变了这一点：路径中的高点和低点会先改变盈亏基准，再影响终点所处的收益或损失区域。命题~\ref{prop:path-dependence}用两步路径给出这一差异的显式表达；随后，命题~\ref{prop:reference-sensitivity}考察初始参考点差异沿同一财富路径如何衰减，并据此分解跨期目标变化。
 
 \begin{proposition}[相同期末财富与不同的CPT价值]\label{prop:path-dependence}
 设$x_{\rm lo}<r_0<x_{\rm f}<x_{\rm hi}$，考虑两条财富路径
@@ -27,7 +63,11 @@
 当右侧不为零时，两条路径虽然具有相同的期末财富$x_{\rm f}$，其正则化CPT价值却不同。
 \end{proposition}
 
-这一命题揭示了终值评价与路径评价的区别：投资者在最终持有同样财富时，先前的上涨或下跌仍会通过参考点留下影响。附录~\ref{app:reference-gradient}给出直接递推的证明。
+例如，初始财富与参考点均为$1$，两条路径分别为先升至$1.2$再回落至$1.05$，以及先降至$0.8$再回升至$1.05$。取$(\etaP,\etaM)=(0.4,0.1)$，逐步应用式~\eqref{eq:reference-update}，得到两条路径的期末参考点分别为$1.077$和$1.008$。虽然两者相对于初始财富均取得正收益，前一条路径的终值却低于其参考点，后一条路径的终值则高于其参考点，因而分别进入CPT的损失侧与收益侧。这里评价差异的来源可以直接辨认：先前的上涨抬高了前一账户的基准，随后的回落尚未使该基准降至当前财富之下。
+
+式~\eqref{eq:path-reference-gap}保留了两种适应速度，使历史高点、低点与最终财富的作用可以分别辨认。它说明，在参考点递推下，期末财富相同并不足以使评价相同；在线策略的状态因而需要同时记录财富与参考点。证明只需按照两条路径各自所处的盈亏区域递推两次，详见\ref{app:reference-gradient}。
+
+路径留下的影响有多持久，还取决于后续参考点如何适应财富。为单独考察这一作用，下面保持策略参数、市场随机性及财富与持仓路径相同，只改变期初参考点。这样的耦合将参考点自身的记忆与策略改变投资路径所产生的反馈区分开来。
 
 \begin{proposition}[参考点敏感性]\label{prop:reference-sensitivity}
 在假设~\ref{ass:trajectory}--\ref{ass:cpt-regularity}下，固定$(P,z,\theta)$。仅在本命题的比较中，假设策略特征和市场转移核与参考点隔离：若使用共同的策略随机数和市场随机数，将期初参考点从$r$改为$r'$不会改变财富与持仓路径。令
@@ -62,9 +102,15 @@
 \end{equation}
 \end{proposition}
 
-式~\eqref{eq:variation-decomposition}把跨期目标变化分为参考点以外的状态、市场变化，以及由期初参考点移动带来的部分。后者并非独立施加的外部扰动，而是账户此前投资路径的结果。
+当两种适应速度都为正时，式~\eqref{eq:reference-contraction}表明，沿同一条后续财富路径，初始参考点差异会逐步缩小。式~\eqref{eq:reference-value-sensitivity}进一步把参考点差异转化为CPT价值差异：$L_v$控制价值函数对相对结果变化的敏感程度，$C_1$控制概率权重的敏感程度，因子$(1-\eta_{\min})^h$则记录这一差异经过期内递推后的衰减。因而，参考点具有路径记忆，同时这种记忆在共同路径下有可控制的影响范围。
+
+连续投资中，下一期的财富、持仓和市场条件也会变化。式~\eqref{eq:variation-decomposition}将这些变化归入$\Delta_k^{\mathrm{nr}}$，另将期初参考点的移动单独列出。参考点部分来自账户此前的财富经历，市场规律的变化则包含在另一部分中。这一分解把行为机制与后文的目标总变差$\cV_K$联系起来：判断目标是否变化缓慢，需要同时考察参考点的累计移动和其余状态、市场变化引起的目标差异。
 
 \section{冻结目标的CPT梯度与统计估计}
+
+上一节说明，每一期的评价都取决于当前账户所继承的参考点。估计梯度时，先固定该期起点、条件模型和待查询参数，再从同一条件分布独立生成轨迹；每条轨迹内部的财富与参考点仍按日递推，市场转移规律也可以随日历时间变化。在这个意义下，冻结的是当次求导与抽样所针对的目标。
+
+CPT目标依赖整个结果分布，因此首先需要明确，一条轨迹对梯度的贡献如何由其结果及其出现概率共同决定。定理~\ref{thm:gradient-identity}给出这种表示。以此为基础，定理~\ref{thm:estimator}说明算法~\ref{alg:cloo-rd}如何用有限期望成本获得严格无偏输出，定理~\ref{thm:clt}再将独立重复输出的均方控制推进到分布近似。
 
 \begin{theorem}[正则化CPT得分梯度恒等式]\label{thm:gradient-identity}
 在假设~\ref{ass:trajectory}--\ref{ass:cpt-regularity}下，固定一个目标，并简记$J=J_k$、$Y=Y_k$、$S_\theta^\pm(y):=S_{P_k,z_k,r_k,\theta}^\pm(y)$、$G_\theta:=G_{k,\theta}$。定义
@@ -82,13 +128,17 @@
 同一恒等式也适用于冻结模拟模型的目标$\widetilde J$。
 \end{theorem}
 
-$\Psi_\theta$根据轨迹结果超过各价值阈值的情况，以及这些阈值在总体中的生存概率，确定该轨迹在CPT评价中的权重；$G_\theta$则说明轨迹出现概率如何随参数改变。两者相乘再取期望，得到目标函数对因子参数的梯度。此后讨论有限样本估计时，固定模型、起点与所查询的参数，记相应冻结目标的梯度为
+$\Psi_\theta$根据轨迹结果超过各价值阈值的情况，以及总体中超过相同阈值的概率，确定该轨迹对CPT评价的一阶贡献；$G_\theta$则记录轨迹出现概率对因子参数的敏感性。以开篇两类账户为例，同一终端财富在不同参考点下可能进入不同的价值分支，进而改变$\Psi_\theta$；梯度再结合$G_\theta$，判断应如何调整因子参数，才能提高当前账户所面对的CPT目标。式~\eqref{eq:score-gradient-identity}由此将分布评价与策略学习联系起来。
+
+这一恒等式来自对生存概率的得分求导。假设~\ref{ass:likelihood}使轨迹似然的显式参数依赖来自策略密度，因此财富和参考点随策略改变的影响由增广轨迹分布共同承载。又由于得分的期望为零，在阈值指标中减去总体生存概率不改变梯度期望，得到式~\eqref{eq:cpt-multiplier}的中心化形式。此后讨论有限样本估计时，固定模型、起点与所查询的参数，记相应冻结目标的梯度为
 \[
  g:=\nabla_\theta J(\theta).
 \]
-在线算法使用的冻结模型为$\widetilde P_k$，因此它在给定第$k$期期初信息后的估计目标是$\widetilde g_k(\theta_k)$。
+在线算法使用的冻结模型为$\widetilde P_k$，因此它在给定第$k$期期初信息后的估计目标是$\widetilde g_k(\theta_k)$。这种条件化允许各期使用不同的市场模型、账户状态和参考点，同时使同一次梯度估计具有确定的目标。
 
-若直接把经验生存概率代入非线性的权重导数，有限样本梯度通常带有偏差。附录~\ref{app:estimator}证明，留一法基项的期望误差为$O(n^{-1})$；全样本与两个半样本共享轨迹后，一阶影响项相互抵消，层间差分的二阶矩降为$O(n^{-2}4^{-\ell})$。算法~\ref{alg:cloo-rd}的随机层修正据此把有限精度基项连接到无限精度目标。
+总体生存概率未知时，直接把经验概率代入非线性的权重导数，通常会产生有限样本偏差。留一法将第$i$条轨迹的得分与用于估计其生存概率的其余轨迹分开，中心化项则利用得分均值为零的性质保持期望不变。即便如此，非线性代入所留下的期望误差仍需修正。引理~\ref{lem:centering-expectation}给出这一误差的$O(n^{-1})$界。
+
+算法~\ref{alg:cloo-rd}将中心化留一基项与未中心化层间修正结合。后者使用同一批轨迹构成全样本和两个半样本，因此三者展开中的一阶样本影响完全抵消。共同有界域保证所需的得分矩与价值积分有统一控制，权重函数的三阶导数界则控制概率代入展开中的二阶余项。引理~\ref{lem:level-cancellation}据此证明，抵消后层间差分的二阶矩为$O(n^{-2}4^{-\ell})$，随层级提高而快速衰减。随机层修正按抽中概率的倒数放大这一差分，使其期望补足基项与总体梯度之间的差额；差分的衰减又使这种放大与有限方差、有限期望成本相容。
 
 \begin{theorem}[严格无偏、有限方差与有限期望成本]\label{thm:estimator}
 令$Z_n^{\db}$由式~\eqref{eq:debiased-output}定义，其中$n\ge2$、$p_{\rm act}\in(0,1]$、$1<b<2$。令$C_U$和$C_{\rm rem}$为引理~\ref{lem:level-cancellation}中的有限常数，记
@@ -124,7 +174,11 @@ $\Psi_\theta$根据轨迹结果超过各价值阈值的情况，以及这些阈�
 \end{equation}
 \end{theorem}
 
-此处的无偏对象是固定模型和期初状态后的CPT梯度。层级分布不截断，保证随机修正的期望覆盖全部层级；指数条件$1<b<2$同时使期望轨迹成本和输出方差有限。
+定理~\ref{thm:estimator}同时回答了偏差与计算量两个问题。对固定的$n$，一次输出以概率$p_{\rm act}$激活修正，激活后只抽取一个层级；由于抽中层级几乎必然有限，单次计算使用有限条轨迹。层级分布的支持延伸至任意精度，其概率倒数加权后的期望形成望远镜求和，恰好消去基项的期望误差。严格无偏性因此来自随机修正的期望结构，而每次计算的期望成本由式~\eqref{eq:expected-estimator-cost}给出。
+
+条件$1<b<2$对应两种衰减速度的匹配。$b>1$使高层级的抽取概率足以抵消轨迹数$2^\ell$的增长，$b<2$则使概率倒数加权后的差分二阶矩可求和。激活概率同样体现成本与波动之间的取舍：减小$p_{\rm act}$减少平均修正成本，同时放大修正项在方差界中的贡献。固定这些设计量后，独立平均$M$次完整输出即可使均方误差按$M^{-1}$下降。
+
+均方误差界说明估计量围绕梯度集中到何种尺度。若还要利用重复抽样判断某一因子方向对当前目标是否有稳定的改善作用，则需要知道该尺度下的误差分布。有限协方差使独立完整输出的平均满足下面的中心极限定理。
 
 \begin{theorem}[固定目标的渐近正态性]\label{thm:clt}
 在定理~\ref{thm:estimator}的条件下，固定$(n,p_{\rm act},b)$，记$\Sigma_n=\Cov(Z_n^{\db})$。则
@@ -140,12 +194,16 @@ $\Psi_\theta$根据轨迹结果超过各价值阈值的情况，以及这些阈�
 \end{equation}
 \end{theorem}
 
-独立重复输出因而能够用于估计固定一期梯度的不确定性。跨期目标即使继续移动，也可以在每一期分别使用这一统计结论。
+定理~\ref{thm:clt}中的$M$表示同一冻结目标下的独立重复次数。经验协方差据此可以估计各因子梯度分量及其线性组合的抽样不确定性；在非奇异条件下，学生化后的极限分布不再含有未知协方差参数。在线过程进入下一期后，目标和参数可以改变，再针对新的条件目标使用相同的统计结论。固定一期内的重复抽样与跨期学习因而各有清楚的作用：前者提供当前一阶信息的精度，后者利用这些信息调整策略。
 
 \section{固定维度下的极小极大信息率}
 
+定理~\ref{thm:estimator}以完整估计输出的重复次数$M$衡量精度，而一次输出使用的轨迹数本身是随机的。比较计算效率时，更直接的单位是实际生成的完整轨迹数：相同数量的估计输出未必对应相同的采样成本。本节以期望完整轨迹预算$\mathsf B$为统一约束，考察在给定精度要求下需要多少轨迹，以及其他查询程序能否取得更快的误差下降速度。
+
+定义~\ref{def:minimax-oracle}允许程序根据已有轨迹自适应选择下一次查询参数，并根据查询记录决定何时停止。随后，定理~\ref{thm:minimax}对这一类程序给出风险下界，同时以独立平均去偏输出达到同阶上界，从而确定固定维度下的最优预算速率。
+
 \begin{definition}[完整轨迹查询实验]\label{def:minimax-oracle}
-固定维度$d$、$\theta_0=0\in\operatorname{int}(\Theta)$、$h$和$N$的共同有限上界，以及假设~\ref{ass:trajectory}--\ref{ass:cpt-regularity}中的常数。设模型类$\mathfrak C$满足这些界，包含附录~\ref{app:minimax}构造的伯努利收益子模型，并有$(w_+^\eps)'(0)>0$。对$P\in\mathfrak C$，第$t$次自适应查询$\theta_t\in\Theta$返回一条新的完整增广轨迹
+固定维度$d$、$\theta_0=0\in\operatorname{int}(\Theta)$、$h$和$N$的共同有限上界，以及假设~\ref{ass:trajectory}--\ref{ass:cpt-regularity}中的常数。设模型类$\mathfrak C$满足这些界，包含\ref{app:minimax}构造的伯努利收益子模型，并有$(w_+^\eps)'(0)>0$。对$P\in\mathfrak C$，第$t$次自适应查询$\theta_t\in\Theta$返回一条新的完整增广轨迹
 \[
  \tau_t\mid\mathcal G_{t-1}\sim P_{\theta_t},
  \qquad
@@ -158,13 +216,15 @@ $\Psi_\theta$根据轨迹结果超过各价值阈值的情况，以及这些阈�
 估计目标为$g_P:=\nabla J_P(\theta_0)$。
 \end{definition}
 
-相应的极小极大风险为
+在这一查询实验中，风险先对模型类$\mathfrak C$取最坏情形，再在满足预算约束的程序中寻找最小值。相应的极小极大风险为
 \begin{equation}\label{eq:minimax-risk}
  \mathfrak R_{\mathsf B}
  :=\inf_{\widehat g:\,\sup_{P\in\mathfrak C}\E_P T_{\rm call}\le\mathsf B}
  \sup_{P\in\mathfrak C}
  \E_P\norm{\widehat g-g_P}_2^2.
 \end{equation}
+
+这一比较固定了参数维度、时期长度与资产数的共同上界，以及正则化和有界性常数，使预算增加所带来的信息增长可以单独考察。上界说明一种估计程序能够做到什么，下界则刻画同一查询条件下所有可行程序共同受到的信息约束。
 
 \begin{theorem}[固定维度下的最优轨迹预算率]\label{thm:minimax}
 对定义~\ref{def:minimax-oracle}的查询实验，存在与$\mathsf B$无关的常数$c_{\rm lb},C_{\rm ub},\mathsf B_0\in(0,\infty)$，使任意$\mathsf B\ge\mathsf B_0$均满足
@@ -176,7 +236,15 @@ $\Psi_\theta$根据轨迹结果超过各价值阈值的情况，以及这些阈�
 在相同期望完整轨迹预算下，独立平均未截断的$Z_n^{\db}$输出可以达到该上界的常数倍。因此，当$d$和正则化参数固定时，梯度估计的极小极大速率为$\Theta(\mathsf B^{-1})$。
 \end{theorem}
 
+上界直接承接定理~\ref{thm:estimator}：固定估计器设计后，每次输出具有一致有限的方差与期望成本，因此预算$\mathsf B$可以支持与其成比例的独立重复次数，均方误差随之降至$\mathsf B^{-1}$阶。下界的构造仍在投资模型内部完成。\ref{app:minimax}考虑一只股票与现金的组合，使两个收益模型的伯努利概率相差$\mathsf B^{-1/2}$阶。它们对应的CPT梯度也有同阶差异，而预算内的轨迹记录仍难以将二者区分。将梯度估计转化为这两个模型之间的检验，便得到均方风险的$\mathsf B^{-1}$下界。
+
+因此，严格去偏后的估计量在上述模型类中达到了固定维度的最优均方误差速率。上下界使用相同的目标、查询信息和期望成本单位，使统计精度与轨迹消耗可以直接对应；具体设计量$(n,p_{\rm act},b)$则通过$C_{\rm var}$与$C_{\rm cost}$影响有限预算下的误差大小。获得这种当期估计效率之后，尚需把每期的一阶信息放回连续投资过程，分析它们能否跟上目标的移动。
+
 \section{移动CPT目标下的一阶跟踪}
+
+回到连续投资过程，上一期的实际交易会形成新的财富、参考点和持仓，市场模型也可能改变。因而，即使每一期都能无偏估计冻结模型的梯度，连续更新的效果仍取决于真实目标变化的速度。本节以算法~\ref{alg:drcptpg}为对象：定理~\ref{thm:online-residual}先将目标变化、蒙特卡洛误差和模型近似误差共同纳入平均平方投影残差界；推论~\ref{cor:dynamic-local-regret}将其传递到时间平滑后的动态局部遗憾，推论~\ref{cor:stationary-tracking}再在误差界条件下给出驻点集合距离，最后由推论~\ref{cor:vanishing-tracking}说明这些平均量何时趋于零。
+
+这里使用投影残差衡量当期的一阶学习效果。参数受限于$\Theta$时，在边界处直接沿梯度移动可能越出可行域；式~\eqref{eq:projected-residual}考察的则是归一化梯度经过可行域投影后还会产生多大位移。残差为零恰好对应式~\eqref{eq:stationary-set}的受约束一阶条件。与算法实际采用的归一化投影更新相配，步长条件$\gamma L\le\vartheta$保证有效步长$\gamma/\max\{\norm g_2,\vartheta\}$不超过$L^{-1}$，使目标在参数方向上的曲率得到控制。
 
 \begin{theorem}[期望平均平方投影残差上界]\label{thm:online-residual}
 设假设~\ref{ass:trajectory}--\ref{ass:cpt-regularity}成立，且$\gamma L\le\vartheta$。固定估计器设计$(n,p_{\rm act},b)$，令$C_g:=\max\{B_g,\vartheta\}$，$\widehat g_k^{\db}$由式~\eqref{eq:gradient-average}给出，目标为$\widetilde g_k(\theta_k)$。则
@@ -197,7 +265,13 @@ $\Psi_\theta$根据轨迹结果超过各价值阈值的情况，以及这些阈�
 \end{equation}
 \end{theorem}
 
-上界中的$\cV_K$对应真实目标的移动，$M_k^{-1}$对应蒙特卡洛估计误差，$\beta_k^2$对应冻结模拟模型与真实模型之间的梯度差异。控制的是每一期当下的一阶条件，而不是要求所有时期共享同一个最优参数。
+式~\eqref{eq:true-gradient-mse}将冻结模型下的无偏性用于真实目标的误差分解。给定期初信息后，估计器围绕$\widetilde g_k(\theta_k)$的误差均值为零，与模拟梯度和真实梯度之差的交叉项也随之消失。于是，误差分成$C_{\rm var}/M_k$和$\E\beta_k^2$两部分：增加独立输出次数提高蒙特卡洛精度，改进冻结模型提高对真实条件目标的逼近程度。归一化与投影后的更新由引理~\ref{lem:projected-ascent}控制，将原始梯度的均方误差转化为单步目标改善中的误差项。
+
+在单步分析中，真实梯度对应的投影残差越大，沿可靠的一阶方向可获得的目标改善也越大。将各期改善相加后，同一个固定目标中的首尾抵消变成了移动目标的望远镜分解：目标值有界控制首尾差额，相邻两期函数的差异则累计为$\cV_K$。这给出式~\eqref{eq:online-residual-bound}中的$2B_v+\E\cV_K$；估计与模型误差逐期累积后形成另一项。详细推导见\ref{app:online}。
+
+这一上界把连续学习的要求分开呈现。有界目标值的首尾项按$K^{-1}$消退；真实目标的累计变化越慢，跨期移动对平均残差的贡献越小；提高抽样与模拟精度则降低梯度误差的平均贡献。参考点引起的内生变化和市场引起的外生变化均通过真实目标序列进入$\cV_K$，因此分析允许策略在不断变化的目标之间持续调整。
+
+平均投影残差刻画各期各自的一阶条件。若还关心近期若干期的更新方向是否持续偏离这些条件，可以使用式~\eqref{eq:dynamic-regret}定义的动态局部遗憾。平方范数的凸性使近期残差向量的加权平均受到各期平方残差的控制，从而得到下面的直接推论。
 
 \begin{corollary}[动态局部遗憾]\label{cor:dynamic-local-regret}
 任取固定窗口长度$W\ge1$、折扣系数$\rho\in(0,1]$及总期数$K\ge1$，逐路径有
@@ -213,7 +287,9 @@ $\Psi_\theta$根据轨迹结果超过各价值阈值的情况，以及这些阈�
 因此，投影残差界也控制了对近期一阶残差作时间平滑后得到的动态局部遗憾。
 \end{corollary}
 
-投影残差直接衡量受约束的一阶驻点条件。若还满足统一的局部误差界：存在$\kappa<\infty$使
+推论~\ref{cor:dynamic-local-regret}保留了动态局部遗憾中先平滑向量、再取平方范数的顺序。各期残差均在该期实际迭代点上计算，时间平滑描述的是沿在线路径积累的一阶偏离。$W=1$时，它与当期平方投影残差的累计量一致；较长窗口允许不同期的方向相互抵消，而式~\eqref{eq:dynamic-local-regret-bound}始终给出由未平滑平方残差累计量得到的上界。
+
+一阶残差还可以在附加几何条件下转化为参数距离。若目标具有统一误差界，较小的投影残差便意味着参数接近当期驻点集合。具体而言，假设存在$\kappa<\infty$使
 \begin{equation}\label{eq:error-bound}
  \dist(\theta,\Sta_k)
  \le \kappa\norm{Q_k(\theta)}_2,
@@ -229,6 +305,10 @@ $\Psi_\theta$根据轨迹结果超过各价值阈值的情况，以及这些阈�
  \le\kappa^2\cE_K.
 \end{equation}
 \end{corollary}
+
+推论~\ref{cor:stationary-tracking}将同一个$\cE_K$转化为参数到移动驻点集合的平均平方距离。其中，误差界承担从一阶条件到几何距离的联系；驻点集合可以包含多个点，并随当期目标改变。附录引理~\ref{lem:stationary-set-drift}进一步在相同误差界下，以相邻目标的梯度差异控制集合本身的漂移。因此，参数的调整、目标的一阶变化与驻点集合的移动可以在同一残差分析中联系起来。
+
+以上结果对任意有限期数$K$成立。继续增加时期数时，平均跟踪误差能否消失，由式~\eqref{eq:online-residual-bound}中的目标变差与梯度误差共同决定。下面的推论给出相应条件，使有限期上界自然延伸为平均意义下的渐近跟踪结论。
 
 \begin{corollary}[平均平方投影残差与动态局部遗憾趋于零]\label{cor:vanishing-tracking}
 固定$W<\infty$和$\rho\in(0,1]$。若
@@ -246,3 +326,7 @@ $\Psi_\theta$根据轨迹结果超过各价值阈值的情况，以及这些阈�
 \end{equation}
 若式~\eqref{eq:error-bound}也成立，则式~\eqref{eq:stationary-tracking}的左侧同样趋于零。
 \end{corollary}
+
+条件$\E\cV_K=o(K)$允许目标持续变化，只要求每期平均的函数变化趋于零。在命题~\ref{prop:reference-sensitivity}的耦合条件下，式~\eqref{eq:variation-decomposition}给出检验这一性质的具体途径：非参考状态与市场变化引起的累计目标差异，以及参考点的累计移动，若均为次线性，则它们共同产生的目标总变差也为次线性。抽样与模型误差条件则要求一阶信息的平均精度随在线过程提高。固定估计器设计后，增大$M_k$可降低其中的蒙特卡洛部分，模拟模型的改进控制另一部分。
+
+在这些条件下，算法面对的目标仍可移动，而平均平方投影残差趋于零，期望动态局部遗憾相对于总期数为次线性增长；若统一误差界成立，参数到当期驻点集合的平均平方距离也趋于零。回到本章开头的两类账户，财富相同而参考点不同，会使它们分别面对各自的CPT目标；梯度估计针对各自的目标提供一阶信息，在线更新再随账户与市场的演变持续调整参数。上界刻画了这一连续调整中，对当期一阶条件的平均偏离如何随目标变化和估计精度而改变。
